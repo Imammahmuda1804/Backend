@@ -16,6 +16,7 @@ class RegisterDto {
     name;
     email;
     password;
+    profilePicture;
 }
 exports.RegisterDto = RegisterDto;
 __decorate([
@@ -32,10 +33,22 @@ __decorate([
     __metadata("design:type", String)
 ], RegisterDto.prototype, "email", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Password minimal 6 karakter', example: '123456' }),
+    (0, swagger_1.ApiProperty)({
+        description: 'Password minimal 6 karakter',
+        example: '123456',
+    }),
     (0, class_validator_1.IsNotEmpty)({ message: 'Password tidak boleh kosong' }),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.MinLength)(6, { message: 'Password minimal 6 karakter' }),
     __metadata("design:type", String)
 ], RegisterDto.prototype, "password", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'URL foto profil user (opsional)',
+        example: '/uploads/profiles/user-123.jpg',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], RegisterDto.prototype, "profilePicture", void 0);
 //# sourceMappingURL=register.dto.js.map

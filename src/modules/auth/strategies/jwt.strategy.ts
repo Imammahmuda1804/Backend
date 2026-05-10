@@ -29,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * Dipanggil setelah JWT terverifikasi.
    * Return value akan diset ke request.user
    */
-  async validate(payload: JwtPayload) {
+  validate(payload: JwtPayload) {
     return {
       id: payload.sub,
       email: payload.email,

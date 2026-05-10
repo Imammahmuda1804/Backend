@@ -19,7 +19,8 @@ let HttpExceptionFilter = HttpExceptionFilter_1 = class HttpExceptionFilter {
         const exceptionResponse = exception.getResponse();
         const message = typeof exceptionResponse === 'string'
             ? exceptionResponse
-            : exceptionResponse.message || exception.message;
+            : exceptionResponse.message ||
+                exception.message;
         const errorResponse = {
             statusCode: status,
             message: Array.isArray(message) ? message : [message],

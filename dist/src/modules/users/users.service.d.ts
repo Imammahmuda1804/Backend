@@ -1,0 +1,93 @@
+import { PrismaService } from '../../prisma/prisma.service';
+import { UpdateProfileDto, AdminUpdateUserDto } from './dto';
+export declare class UsersService {
+    private readonly prisma;
+    constructor(prisma: PrismaService);
+    findById(id: number): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        role: import("@prisma/client").$Enums.Role;
+        status: string;
+        profilePicture: string | null;
+        createdAt: Date;
+    }>;
+    findByEmail(email: string): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        password: string;
+        role: import("@prisma/client").$Enums.Role;
+        status: string;
+        profilePicture: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+    } | null>;
+    updateProfile(userId: number, dto: UpdateProfileDto): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        role: import("@prisma/client").$Enums.Role;
+        profilePicture: string | null;
+        createdAt: Date;
+    }>;
+    findAll(page: number, limit: number, search?: string): Promise<{
+        data: {
+            id: number;
+            email: string;
+            name: string;
+            role: import("@prisma/client").$Enums.Role;
+            status: string;
+            profilePicture: string | null;
+            createdAt: Date;
+        }[];
+        meta: {
+            page: number;
+            limit: number;
+            total: number;
+            total_pages: number;
+        };
+    }>;
+    findOneWithRelations(id: number): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        role: import("@prisma/client").$Enums.Role;
+        status: string;
+        profilePicture: string | null;
+        createdAt: Date;
+        favorites: {
+            id: number;
+            createdAt: Date;
+            userId: number;
+            destinationId: number;
+        }[];
+        searchLogs: {
+            id: number;
+            createdAt: Date;
+            userId: number | null;
+            keyword: string;
+        }[];
+        userReviews: {
+            id: number;
+            createdAt: Date;
+            userId: number;
+            destinationId: number;
+            rating: number;
+            reviewText: string | null;
+        }[];
+    }>;
+    adminUpdate(id: number, dto: AdminUpdateUserDto): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        role: import("@prisma/client").$Enums.Role;
+        status: string;
+        profilePicture: string | null;
+        createdAt: Date;
+    }>;
+    softDelete(id: number): Promise<{
+        id: number;
+        status: string;
+    }>;
+}

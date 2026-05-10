@@ -1,7 +1,7 @@
 # Task 9.1 — Favorites (Save, List, Delete)
 
 > **Phase:** 9 - User Features
-> **Status:** ⬜ Belum Dimulai
+> **Status:** ✅ Selesai
 > **Estimasi:** 1-2 jam
 > **Dependencies:** Task 2.2, Task 4.1
 

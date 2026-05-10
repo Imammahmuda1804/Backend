@@ -8,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RegisterDto, LoginDto } from './dto';
+import { RegisterDto, LoginDto, RefreshTokenDto } from './dto';
 import { JwtPayload } from '../../common/interfaces';
 
 /**
@@ -22,7 +22,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   /**
    * Register user baru
@@ -51,12 +51,14 @@ export class AuthService {
         name: dto.name,
         email: dto.email,
         password: hashedPassword,
+        profilePicture: dto.profilePicture,
       },
       select: {
         id: true,
         name: true,
         email: true,
         role: true,
+        profilePicture: true,
         createdAt: true,
       },
     });
@@ -141,5 +143,59 @@ export class AuthService {
       access_token: accessToken,
       refresh_token: refreshToken,
     };
+  }
+
+  /**
+   * Refresh token
+   */
+  async refreshToken(dto: RefreshTokenDto) {
+    try {
+      // Verifikasi refresh token
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(
+        dto.refresh_token,
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        },
+      );
+
+      // Cek apakah user masih ada di database
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+      });
+
+      if (!user || user.status !== 'active') {
+        throw new UnauthorizedException('User tidak valid atau tidak aktif');
+      }
+
+      // Generate token pair baru
+      const tokens = await this.generateTokens({
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
+      return tokens;
+    } catch {
+      throw new UnauthorizedException(
+        'Refresh token tidak valid atau sudah expired',
+      );
+    }
+  }
+
+  /**
+   * Logout user
+   */
+  async logout(dto: RefreshTokenDto) {
+    try {
+      // Verifikasi token
+      await this.jwtService.verifyAsync(dto.refresh_token, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      });
+      // Catatan: Jika butuh blacklist token, bisa implementasi Redis blacklist di sini
+
+      return { message: 'Logged out successfully' };
+    } catch {
+      throw new UnauthorizedException('Refresh token tidak valid');
+    }
   }
 }

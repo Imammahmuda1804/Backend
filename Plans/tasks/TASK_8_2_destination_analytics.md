@@ -1,7 +1,7 @@
 # Task 8.2 — Destination Analytics & Topics
 
 > **Phase:** 8 - Analytics
-> **Status:** ⬜ Belum Dimulai
+> **Status:** ✅ Selesai
 > **Estimasi:** 2-3 jam
 > **Dependencies:** Task 8.1
 

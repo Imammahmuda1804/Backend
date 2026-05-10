@@ -72,12 +72,14 @@ let AuthService = AuthService_1 = class AuthService {
                 name: dto.name,
                 email: dto.email,
                 password: hashedPassword,
+                profilePicture: dto.profilePicture,
             },
             select: {
                 id: true,
                 name: true,
                 email: true,
                 role: true,
+                profilePicture: true,
                 createdAt: true,
             },
         });
@@ -134,6 +136,39 @@ let AuthService = AuthService_1 = class AuthService {
             access_token: accessToken,
             refresh_token: refreshToken,
         };
+    }
+    async refreshToken(dto) {
+        try {
+            const payload = await this.jwtService.verifyAsync(dto.refresh_token, {
+                secret: this.configService.get('JWT_REFRESH_SECRET'),
+            });
+            const user = await this.prisma.user.findUnique({
+                where: { id: payload.sub },
+            });
+            if (!user || user.status !== 'active') {
+                throw new common_1.UnauthorizedException('User tidak valid atau tidak aktif');
+            }
+            const tokens = await this.generateTokens({
+                sub: user.id,
+                email: user.email,
+                role: user.role,
+            });
+            return tokens;
+        }
+        catch {
+            throw new common_1.UnauthorizedException('Refresh token tidak valid atau sudah expired');
+        }
+    }
+    async logout(dto) {
+        try {
+            await this.jwtService.verifyAsync(dto.refresh_token, {
+                secret: this.configService.get('JWT_REFRESH_SECRET'),
+            });
+            return { message: 'Logged out successfully' };
+        }
+        catch {
+            throw new common_1.UnauthorizedException('Refresh token tidak valid');
+        }
     }
 };
 exports.AuthService = AuthService;

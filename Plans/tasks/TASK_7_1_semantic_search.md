@@ -1,7 +1,7 @@
 # Task 7.1 — Semantic Search Endpoint
 
 > **Phase:** 7 - Semantic Search
-> **Status:** ⬜ Belum Dimulai
+> **Status:** ✅ Selesai
 > **Estimasi:** 2-3 jam
 > **Dependencies:** Task 6.1, Task 6.2
 

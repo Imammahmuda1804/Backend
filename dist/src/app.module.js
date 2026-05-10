@@ -13,7 +13,26 @@ const throttler_1 = require("@nestjs/throttler");
 const bullmq_1 = require("@nestjs/bullmq");
 const env_config_1 = require("./config/env.config");
 const prisma_module_1 = require("./prisma/prisma.module");
+const app_controller_1 = require("./app.controller");
+const app_service_1 = require("./app.service");
 const auth_module_1 = require("./modules/auth/auth.module");
+const users_module_1 = require("./modules/users/users.module");
+const admin_module_1 = require("./modules/admin/admin.module");
+const destinations_module_1 = require("./modules/destinations/destinations.module");
+const scraper_module_1 = require("./modules/scraper/scraper.module");
+const nlp_module_1 = require("./modules/nlp/nlp.module");
+const vector_module_1 = require("./modules/vector/vector.module");
+const uploads_module_1 = require("./modules/uploads/uploads.module");
+const search_module_1 = require("./modules/search/search.module");
+const analytics_module_1 = require("./modules/analytics/analytics.module");
+const favorites_module_1 = require("./modules/favorites/favorites.module");
+const reviews_module_1 = require("./modules/reviews/reviews.module");
+const topics_module_1 = require("./modules/topics/topics.module");
+const core_1 = require("@nestjs/core");
+const jwt_auth_guard_1 = require("./common/guards/jwt-auth.guard");
+const roles_guard_1 = require("./common/guards/roles.guard");
+const serve_static_1 = require("@nestjs/serve-static");
+const path_1 = require("path");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -23,6 +42,22 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot(env_config_1.envConfig),
             prisma_module_1.PrismaModule,
             auth_module_1.AuthModule,
+            users_module_1.UsersModule,
+            admin_module_1.AdminModule,
+            destinations_module_1.DestinationsModule,
+            scraper_module_1.ScraperModule,
+            nlp_module_1.NlpModule,
+            vector_module_1.VectorModule,
+            uploads_module_1.UploadsModule,
+            search_module_1.SearchModule,
+            analytics_module_1.AnalyticsModule,
+            favorites_module_1.FavoritesModule,
+            reviews_module_1.ReviewsModule,
+            topics_module_1.TopicsModule,
+            serve_static_1.ServeStaticModule.forRoot({
+                rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
+                serveRoot: '/uploads',
+            }),
             throttler_1.ThrottlerModule.forRoot({
                 throttlers: [
                     {
@@ -42,8 +77,18 @@ exports.AppModule = AppModule = __decorate([
                 inject: [config_1.ConfigService],
             }),
         ],
-        controllers: [],
-        providers: [],
+        controllers: [app_controller_1.AppController],
+        providers: [
+            app_service_1.AppService,
+            {
+                provide: core_1.APP_GUARD,
+                useClass: jwt_auth_guard_1.JwtAuthGuard,
+            },
+            {
+                provide: core_1.APP_GUARD,
+                useClass: roles_guard_1.RolesGuard,
+            },
+        ],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

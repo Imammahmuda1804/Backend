@@ -41,7 +41,10 @@ __decorate([
     __metadata("design:type", Number)
 ], PaginationQueryDto.prototype, "limit", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: 'Field untuk sorting', example: 'createdAt' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Field untuk sorting',
+        example: 'createdAt',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)

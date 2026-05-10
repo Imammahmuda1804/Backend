@@ -4,8 +4,8 @@ export const swaggerConfig = new DocumentBuilder()
   .setTitle('Wisata Recommendation API')
   .setDescription(
     'Backend API untuk sistem rekomendasi wisata berbasis AI. ' +
-      'Menyediakan endpoint untuk autentikasi, manajemen destinasi, ' +
-      'scraping ulasan, analisis sentimen, semantic search, dan analytics dashboard.',
+    'Menyediakan endpoint untuk autentikasi, manajemen destinasi, ' +
+    'scraping ulasan, analisis sentimen, semantic search, dan analytics dashboard.',
   )
   .setVersion('1.0')
   .addBearerAuth(
@@ -17,7 +17,8 @@ export const swaggerConfig = new DocumentBuilder()
       description: 'Masukkan JWT token',
       in: 'header',
     },
-    'access-token',
+    // Tidak pakai nama custom — pakai default 'bearer'
+    // agar cocok dengan @ApiBearerAuth() tanpa argumen di semua controller
   )
   .addTag('Auth', 'Autentikasi & Otorisasi')
   .addTag('Users', 'Manajemen Profil User')

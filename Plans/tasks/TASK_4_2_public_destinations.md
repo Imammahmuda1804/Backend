@@ -45,6 +45,7 @@ Response (200):
 ```
 
 Logic:
+
 1. Query destinations yang memiliki analytics
 2. Sort by `recommendation_score DESC`
 3. Exclude soft-deleted
@@ -57,6 +58,7 @@ Logic:
 Destination detail (public).
 
 Response wajib mencakup:
+
 - metadata (name, city, province, coordinates, dll)
 - gallery images
 - youtube trailer URL
@@ -67,6 +69,7 @@ Response wajib mencakup:
 - recommendation score
 
 Logic:
+
 1. Find destination by ID (exclude soft-deleted)
 2. Include: images, destination_topics (with topic), sentiment_trends
 3. Aggregate: user_reviews rata-rata rating

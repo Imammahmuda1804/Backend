@@ -1,7 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RegisterDto, LoginDto } from './dto';
+import { RegisterDto, LoginDto, RefreshTokenDto } from './dto';
 import { JwtPayload } from '../../common/interfaces';
 export declare class AuthService {
     private readonly prisma;
@@ -10,10 +10,11 @@ export declare class AuthService {
     private readonly logger;
     constructor(prisma: PrismaService, jwtService: JwtService, configService: ConfigService);
     register(dto: RegisterDto): Promise<{
-        name: string;
-        email: string;
         id: number;
+        email: string;
+        name: string;
         role: import("@prisma/client").$Enums.Role;
+        profilePicture: string | null;
         createdAt: Date;
     }>;
     login(dto: LoginDto): Promise<{
@@ -29,5 +30,12 @@ export declare class AuthService {
     generateTokens(payload: JwtPayload): Promise<{
         access_token: string;
         refresh_token: string;
+    }>;
+    refreshToken(dto: RefreshTokenDto): Promise<{
+        access_token: string;
+        refresh_token: string;
+    }>;
+    logout(dto: RefreshTokenDto): Promise<{
+        message: string;
     }>;
 }

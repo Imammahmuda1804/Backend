@@ -36,6 +36,7 @@ Request:
 ```
 
 Logic:
+
 1. Validate input
 2. Generate slug dari name (e.g., "jam-gadang")
 3. Check slug unik
@@ -59,6 +60,7 @@ Response termasuk: metadata, analytics summary (jika ada).
 Detail destination untuk admin.
 
 Response mencakup:
+
 - metadata lengkap
 - images
 - analytics summary

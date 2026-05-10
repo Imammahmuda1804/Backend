@@ -1,7 +1,7 @@
 # Task 9.3 — Topics (List & Filter)
 
 > **Phase:** 9 - User Features
-> **Status:** ⬜ Belum Dimulai
+> **Status:** ✅ Selesai
 > **Estimasi:** 1 jam
 > **Dependencies:** Task 6.3
 

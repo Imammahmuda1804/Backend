@@ -22,12 +22,14 @@ Download hasil scraping sebagai file CSV.
 Response: File CSV download
 
 Headers:
+
 ```text
 Content-Type: text/csv
 Content-Disposition: attachment; filename="reviews_job_1.csv"
 ```
 
 Logic:
+
 1. Find ScrapingJob by ID (validate completed)
 2. Query reviews berdasarkan job
 3. Generate CSV dari reviews
@@ -52,6 +54,7 @@ Response (202):
 ```
 
 Logic:
+
 1. Find ScrapingJob by ID (validate completed)
 2. Query reviews dari job
 3. Generate internal CSV file
@@ -83,6 +86,7 @@ Request:
 ```
 
 Logic:
+
 1. Ambil google_maps_url dari destination
 2. Trigger scraper (reuse POST /admin/scraper/start logic)
 3. Create scraping job

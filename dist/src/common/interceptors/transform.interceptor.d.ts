@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 export interface ApiResponse<T> {
     status: 'success';
     data: T;
+    meta?: any;
 }
 export declare class TransformInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
     intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>>;

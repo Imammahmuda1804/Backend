@@ -15,7 +15,7 @@ exports.swaggerConfig = new swagger_1.DocumentBuilder()
     name: 'Authorization',
     description: 'Masukkan JWT token',
     in: 'header',
-}, 'access-token')
+})
     .addTag('Auth', 'Autentikasi & Otorisasi')
     .addTag('Users', 'Manajemen Profil User')
     .addTag('Destinations', 'Destinasi Wisata (Public)')

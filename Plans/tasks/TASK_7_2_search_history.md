@@ -1,7 +1,7 @@
 # Task 7.2 — Search History (GET, DELETE)
 
 > **Phase:** 7 - Semantic Search
-> **Status:** ⬜ Belum Dimulai
+> **Status:** ✅ Selesai
 > **Estimasi:** 1 jam
 > **Dependencies:** Task 7.1
 

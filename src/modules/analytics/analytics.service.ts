@@ -93,6 +93,7 @@ export class AnalyticsService {
             sentimentCounts,
             topDestinations,
             latestScrapingJobs,
+            topTopics,
         ] = await Promise.all([
             // Users breakdown: active vs suspended
             this.prisma.user.groupBy({
@@ -145,7 +146,22 @@ export class AnalyticsService {
                     destination: { select: { name: true, city: true } },
                 },
             }),
+
+            this.prisma.destinationTopic.groupBy({
+                by: ['topicId'],
+                _sum: { totalReviews: true },
+                orderBy: { _sum: { totalReviews: 'desc' } },
+                take: 5,
+            }),
         ]);
+
+        // Resolve topic names
+        const topicIds = topTopics.map((t) => t.topicId);
+        const topics = await this.prisma.topic.findMany({
+            where: { id: { in: topicIds } },
+            select: { id: true, topicName: true },
+        });
+        const topicMap = new Map(topics.map((t) => [t.id, t.topicName]));
 
         // Build user breakdown
         const userBreakdown: Record<string, number> = {};
@@ -177,6 +193,10 @@ export class AnalyticsService {
             sentiment_distribution: this.buildSentimentDist(sentimentCounts),
             top_destinations: topDestinations,
             latest_scraping_jobs: latestScrapingJobs,
+            top_topics: topTopics.map((t) => ({
+                topic_name: topicMap.get(t.topicId) ?? 'Unknown',
+                count: t._sum.totalReviews ?? 0,
+            })),
         };
     }
 

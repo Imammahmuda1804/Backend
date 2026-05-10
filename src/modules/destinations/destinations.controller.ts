@@ -45,6 +45,14 @@ export class DestinationsController {
     return this.destinationsService.findRanking(sortBy, parsedLimit);
   }
 
+  @Get('slug/:slug')
+  @ApiOperation({ summary: 'Get public destination detail by slug' })
+  @ApiResponse({ status: 200, description: 'Destination detail with analytics' })
+  @ApiResponse({ status: 404, description: 'Destination not found' })
+  async getDetailBySlug(@Param('slug') slug: string) {
+    return this.destinationsService.findOnePublicBySlug(slug);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get public destination detail' })
   @ApiResponse({ status: 200, description: 'Destination detail with analytics' })

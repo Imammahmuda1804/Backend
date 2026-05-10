@@ -18,6 +18,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const search_service_1 = require("./search.service");
 const dto_1 = require("./dto");
+const public_decorator_1 = require("../../common/decorators/public.decorator");
 const optional_jwt_auth_guard_1 = require("../../common/guards/optional-jwt-auth.guard");
 const current_user_decorator_1 = require("../../common/decorators/current-user.decorator");
 let SearchController = SearchController_1 = class SearchController {
@@ -48,6 +49,7 @@ let SearchController = SearchController_1 = class SearchController {
 };
 exports.SearchController = SearchController;
 __decorate([
+    (0, public_decorator_1.Public)(),
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(optional_jwt_auth_guard_1.OptionalJwtAuthGuard),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
@@ -57,7 +59,10 @@ __decorate([
             'Bisa diakses tanpa login. Jika login, riwayat pencarian akan disimpan otomatis.',
     }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Hasil pencarian berhasil' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Query tidak valid (min 3 karakter)' }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Query tidak valid (min 3 karakter)',
+    }),
     (0, swagger_1.ApiResponse)({ status: 503, description: 'NLP service tidak tersedia' }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
@@ -71,7 +76,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({ summary: 'Riwayat pencarian user yang sedang login' }),
     (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number, example: 1 }),
     (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number, example: 20 }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Riwayat pencarian berhasil diambil' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Riwayat pencarian berhasil diambil',
+    }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)('id')),
     __param(1, (0, common_1.Query)('page')),

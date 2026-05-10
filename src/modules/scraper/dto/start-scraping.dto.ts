@@ -21,6 +21,11 @@ export class StartScrapingDto {
   @Min(1)
   max_reviews?: number = 100;
 
+  @ApiPropertyOptional({ description: 'Custom Google Maps URL. If provided, overrides the destination URL.' })
+  @IsOptional()
+  @IsString()
+  maps_url?: string;
+
   @ApiPropertyOptional({ default: 'newest' })
   @IsOptional()
   @IsString()

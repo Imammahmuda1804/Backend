@@ -136,6 +136,34 @@ export class AdminDestinationsController {
     return this.destinationsService.updateMapsUrl(id, dto);
   }
 
+  @Post(':id/thumbnail')
+  @ApiOperation({ summary: 'Upload destination thumbnail (cover image)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Thumbnail uploaded successfully' })
+  @ApiResponse({ status: 400, description: 'File is required or invalid format' })
+  @ApiResponse({ status: 404, description: 'Destination not found' })
+  @UseInterceptors(FileInterceptor('file', multerImageOptions))
+  async uploadThumbnail(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: MulterFile,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    return this.destinationsService.uploadThumbnail(id, file.filename);
+  }
+
   @Post(':id/images')
   @ApiOperation({ summary: 'Upload destination gallery image' })
   @ApiConsumes('multipart/form-data')

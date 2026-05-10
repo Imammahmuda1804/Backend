@@ -17,11 +17,17 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const destinations_service_1 = require("./destinations.service");
 const pagination_dto_1 = require("../../common/dto/pagination.dto");
+const destination_query_dto_1 = require("./dto/destination-query.dto");
 const public_decorator_1 = require("../../common/decorators/public.decorator");
 let DestinationsController = class DestinationsController {
     destinationsService;
     constructor(destinationsService) {
         this.destinationsService = destinationsService;
+    }
+    async findAll(query) {
+        const page = Number(query.page) || 1;
+        const limit = Number(query.limit) || 10;
+        return this.destinationsService.findAll(page, limit, query.search, query.topic_id);
     }
     async getRecommendations(query) {
         const page = Number(query.page) || 1;
@@ -32,11 +38,23 @@ let DestinationsController = class DestinationsController {
         const parsedLimit = limit ? parseInt(limit, 10) : 10;
         return this.destinationsService.findRanking(sortBy, parsedLimit);
     }
+    async getDetailBySlug(slug) {
+        return this.destinationsService.findOnePublicBySlug(slug);
+    }
     async getDetail(id) {
         return this.destinationsService.findOnePublic(id);
     }
 };
 exports.DestinationsController = DestinationsController;
+__decorate([
+    (0, common_1.Get)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Get all destinations with filters' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Paginated list of destinations' }),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [destination_query_dto_1.DestinationQueryDto]),
+    __metadata("design:returntype", Promise)
+], DestinationsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)('recommendations'),
     (0, swagger_1.ApiOperation)({ summary: 'Get recommended destinations' }),
@@ -56,6 +74,16 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], DestinationsController.prototype, "getRanking", null);
+__decorate([
+    (0, common_1.Get)('slug/:slug'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get public destination detail by slug' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Destination detail with analytics' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Destination not found' }),
+    __param(0, (0, common_1.Param)('slug')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], DestinationsController.prototype, "getDetailBySlug", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get public destination detail' }),

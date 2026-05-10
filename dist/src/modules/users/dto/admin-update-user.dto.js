@@ -16,6 +16,7 @@ const client_1 = require("@prisma/client");
 class AdminUpdateUserDto {
     name;
     email;
+    password;
     role;
     status;
 }
@@ -39,6 +40,16 @@ __decorate([
     (0, class_validator_1.IsEmail)({}, { message: 'Format email tidak valid' }),
     __metadata("design:type", String)
 ], AdminUpdateUserDto.prototype, "email", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Password baru',
+        example: 'newpassword123',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(6, { message: 'Password minimal 6 karakter' }),
+    __metadata("design:type", String)
+], AdminUpdateUserDto.prototype, "password", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'Role user',

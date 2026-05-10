@@ -7,5 +7,6 @@ export declare class CreateDestinationDto {
     longitude?: number;
     googleMapsUrl?: string;
     youtubeUrl?: string;
+    googlePlaceId?: string;
     thumbnailUrl?: string;
 }

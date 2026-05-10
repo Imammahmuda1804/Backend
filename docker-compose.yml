@@ -23,6 +23,17 @@ services:
     volumes:
       - redis_data:/data
     restart: unless-stopped
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: wisata_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mail.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    restart: unless-stopped
 
 volumes:
   postgres_data:

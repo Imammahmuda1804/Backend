@@ -54,8 +54,9 @@ let ScraperService = ScraperService_1 = class ScraperService {
         if (!destination) {
             throw new common_1.NotFoundException('Destination not found');
         }
-        if (!destination.googleMapsUrl) {
-            throw new common_1.BadRequestException('Destination does not have a Google Maps URL set');
+        const finalMapsUrl = dto.maps_url || destination.googleMapsUrl;
+        if (!finalMapsUrl) {
+            throw new common_1.BadRequestException('Destination does not have a Google Maps URL set and no custom maps_url was provided');
         }
         const job = await this.prisma.scrapingJob.create({
             data: {
@@ -67,7 +68,7 @@ let ScraperService = ScraperService_1 = class ScraperService {
         await this.scrapingQueue.add('scrape-reviews', {
             jobId: job.id,
             destinationId: destination.id,
-            url: destination.googleMapsUrl,
+            url: finalMapsUrl,
             maxReviews: dto.max_reviews,
             sort: dto.sort,
             starsFilter: dto.stars_filter,

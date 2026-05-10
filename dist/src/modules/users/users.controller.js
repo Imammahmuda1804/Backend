@@ -14,6 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersController = void 0;
 const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
+const multer_config_1 = require("../../config/multer.config");
 const swagger_1 = require("@nestjs/swagger");
 const users_service_1 = require("./users.service");
 const dto_1 = require("./dto");
@@ -28,6 +30,13 @@ let UsersController = class UsersController {
     }
     async updateProfile(user, dto) {
         return this.usersService.updateProfile(user.id, dto);
+    }
+    async uploadAvatar(user, file) {
+        if (!file) {
+            throw new common_1.BadRequestException('File is required');
+        }
+        const profilePicture = `/uploads/profiles/${file.filename}`;
+        return this.usersService.updateProfile(user.id, { profilePicture });
     }
 };
 exports.UsersController = UsersController;
@@ -60,6 +69,17 @@ __decorate([
     __metadata("design:paramtypes", [Object, dto_1.UpdateProfileDto]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.Post)('me/avatar'),
+    (0, swagger_1.ApiOperation)({ summary: 'Upload foto profil user' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Avatar berhasil diperbarui' }),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', multer_config_1.multerProfileImageOptions)),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "uploadAvatar", null);
 exports.UsersController = UsersController = __decorate([
     (0, swagger_1.ApiTags)('Users'),
     (0, swagger_1.ApiBearerAuth)(),

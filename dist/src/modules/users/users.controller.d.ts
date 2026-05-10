@@ -28,4 +28,16 @@ export declare class UsersController {
         profilePicture: string | null;
         createdAt: Date;
     }>;
+    uploadAvatar(user: {
+        id: number;
+        email: string;
+        role: string;
+    }, file: Express.Multer.File): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        role: import("@prisma/client").$Enums.Role;
+        profilePicture: string | null;
+        createdAt: Date;
+    }>;
 }

@@ -40,7 +40,7 @@ let AdminDestinationsController = class AdminDestinationsController {
     async findAll(query) {
         const page = Number(query.page) || 1;
         const limit = Number(query.limit) || 10;
-        return this.destinationsService.findAll(page, limit, query.search);
+        return this.destinationsService.findAll(page, limit, query.search, query.topic_id);
     }
     async findOne(id) {
         return this.destinationsService.findOneAdmin(id);
@@ -53,6 +53,12 @@ let AdminDestinationsController = class AdminDestinationsController {
     }
     async updateMapsUrl(id, dto) {
         return this.destinationsService.updateMapsUrl(id, dto);
+    }
+    async uploadThumbnail(id, file) {
+        if (!file) {
+            throw new common_1.BadRequestException('File is required');
+        }
+        return this.destinationsService.uploadThumbnail(id, file.filename);
     }
     async uploadImage(id, file) {
         if (!file) {
@@ -149,6 +155,31 @@ __decorate([
     __metadata("design:paramtypes", [Number, dto_2.UpdateMapsUrlDto]),
     __metadata("design:returntype", Promise)
 ], AdminDestinationsController.prototype, "updateMapsUrl", null);
+__decorate([
+    (0, common_1.Post)(':id/thumbnail'),
+    (0, swagger_1.ApiOperation)({ summary: 'Upload destination thumbnail (cover image)' }),
+    (0, swagger_1.ApiConsumes)('multipart/form-data'),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            type: 'object',
+            properties: {
+                file: {
+                    type: 'string',
+                    format: 'binary',
+                },
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Thumbnail uploaded successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'File is required or invalid format' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Destination not found' }),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', multer_config_1.multerImageOptions)),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], AdminDestinationsController.prototype, "uploadThumbnail", null);
 __decorate([
     (0, common_1.Post)(':id/images'),
     (0, swagger_1.ApiOperation)({ summary: 'Upload destination gallery image' }),

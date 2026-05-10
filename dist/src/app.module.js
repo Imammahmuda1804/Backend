@@ -55,7 +55,7 @@ exports.AppModule = AppModule = __decorate([
             reviews_module_1.ReviewsModule,
             topics_module_1.TopicsModule,
             serve_static_1.ServeStaticModule.forRoot({
-                rootPath: (0, path_1.join)(__dirname, '..', 'uploads'),
+                rootPath: (0, path_1.join)(process.cwd(), 'uploads'),
                 serveRoot: '/uploads',
             }),
             throttler_1.ThrottlerModule.forRoot({

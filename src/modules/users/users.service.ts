@@ -131,9 +131,38 @@ export class UsersService {
         status: true,
         profilePicture: true,
         createdAt: true,
-        favorites: true,
-        userReviews: true,
-        searchLogs: true,
+        favorites: {
+          include: {
+            destination: {
+              select: {
+                id: true,
+                name: true,
+                city: true,
+                province: true,
+                thumbnailUrl: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        },
+        userReviews: {
+          include: {
+            destination: {
+              select: {
+                id: true,
+                name: true,
+                city: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        },
+        searchLogs: {
+          orderBy: { createdAt: 'desc' },
+          take: 30,
+        },
       },
     });
 
@@ -155,11 +184,18 @@ export class UsersService {
       if (existing) throw new ConflictException('Email sudah digunakan');
     }
 
+    // Hash password if provided
+    let hashedPassword: string | undefined;
+    if (dto.password) {
+      hashedPassword = await bcrypt.hash(dto.password, 10);
+    }
+
     return this.prisma.user.update({
       where: { id },
       data: {
         ...(dto.name && { name: dto.name }),
         ...(dto.email && { email: dto.email }),
+        ...(hashedPassword && { password: hashedPassword }),
         ...(dto.role && { role: dto.role }),
         ...(dto.status && { status: dto.status }),
       },

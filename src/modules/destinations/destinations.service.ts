@@ -178,6 +178,30 @@ export class DestinationsService {
     });
   }
 
+  async uploadThumbnail(destinationId: number, filename: string) {
+    const destination = await this.prisma.destination.findUnique({
+      where: { id: destinationId },
+    });
+    if (!destination) {
+      const filepath = path.join(process.cwd(), 'uploads', 'destinations', filename);
+      if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+      throw new NotFoundException('Destinasi tidak ditemukan');
+    }
+
+    // Delete old thumbnail file if it was a local upload
+    if (destination.thumbnailUrl?.startsWith('/uploads/')) {
+      const oldFilename = path.basename(destination.thumbnailUrl);
+      const oldFilepath = path.join(process.cwd(), 'uploads', 'destinations', oldFilename);
+      if (fs.existsSync(oldFilepath)) fs.unlinkSync(oldFilepath);
+    }
+
+    const thumbnailUrl = `/uploads/destinations/${filename}`;
+    return this.prisma.destination.update({
+      where: { id: destinationId },
+      data: { thumbnailUrl },
+    });
+  }
+
   async uploadImage(destinationId: number, filename: string) {
     const destination = await this.prisma.destination.findUnique({
       where: { id: destinationId },
@@ -304,6 +328,53 @@ export class DestinationsService {
     // Aggregate user rating
     const reviewAgg = await this.prisma.userReview.aggregate({
       where: { destinationId: id },
+      _avg: { rating: true },
+      _count: true,
+    });
+
+    return {
+      ...destination,
+      averageUserRating: reviewAgg._avg.rating || destination.userRating,
+      totalUserReviews: reviewAgg._count,
+    };
+  }
+
+  async findOnePublicBySlug(slug: string) {
+    const destination = await this.prisma.destination.findFirst({
+      where: { slug, deletedAt: null },
+      include: {
+        images: true,
+        sentimentTrends: {
+          orderBy: { date: 'asc' }, // usually charts need ascending dates
+          take: 30,
+        },
+        destinationTopics: {
+          include: {
+            topic: true,
+          },
+        },
+        userReviews: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                profilePicture: true,
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+
+    if (!destination) {
+      throw new NotFoundException('Destinasi tidak ditemukan');
+    }
+
+    // Aggregate user rating
+    const reviewAgg = await this.prisma.userReview.aggregate({
+      where: { destinationId: destination.id },
       _avg: { rating: true },
       _count: true,
     });

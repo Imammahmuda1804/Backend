@@ -1,4 +1,6 @@
-import { Controller, Get, Put, Body } from '@nestjs/common';
+import { Controller, Get, Put, Post, Body, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerProfileImageOptions } from '../../config/multer.config';
 import {
   ApiTags,
   ApiOperation,
@@ -43,5 +45,21 @@ export class UsersController {
     @Body() dto: UpdateProfileDto,
   ) {
     return this.usersService.updateProfile(user.id, dto);
+  }
+
+  @Post('me/avatar')
+  @ApiOperation({ summary: 'Upload foto profil user' })
+  @ApiResponse({ status: 200, description: 'Avatar berhasil diperbarui' })
+  @UseInterceptors(FileInterceptor('file', multerProfileImageOptions))
+  async uploadAvatar(
+    @CurrentUser() user: { id: number; email: string; role: string },
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
+    
+    const profilePicture = `/uploads/profiles/${file.filename}`;
+    return this.usersService.updateProfile(user.id, { profilePicture });
   }
 }

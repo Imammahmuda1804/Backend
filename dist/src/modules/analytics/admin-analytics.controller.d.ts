@@ -45,6 +45,10 @@ export declare class AdminAnalyticsController {
             errorMessage: string | null;
             createdBy: number | null;
         })[];
+        top_topics: {
+            topic_name: string;
+            count: number;
+        }[];
     }>;
     getAdminActivity(): Promise<{
         recent_scraping_jobs: ({

@@ -33,14 +33,18 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.multerCsvOptions = exports.multerImageOptions = exports.csvFileFilter = exports.imageFileFilter = void 0;
+exports.multerProfileImageOptions = exports.multerCsvOptions = exports.multerImageOptions = exports.csvFileFilter = exports.imageFileFilter = void 0;
 const path_1 = require("path");
 const common_1 = require("@nestjs/common");
 const multer_1 = require("multer");
 const fs = __importStar(require("fs"));
 const uploadDir = './uploads/destinations';
+const profileDir = './uploads/profiles';
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
+}
+if (!fs.existsSync(profileDir)) {
+    fs.mkdirSync(profileDir, { recursive: true });
 }
 const imageFileFilter = (req, file, callback) => {
     if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/i)) {
@@ -71,5 +75,17 @@ exports.multerImageOptions = {
 exports.multerCsvOptions = {
     fileFilter: exports.csvFileFilter,
     limits: { fileSize: 10 * 1024 * 1024 },
+};
+exports.multerProfileImageOptions = {
+    fileFilter: exports.imageFileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    storage: (0, multer_1.diskStorage)({
+        destination: profileDir,
+        filename: (req, file, callback) => {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = (0, path_1.extname)(file.originalname);
+            callback(null, `avatar-${uniqueSuffix}${ext}`);
+        },
+    }),
 };
 //# sourceMappingURL=multer.config.js.map

@@ -17,7 +17,9 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Security - Helmet
-  app.use(helmet());
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+  }));
 
   // CORS
   const corsOrigins = configService.get<string>('CORS_ORIGINS', '');

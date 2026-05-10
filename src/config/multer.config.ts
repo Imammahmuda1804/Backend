@@ -17,8 +17,13 @@ export interface MulterFile {
 }
 
 const uploadDir = './uploads/destinations';
+const profileDir = './uploads/profiles';
+
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
+}
+if (!fs.existsSync(profileDir)) {
+  fs.mkdirSync(profileDir, { recursive: true });
 }
 
 export const imageFileFilter = (
@@ -72,4 +77,22 @@ export const multerCsvOptions = {
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   // Use memory storage for CSV/Excel files
   // Files will be available in file.buffer
+};
+
+export const multerProfileImageOptions = {
+  fileFilter: imageFileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+
+  storage: diskStorage({
+    destination: profileDir,
+    filename: (
+      req: Request,
+      file: MulterFile,
+      callback: (error: Error | null, filename: string) => void,
+    ) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const ext = extname(file.originalname);
+      callback(null, `avatar-${uniqueSuffix}${ext}`);
+    },
+  }),
 };

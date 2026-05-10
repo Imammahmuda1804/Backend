@@ -25,3 +25,10 @@ export declare const multerCsvOptions: {
         fileSize: number;
     };
 };
+export declare const multerProfileImageOptions: {
+    fileFilter: (req: Request, file: MulterFile, callback: (error: Error | null, acceptFile: boolean) => void) => void;
+    limits: {
+        fileSize: number;
+    };
+    storage: import("multer").StorageEngine;
+};

@@ -21,6 +21,7 @@ class CreateDestinationDto {
     longitude;
     googleMapsUrl;
     youtubeUrl;
+    googlePlaceId;
     thumbnailUrl;
 }
 exports.CreateDestinationDto = CreateDestinationDto;
@@ -78,6 +79,15 @@ __decorate([
     (0, class_validator_1.IsUrl)(),
     __metadata("design:type", String)
 ], CreateDestinationDto.prototype, "youtubeUrl", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Google Place ID',
+        example: 'ChIJN1t_tDeuEmsRUsoyG83frY4',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateDestinationDto.prototype, "googlePlaceId", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ description: 'Thumbnail URL', example: 'https://...' }),
     (0, class_validator_1.IsOptional)(),

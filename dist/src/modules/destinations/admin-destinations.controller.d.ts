@@ -203,6 +203,29 @@ export declare class AdminDestinationsController {
         recommendationScore: number | null;
         deletedAt: Date | null;
     }>;
+    uploadThumbnail(id: number, file: MulterFile): Promise<{
+        id: number;
+        name: string;
+        createdAt: Date;
+        updatedAt: Date;
+        description: string | null;
+        slug: string;
+        city: string;
+        province: string;
+        latitude: number | null;
+        longitude: number | null;
+        googleMapsUrl: string | null;
+        googlePlaceId: string | null;
+        googleRating: number | null;
+        googleReviewCount: number | null;
+        userRating: number | null;
+        userReviewCount: number | null;
+        youtubeUrl: string | null;
+        thumbnailUrl: string | null;
+        positiveRatio: number | null;
+        recommendationScore: number | null;
+        deletedAt: Date | null;
+    }>;
     uploadImage(id: number, file: MulterFile): Promise<{
         id: number;
         createdAt: Date;

@@ -16,7 +16,9 @@ async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     const configService = app.get(config_1.ConfigService);
     app.setGlobalPrefix('api');
-    app.use((0, helmet_1.default)());
+    app.use((0, helmet_1.default)({
+        crossOriginResourcePolicy: { policy: "cross-origin" }
+    }));
     const corsOrigins = configService.get('CORS_ORIGINS', '');
     app.enableCors({
         origin: corsOrigins ? corsOrigins.split(',') : '*',

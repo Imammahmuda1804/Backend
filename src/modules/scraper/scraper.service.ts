@@ -45,9 +45,11 @@ export class ScraperService {
       throw new NotFoundException('Destination not found');
     }
 
-    if (!destination.googleMapsUrl) {
+    const finalMapsUrl = dto.maps_url || destination.googleMapsUrl;
+
+    if (!finalMapsUrl) {
       throw new BadRequestException(
-        'Destination does not have a Google Maps URL set',
+        'Destination does not have a Google Maps URL set and no custom maps_url was provided',
       );
     }
 
@@ -62,7 +64,7 @@ export class ScraperService {
     await this.scrapingQueue.add('scrape-reviews', {
       jobId: job.id,
       destinationId: destination.id,
-      url: destination.googleMapsUrl,
+      url: finalMapsUrl,
       maxReviews: dto.max_reviews,
       sort: dto.sort,
       starsFilter: dto.stars_filter,

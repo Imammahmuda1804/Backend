@@ -28,26 +28,40 @@ export declare class AdminUsersController {
         status: string;
         profilePicture: string | null;
         createdAt: Date;
-        favorites: {
+        favorites: ({
+            destination: {
+                id: number;
+                name: string;
+                city: string;
+                province: string;
+                thumbnailUrl: string | null;
+            };
+        } & {
             id: number;
             createdAt: Date;
             userId: number;
             destinationId: number;
-        }[];
+        })[];
         searchLogs: {
             id: number;
             createdAt: Date;
             userId: number | null;
             keyword: string;
         }[];
-        userReviews: {
+        userReviews: ({
+            destination: {
+                id: number;
+                name: string;
+                city: string;
+            };
+        } & {
             id: number;
             createdAt: Date;
-            userId: number;
-            destinationId: number;
             rating: number;
             reviewText: string | null;
-        }[];
+            userId: number;
+            destinationId: number;
+        })[];
     }>;
     updateUser(id: number, dto: AdminUpdateUserDto): Promise<{
         id: number;

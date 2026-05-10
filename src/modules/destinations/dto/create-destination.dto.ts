@@ -54,6 +54,14 @@ export class CreateDestinationDto {
   @IsUrl()
   youtubeUrl?: string;
 
+  @ApiPropertyOptional({
+    description: 'Google Place ID',
+    example: 'ChIJN1t_tDeuEmsRUsoyG83frY4',
+  })
+  @IsOptional()
+  @IsString()
+  googlePlaceId?: string;
+
   @ApiPropertyOptional({ description: 'Thumbnail URL', example: 'https://...' })
   @IsOptional()
   @IsUrl()

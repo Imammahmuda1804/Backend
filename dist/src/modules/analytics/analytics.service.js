@@ -66,7 +66,7 @@ let AnalyticsService = class AnalyticsService {
         };
     }
     async getAdminSummary() {
-        const [userCounts, activeDestCount, deletedDestCount, scrapedReviewCount, userReviewCount, scrapingJobCounts, sentimentCounts, topDestinations, latestScrapingJobs,] = await Promise.all([
+        const [userCounts, activeDestCount, deletedDestCount, scrapedReviewCount, userReviewCount, scrapingJobCounts, sentimentCounts, topDestinations, latestScrapingJobs, topTopics,] = await Promise.all([
             this.prisma.user.groupBy({
                 by: ['status'],
                 _count: { status: true },
@@ -104,7 +104,19 @@ let AnalyticsService = class AnalyticsService {
                     destination: { select: { name: true, city: true } },
                 },
             }),
+            this.prisma.destinationTopic.groupBy({
+                by: ['topicId'],
+                _sum: { totalReviews: true },
+                orderBy: { _sum: { totalReviews: 'desc' } },
+                take: 5,
+            }),
         ]);
+        const topicIds = topTopics.map((t) => t.topicId);
+        const topics = await this.prisma.topic.findMany({
+            where: { id: { in: topicIds } },
+            select: { id: true, topicName: true },
+        });
+        const topicMap = new Map(topics.map((t) => [t.id, t.topicName]));
         const userBreakdown = {};
         for (const u of userCounts) {
             userBreakdown[u.status] = u._count.status;
@@ -131,6 +143,10 @@ let AnalyticsService = class AnalyticsService {
             sentiment_distribution: this.buildSentimentDist(sentimentCounts),
             top_destinations: topDestinations,
             latest_scraping_jobs: latestScrapingJobs,
+            top_topics: topTopics.map((t) => ({
+                topic_name: topicMap.get(t.topicId) ?? 'Unknown',
+                count: t._sum.totalReviews ?? 0,
+            })),
         };
     }
     async getAdminActivity() {

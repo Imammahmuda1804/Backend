@@ -15,6 +15,7 @@ const class_validator_1 = require("class-validator");
 class StartScrapingDto {
     destination_id;
     max_reviews = 100;
+    maps_url;
     sort = 'newest';
     stars_filter;
     has_text = true;
@@ -33,6 +34,12 @@ __decorate([
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], StartScrapingDto.prototype, "max_reviews", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({ description: 'Custom Google Maps URL. If provided, overrides the destination URL.' }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], StartScrapingDto.prototype, "maps_url", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ default: 'newest' }),
     (0, class_validator_1.IsOptional)(),

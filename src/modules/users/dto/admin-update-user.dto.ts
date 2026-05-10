@@ -28,6 +28,15 @@ export class AdminUpdateUserDto {
   email?: string;
 
   @ApiPropertyOptional({
+    description: 'Password baru',
+    example: 'newpassword123',
+  })
+  @IsOptional()
+  @IsString()
+  @MinLength(6, { message: 'Password minimal 6 karakter' })
+  password?: string;
+
+  @ApiPropertyOptional({
     description: 'Role user',
     enum: Role,
     example: 'ADMIN',

@@ -33,15 +33,15 @@ export declare class ScraperService {
             province: string;
         };
     } & {
+        id: number;
         status: string;
+        createdAt: Date;
+        destinationId: number;
         source: string;
         totalReviews: number | null;
         startedAt: Date | null;
         finishedAt: Date | null;
         errorMessage: string | null;
-        createdAt: Date;
-        id: number;
-        destinationId: number;
         createdBy: number | null;
     }>;
     getAllJobs(page: number, limit: number, status?: string): Promise<{
@@ -51,15 +51,15 @@ export declare class ScraperService {
                 city: string;
             };
         } & {
+            id: number;
             status: string;
+            createdAt: Date;
+            destinationId: number;
             source: string;
             totalReviews: number | null;
             startedAt: Date | null;
             finishedAt: Date | null;
             errorMessage: string | null;
-            createdAt: Date;
-            id: number;
-            destinationId: number;
             createdBy: number | null;
         })[];
         meta: {
@@ -75,26 +75,26 @@ export declare class ScraperService {
                 name: string;
             };
             job: {
+                id: number;
                 status: string;
+                createdAt: Date;
+                destinationId: number;
                 source: string;
                 totalReviews: number | null;
                 startedAt: Date | null;
                 finishedAt: Date | null;
                 errorMessage: string | null;
-                createdAt: Date;
-                id: number;
-                destinationId: number;
                 createdBy: number | null;
             };
         } & {
-            totalReviews: number | null;
-            createdAt: Date;
             id: number;
+            createdAt: Date;
+            sort: string | null;
             destinationId: number;
+            totalReviews: number | null;
             jobId: number;
             starsFilter: import("@prisma/client/runtime/client").JsonValue | null;
             hasText: boolean | null;
-            sort: string | null;
         })[];
         meta: {
             page: number;

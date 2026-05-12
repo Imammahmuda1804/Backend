@@ -24,8 +24,7 @@ let ScraperController = class ScraperController {
         this.scraperService = scraperService;
     }
     async searchMaps(query) {
-        const results = await this.scraperService.searchMaps(query.q);
-        return results;
+        return this.scraperService.searchMaps(query.q);
     }
     async startScraping(dto, req) {
         const user = req.user;
@@ -47,7 +46,7 @@ let ScraperController = class ScraperController {
     }
     async downloadCsv(jobId, res) {
         const csvData = await this.scraperService.downloadCsv(jobId);
-        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename="reviews_job_${jobId}.csv"`);
         return res.send(csvData);
     }
@@ -58,8 +57,18 @@ let ScraperController = class ScraperController {
 exports.ScraperController = ScraperController;
 __decorate([
     (0, common_1.Get)('search'),
-    (0, swagger_1.ApiOperation)({ summary: 'Cari tempat wisata di Google Maps via Apify' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Search results from Google Maps' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Cari tempat wisata di Google Maps',
+        description: 'Masukkan nama tempat atau URL Google Maps langsung. ' +
+            'Hasil berisi nama, alamat, rating, dan URL untuk digunakan saat memulai scraping.',
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'q',
+        description: 'Nama tempat atau URL Google Maps',
+        example: 'Pantai Kuta Bali',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Daftar hasil pencarian dari Google Maps' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Query kosong atau pencarian gagal' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
     __param(0, (0, common_1.Query)()),
@@ -70,11 +79,17 @@ __decorate([
 __decorate([
     (0, common_1.Post)('start'),
     (0, common_1.HttpCode)(common_1.HttpStatus.ACCEPTED),
-    (0, swagger_1.ApiOperation)({ summary: 'Trigger scraping reviews dari Google Maps' }),
-    (0, swagger_1.ApiResponse)({ status: 202, description: 'Scraping job started' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Mulai scraping ulasan dari Google Maps',
+        description: 'Memulai job scraping untuk destinasi yang dipilih. ' +
+            'Ulasan yang diambil: terbaru, semua bintang, hanya yang berteks. ' +
+            'Gunakan max_reviews untuk membatasi jumlah ulasan yang diambil.',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 202, description: 'Scraping job berhasil dimulai dan masuk antrian' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Destinasi tidak memiliki URL Google Maps' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Destination not found' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Destinasi tidak ditemukan' }),
     __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -83,11 +98,11 @@ __decorate([
 ], ScraperController.prototype, "startScraping", null);
 __decorate([
     (0, common_1.Get)('status/:jobId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Polling scraping progress' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Job status retrieved' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Cek status scraping job (polling)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Status job berhasil diambil' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Job not found' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Job tidak ditemukan' }),
     __param(0, (0, common_1.Param)('jobId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),
@@ -95,7 +110,7 @@ __decorate([
 ], ScraperController.prototype, "getJobStatus", null);
 __decorate([
     (0, common_1.Get)('jobs'),
-    (0, swagger_1.ApiOperation)({ summary: 'List semua scraping jobs' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Daftar semua scraping job (terbaru di atas)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Paginated list of scraping jobs' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
@@ -106,7 +121,7 @@ __decorate([
 ], ScraperController.prototype, "getJobs", null);
 __decorate([
     (0, common_1.Get)('history'),
-    (0, swagger_1.ApiOperation)({ summary: 'Riwayat scraping per destination' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Riwayat scraping per destinasi' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Paginated scraping history' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
@@ -118,10 +133,11 @@ __decorate([
 __decorate([
     (0, common_1.Get)('download/:jobId'),
     (0, swagger_1.ApiOperation)({ summary: 'Download hasil scraping sebagai file CSV' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'CSV file downloaded' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'File CSV berhasil diunduh' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Job belum selesai' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Job not found or no reviews' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Job tidak ditemukan' }),
     __param(0, (0, common_1.Param)('jobId', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
@@ -131,11 +147,12 @@ __decorate([
 __decorate([
     (0, common_1.Post)('process/:jobId'),
     (0, common_1.HttpCode)(common_1.HttpStatus.ACCEPTED),
-    (0, swagger_1.ApiOperation)({ summary: 'Trigger NLP pipeline processing' }),
-    (0, swagger_1.ApiResponse)({ status: 202, description: 'NLP processing started' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Trigger NLP pipeline untuk memproses ulasan job ini' }),
+    (0, swagger_1.ApiResponse)({ status: 202, description: 'NLP processing berhasil dimulai' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Job belum selesai' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Job not found' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Job tidak ditemukan' }),
     __param(0, (0, common_1.Param)('jobId', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number]),

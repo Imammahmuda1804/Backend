@@ -39,7 +39,7 @@ let ScraperService = ScraperService_1 = class ScraperService {
             throw new common_1.BadRequestException('Query parameter (q) is required');
         }
         try {
-            const results = await this.apifyService.searchPlaces(query);
+            const results = await this.apifyService.searchPlaces(query.trim());
             return results;
         }
         catch (error) {
@@ -56,7 +56,7 @@ let ScraperService = ScraperService_1 = class ScraperService {
         }
         const finalMapsUrl = dto.maps_url || destination.googleMapsUrl;
         if (!finalMapsUrl) {
-            throw new common_1.BadRequestException('Destination does not have a Google Maps URL set and no custom maps_url was provided');
+            throw new common_1.BadRequestException('Destinasi belum memiliki URL Google Maps. Sertakan maps_url pada request.');
         }
         const job = await this.prisma.scrapingJob.create({
             data: {
@@ -70,14 +70,14 @@ let ScraperService = ScraperService_1 = class ScraperService {
             destinationId: destination.id,
             url: finalMapsUrl,
             maxReviews: dto.max_reviews,
-            sort: dto.sort,
-            starsFilter: dto.stars_filter,
-            hasText: dto.has_text,
         });
+        this.logger.log(`Scraping job #${job.id} queued for destination "${destination.name}" (maxReviews: ${dto.max_reviews ?? 'ALL'})`);
         return {
             job_id: job.id,
             status: 'pending',
-            message: 'Scraping job started and queued for processing',
+            destination_name: destination.name,
+            maps_url: finalMapsUrl,
+            message: 'Scraping job started. Ulasan akan diambil: terbaru, semua bintang, hanya yang berteks.',
         };
     }
     async getJobStatus(jobId) {

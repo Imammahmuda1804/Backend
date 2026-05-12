@@ -26,11 +26,16 @@ let ApifyService = ApifyService_1 = class ApifyService {
     async searchPlaces(query) {
         this.logger.log(`Searching Google Maps for: ${query}`);
         const input = {
-            searchStringsArray: [query],
             maxCrawledPlacesPerSearch: 5,
             language: 'id',
             countryCode: 'id',
         };
+        if (query.startsWith('http://') || query.startsWith('https://')) {
+            input.startUrls = [{ url: query }];
+        }
+        else {
+            input.searchStringsArray = [query];
+        }
         const run = await this.client
             .actor(this.MAPS_EXTRACTOR_ACTOR_ID)
             .call(input);
@@ -46,20 +51,15 @@ let ApifyService = ApifyService_1 = class ApifyService {
             url: item.url,
         }));
     }
-    async startReviewScraping(url, maxReviews, sort, starsFilter, hasText) {
-        this.logger.log(`Starting review scraping for URL: ${url}`);
+    async startReviewScraping(url, maxReviews) {
+        this.logger.log(`Starting review scraping for: ${url} | maxReviews: ${maxReviews ?? 'ALL'}`);
         const input = {
             startUrls: [{ url }],
-            maxReviews,
+            reviewsSort: 'newest',
             language: 'id',
-            sort,
-            reviewsSort: sort,
         };
-        if (starsFilter && starsFilter.length > 0) {
-            input.starsFilter = starsFilter;
-        }
-        if (hasText) {
-            input.hasText = true;
+        if (maxReviews) {
+            input.maxReviews = maxReviews;
         }
         const run = await this.client
             .actor(this.MAPS_REVIEWS_ACTOR_ID)

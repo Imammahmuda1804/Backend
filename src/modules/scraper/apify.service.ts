@@ -16,14 +16,26 @@ export class ApifyService {
     });
   }
 
+  /**
+   * Mencari tempat di Google Maps.
+   * Mendukung dua mode input:
+   *  - Teks biasa   → searchStringsArray
+   *  - URL Maps     → startUrls (mirip alur Apify-Scrapper)
+   */
   async searchPlaces(query: string) {
     this.logger.log(`Searching Google Maps for: ${query}`);
-    const input = {
-      searchStringsArray: [query],
+
+    const input: Record<string, unknown> = {
       maxCrawledPlacesPerSearch: 5,
       language: 'id',
       countryCode: 'id',
     };
+
+    if (query.startsWith('http://') || query.startsWith('https://')) {
+      input.startUrls = [{ url: query }];
+    } else {
+      input.searchStringsArray = [query];
+    }
 
     const run = await this.client
       .actor(this.MAPS_EXTRACTOR_ACTOR_ID)
@@ -52,28 +64,27 @@ export class ApifyService {
     }));
   }
 
-  async startReviewScraping(
-    url: string,
-    maxReviews: number,
-    sort: string,
-    starsFilter?: number[],
-    hasText?: boolean,
-  ) {
-    this.logger.log(`Starting review scraping for URL: ${url}`);
+  /**
+   * Memulai scraping ulasan Google Maps dengan parameter yang dikunci:
+   *  - sort     : "newest"  (ulasan terbaru duluan)
+   *  - bintang  : semua     (tidak ada filter bintang)
+   *  - hasText  : true      (hanya ulasan yang mengandung teks)
+   *
+   * Satu-satunya variabel yang bisa dikontrol admin adalah maxReviews.
+   */
+  async startReviewScraping(url: string, maxReviews?: number) {
+    this.logger.log(
+      `Starting review scraping for: ${url} | maxReviews: ${maxReviews ?? 'ALL'}`,
+    );
 
     const input: Record<string, unknown> = {
       startUrls: [{ url }],
-      maxReviews,
+      reviewsSort: 'newest',
       language: 'id',
-      sort,
-      reviewsSort: sort,
     };
 
-    if (starsFilter && starsFilter.length > 0) {
-      input.starsFilter = starsFilter;
-    }
-    if (hasText) {
-      input.hasText = true;
+    if (maxReviews) {
+      input.maxReviews = maxReviews;
     }
 
     const run = await this.client

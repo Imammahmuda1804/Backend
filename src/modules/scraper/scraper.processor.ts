@@ -1,6 +1,7 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ApifyService } from './apify.service';
 
@@ -16,15 +17,7 @@ export class ScraperProcessor extends WorkerHost {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    const {
-      jobId,
-      destinationId,
-      url,
-      maxReviews,
-      sort,
-      starsFilter,
-      hasText,
-    } = job.data;
+    const { jobId, destinationId, url, maxReviews } = job.data;
 
     this.logger.log(
       `Processing scraping job ${jobId} for destination ${destinationId}`,
@@ -36,19 +29,16 @@ export class ScraperProcessor extends WorkerHost {
     });
 
     try {
+      // Mulai scraping — sort/bintang/hasText sudah dikunci di ApifyService
       const apifyRun = await this.apifyService.startReviewScraping(
         url,
         maxReviews,
-        sort,
-        starsFilter,
-        hasText,
       );
 
       const runId = apifyRun.id;
-
       this.logger.log(`Waiting for Apify run ${runId} to finish...`);
-      const finishedRun = await this.apifyService.waitForRun(runId);
 
+      const finishedRun = await this.apifyService.waitForRun(runId);
       const runStatus = finishedRun.status;
       const datasetId = finishedRun.defaultDatasetId;
 
@@ -72,8 +62,10 @@ export class ScraperProcessor extends WorkerHost {
           | string
           | null;
 
+        // Lewati review tanpa teks (filter lokal sebagai guard tambahan)
+        if (!reviewText || reviewText.trim().length === 0) continue;
+        // Lewati review tanpa rating
         if (!rating) continue;
-        if (hasText && !reviewText) continue;
 
         const reviewDate = reviewDateStr ? new Date(reviewDateStr) : null;
 
@@ -102,18 +94,19 @@ export class ScraperProcessor extends WorkerHost {
         },
       });
 
+      // Catat history — filter dikunci, simpan nilai konstan
       await this.prisma.scrapingHistory.create({
         data: {
           destinationId,
           jobId,
           totalReviews: savedCount,
-          starsFilter: starsFilter || null,
-          hasText: hasText !== undefined ? hasText : null,
-          sort: sort || null,
+          starsFilter: Prisma.JsonNull, // semua bintang — tidak ada filter
+          hasText: true,                // selalu true
+          sort: 'newest',               // selalu newest
         },
       });
 
-      this.logger.log(`Successfully finished scraping job ${jobId}`);
+      this.logger.log(`Successfully finished scraping job ${jobId}, saved ${savedCount} reviews`);
       return { status: 'success', savedCount };
     } catch (error: unknown) {
       this.logger.error(`Error in scraping job ${jobId}`, error);

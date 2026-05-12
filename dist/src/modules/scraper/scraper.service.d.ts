@@ -22,6 +22,8 @@ export declare class ScraperService {
     startScraping(dto: StartScrapingDto, adminId?: number): Promise<{
         job_id: number;
         status: string;
+        destination_name: string;
+        maps_url: string;
         message: string;
     }>;
     getJobStatus(jobId: number): Promise<{
@@ -31,15 +33,15 @@ export declare class ScraperService {
             province: string;
         };
     } & {
-        id: number;
         status: string;
-        createdAt: Date;
-        destinationId: number;
         source: string;
         totalReviews: number | null;
         startedAt: Date | null;
         finishedAt: Date | null;
         errorMessage: string | null;
+        createdAt: Date;
+        id: number;
+        destinationId: number;
         createdBy: number | null;
     }>;
     getAllJobs(page: number, limit: number, status?: string): Promise<{
@@ -49,15 +51,15 @@ export declare class ScraperService {
                 city: string;
             };
         } & {
-            id: number;
             status: string;
-            createdAt: Date;
-            destinationId: number;
             source: string;
             totalReviews: number | null;
             startedAt: Date | null;
             finishedAt: Date | null;
             errorMessage: string | null;
+            createdAt: Date;
+            id: number;
+            destinationId: number;
             createdBy: number | null;
         })[];
         meta: {
@@ -73,26 +75,26 @@ export declare class ScraperService {
                 name: string;
             };
             job: {
-                id: number;
                 status: string;
-                createdAt: Date;
-                destinationId: number;
                 source: string;
                 totalReviews: number | null;
                 startedAt: Date | null;
                 finishedAt: Date | null;
                 errorMessage: string | null;
+                createdAt: Date;
+                id: number;
+                destinationId: number;
                 createdBy: number | null;
             };
         } & {
-            id: number;
-            createdAt: Date;
-            sort: string | null;
-            destinationId: number;
             totalReviews: number | null;
+            createdAt: Date;
+            id: number;
+            destinationId: number;
+            jobId: number;
             starsFilter: import("@prisma/client/runtime/client").JsonValue | null;
             hasText: boolean | null;
-            jobId: number;
+            sort: string | null;
         })[];
         meta: {
             page: number;

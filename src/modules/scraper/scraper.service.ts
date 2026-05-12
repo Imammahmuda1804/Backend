@@ -23,12 +23,16 @@ export class ScraperService {
     @InjectQueue('nlp-queue') private readonly nlpQueue: Queue,
   ) {}
 
+  /**
+   * Mencari tempat di Google Maps.
+   * Mendukung pencarian via teks biasa atau URL Google Maps langsung.
+   */
   async searchMaps(query: string) {
     if (!query || query.trim() === '') {
       throw new BadRequestException('Query parameter (q) is required');
     }
     try {
-      const results = await this.apifyService.searchPlaces(query);
+      const results = await this.apifyService.searchPlaces(query.trim());
       return results;
     } catch (error: unknown) {
       this.logger.error('Error searching maps', error);
@@ -36,6 +40,18 @@ export class ScraperService {
     }
   }
 
+  /**
+   * Memulai scraping ulasan untuk destinasi tertentu.
+   *
+   * Aturan filter yang DIKUNCI (tidak bisa diubah dari request):
+   *  - Sort     : newest
+   *  - Bintang  : semua (tanpa filter)
+   *  - Has text : true
+   *
+   * Yang bisa dikontrol admin:
+   *  - max_reviews : batas jumlah ulasan (opsional)
+   *  - maps_url    : override URL Maps (opsional, fallback ke DB)
+   */
   async startScraping(dto: StartScrapingDto, adminId?: number) {
     const destination = await this.prisma.destination.findUnique({
       where: { id: dto.destination_id },
@@ -45,11 +61,12 @@ export class ScraperService {
       throw new NotFoundException('Destination not found');
     }
 
+    // Gunakan maps_url dari request jika ada, fallback ke URL yang ada di DB
     const finalMapsUrl = dto.maps_url || destination.googleMapsUrl;
 
     if (!finalMapsUrl) {
       throw new BadRequestException(
-        'Destination does not have a Google Maps URL set and no custom maps_url was provided',
+        'Destinasi belum memiliki URL Google Maps. Sertakan maps_url pada request.',
       );
     }
 
@@ -61,20 +78,24 @@ export class ScraperService {
       },
     });
 
+    // Hanya teruskan data yang diperlukan — filter dikunci di processor/apify service
     await this.scrapingQueue.add('scrape-reviews', {
       jobId: job.id,
       destinationId: destination.id,
       url: finalMapsUrl,
       maxReviews: dto.max_reviews,
-      sort: dto.sort,
-      starsFilter: dto.stars_filter,
-      hasText: dto.has_text,
     });
+
+    this.logger.log(
+      `Scraping job #${job.id} queued for destination "${destination.name}" (maxReviews: ${dto.max_reviews ?? 'ALL'})`,
+    );
 
     return {
       job_id: job.id,
       status: 'pending',
-      message: 'Scraping job started and queued for processing',
+      destination_name: destination.name,
+      maps_url: finalMapsUrl,
+      message: 'Scraping job started. Ulasan akan diambil: terbaru, semua bintang, hanya yang berteks.',
     };
   }
 

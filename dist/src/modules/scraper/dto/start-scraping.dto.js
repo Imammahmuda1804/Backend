@@ -16,46 +16,30 @@ class StartScrapingDto {
     destination_id;
     max_reviews = 100;
     maps_url;
-    sort = 'newest';
-    stars_filter;
-    has_text = true;
 }
 exports.StartScrapingDto = StartScrapingDto;
 __decorate([
-    (0, swagger_1.ApiProperty)(),
+    (0, swagger_1.ApiProperty)({ description: 'ID destinasi yang akan di-scraping' }),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.IsPositive)(),
     __metadata("design:type", Number)
 ], StartScrapingDto.prototype, "destination_id", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ default: 100 }),
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Jumlah maksimal ulasan yang diambil (default: 100). Kosongkan untuk ambil semua.',
+        default: 100,
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], StartScrapingDto.prototype, "max_reviews", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: 'Custom Google Maps URL. If provided, overrides the destination URL.' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'URL Google Maps kustom. Jika diisi, akan menggantikan URL yang tersimpan di data destinasi.',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], StartScrapingDto.prototype, "maps_url", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ default: 'newest' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    __metadata("design:type", String)
-], StartScrapingDto.prototype, "sort", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ type: [Number] }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsArray)(),
-    __metadata("design:type", Array)
-], StartScrapingDto.prototype, "stars_filter", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({ default: true }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsBoolean)(),
-    __metadata("design:type", Boolean)
-], StartScrapingDto.prototype, "has_text", void 0);
 //# sourceMappingURL=start-scraping.dto.js.map

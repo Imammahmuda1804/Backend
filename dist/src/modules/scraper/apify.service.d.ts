@@ -12,7 +12,7 @@ export declare class ApifyService {
         placeId: string | undefined;
         url: string | undefined;
     }[]>;
-    startReviewScraping(url: string, maxReviews: number, sort: string, starsFilter?: number[], hasText?: boolean): Promise<import("apify-client").ActorRun>;
+    startReviewScraping(url: string, maxReviews?: number): Promise<import("apify-client").ActorRun>;
     waitForRun(runId: string): Promise<import("apify-client").ActorRun>;
     getRunResults(datasetId: string): Promise<Record<string | number, unknown>[]>;
 }

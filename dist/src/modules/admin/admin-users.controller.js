@@ -56,7 +56,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get user detail with relations' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'User detail with favorites, reviews, and search history' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'User detail with favorites, reviews, and search history',
+    }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'User not found' }),

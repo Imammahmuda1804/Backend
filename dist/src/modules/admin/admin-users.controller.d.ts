@@ -6,8 +6,8 @@ export declare class AdminUsersController {
     getUsers(query: AdminUserQueryDto): Promise<{
         data: {
             id: number;
-            email: string;
             name: string;
+            email: string;
             role: import("@prisma/client").$Enums.Role;
             status: string;
             profilePicture: string | null;
@@ -22,8 +22,8 @@ export declare class AdminUsersController {
     }>;
     getUserDetail(id: number): Promise<{
         id: number;
-        email: string;
         name: string;
+        email: string;
         role: import("@prisma/client").$Enums.Role;
         status: string;
         profilePicture: string | null;
@@ -57,16 +57,16 @@ export declare class AdminUsersController {
         } & {
             id: number;
             createdAt: Date;
-            rating: number;
-            reviewText: string | null;
             userId: number;
             destinationId: number;
+            rating: number;
+            reviewText: string | null;
         })[];
     }>;
     createUser(dto: AdminCreateUserDto): Promise<{
         id: number;
-        email: string;
         name: string;
+        email: string;
         role: import("@prisma/client").$Enums.Role;
         status: string;
         profilePicture: string | null;
@@ -74,8 +74,8 @@ export declare class AdminUsersController {
     }>;
     updateUser(id: number, dto: AdminUpdateUserDto): Promise<{
         id: number;
-        email: string;
         name: string;
+        email: string;
         role: import("@prisma/client").$Enums.Role;
         status: string;
         profilePicture: string | null;

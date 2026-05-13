@@ -17,6 +17,7 @@ export declare class AuthController {
             name: string;
             email: string;
             role: import("@prisma/client").$Enums.Role;
+            profilePicture: string | null;
         };
         access_token: string;
         refresh_token: string;

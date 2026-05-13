@@ -1,16 +1,10 @@
+import { Controller, Delete, Post, Param, ParseIntPipe } from '@nestjs/common';
 import {
-    Controller,
-    Delete,
-    Post,
-    Param,
-    ParseIntPipe,
-} from '@nestjs/common';
-import {
-    ApiTags,
-    ApiOperation,
-    ApiResponse,
-    ApiBearerAuth,
-    ApiParam,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
 } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { ReviewsService } from '../reviews/reviews.service';
@@ -21,7 +15,7 @@ import { AnalyticsService } from '../analytics/analytics.service';
 @Roles('ADMIN')
 @Controller('admin')
 export class AdminModerationController {
-    constructor(
+  constructor(
         private readonly reviewsService: ReviewsService,
         private readonly analyticsService: AnalyticsService,
     ) { }

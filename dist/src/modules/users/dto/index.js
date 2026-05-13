@@ -18,4 +18,5 @@ __exportStar(require("./update-profile.dto"), exports);
 __exportStar(require("./user-response.dto"), exports);
 __exportStar(require("./admin-user-query.dto"), exports);
 __exportStar(require("./admin-update-user.dto"), exports);
+__exportStar(require("./admin-create-user.dto"), exports);
 //# sourceMappingURL=index.js.map

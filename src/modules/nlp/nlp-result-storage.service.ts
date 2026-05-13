@@ -30,15 +30,18 @@ export class NlpResultStorageService {
       return sentimentMap[sentiment.toLowerCase()] || sentiment;
     };
 
-    // 1. Save/Update Topics
+    // 1. Save/Update Topics — track which IDs were actually persisted
+    const savedTopicIds = new Set<number>();
     if (nlpResult.topics && Array.isArray(nlpResult.topics)) {
       for (const topic of nlpResult.topics) {
-        // Skip jika topic tidak memiliki topic_id yang valid
-        if (!topic.topic_id) {
+        // Skip jika topic tidak memiliki topic_id yang valid (0 is falsy)
+        if (!topic.topic_id && topic.topic_id !== 0) {
           console.warn('⚠️ Skipping topic with no topic_id:', topic);
           continue;
         }
 
+        // topic_id 0 is technically valid but often means "unassigned" — 
+        // still save it so reviews referencing it don't break FK constraints
         const topicId = topic.topic_id;
         // Generate topic name dari keywords teratas
         const topicName = `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
@@ -55,10 +58,11 @@ export class NlpResultStorageService {
             keywords: topic.keywords
           },
         });
+        savedTopicIds.add(topicId);
       }
     }
 
-    // 2. Update Reviews
+    // 2. Update Reviews — only assign topicId if it was actually saved to DB
     if (nlpResult.results && Array.isArray(nlpResult.results)) {
       for (let index = 0; index < nlpResult.results.length; index++) {
         const review = nlpResult.results[index];
@@ -67,12 +71,17 @@ export class NlpResultStorageService {
         // Map sentiment dari Indonesia ke English
         const mappedSentiment = mapSentiment(review.sentiment);
 
+        // Nullify topic_id if the topic wasn't persisted (prevents FK violation)
+        const safeTopicId = (review.topic_id != null && savedTopicIds.has(review.topic_id))
+          ? review.topic_id
+          : null;
+
         await this.prisma.review.update({
           where: { id: realReviewId },
           data: {
             cleanedText: review.cleaned_text,
             sentiment: mappedSentiment,
-            topicId: review.topic_id,
+            topicId: safeTopicId,
           },
         });
       }

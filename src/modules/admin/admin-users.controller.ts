@@ -2,15 +2,25 @@ import {
   Controller,
   Get,
   Put,
+  Post,
   Delete,
   Body,
   Param,
   Query,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { UsersService } from '../users/users.service';
-import { AdminUserQueryDto, AdminUpdateUserDto } from '../users/dto';
+import {
+  AdminUserQueryDto,
+  AdminUpdateUserDto,
+  AdminCreateUserDto,
+} from '../users/dto';
 import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Admin - Users')
@@ -18,7 +28,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 @Roles('ADMIN')
 @Controller('admin/users')
 export class AdminUsersController {
-  constructor(private readonly usersService: UsersService) { }
+  constructor(private readonly usersService: UsersService) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all users with pagination and search' })
@@ -33,12 +43,26 @@ export class AdminUsersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get user detail with relations' })
-  @ApiResponse({ status: 200, description: 'User detail with favorites, reviews, and search history' })
+  @ApiResponse({
+    status: 200,
+    description: 'User detail with favorites, reviews, and search history',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async getUserDetail(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOneWithRelations(id);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Create new user (admin)' })
+  @ApiResponse({ status: 201, description: 'User created successfully' })
+  @ApiResponse({ status: 400, description: 'Validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
+  @ApiResponse({ status: 409, description: 'Email already in use' })
+  async createUser(@Body() dto: AdminCreateUserDto) {
+    return this.usersService.adminCreate(dto);
   }
 
   @Put(':id')

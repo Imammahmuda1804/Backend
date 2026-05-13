@@ -194,6 +194,32 @@ let UsersService = class UsersService {
         }
         return user;
     }
+    async adminCreate(dto) {
+        const existing = await this.prisma.user.findUnique({
+            where: { email: dto.email },
+        });
+        if (existing)
+            throw new common_1.ConflictException('Email sudah digunakan');
+        const hashedPassword = await bcrypt.hash(dto.password, 10);
+        return this.prisma.user.create({
+            data: {
+                name: dto.name,
+                email: dto.email,
+                password: hashedPassword,
+                role: dto.role,
+                status: dto.status,
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                status: true,
+                profilePicture: true,
+                createdAt: true,
+            },
+        });
+    }
     async adminUpdate(id, dto) {
         const user = await this.prisma.user.findUnique({ where: { id } });
         if (!user)

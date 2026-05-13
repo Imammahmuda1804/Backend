@@ -31,6 +31,9 @@ let AdminUsersController = class AdminUsersController {
     async getUserDetail(id) {
         return this.usersService.findOneWithRelations(id);
     }
+    async createUser(dto) {
+        return this.usersService.adminCreate(dto);
+    }
     async updateUser(id, dto) {
         return this.usersService.adminUpdate(id, dto);
     }
@@ -62,6 +65,19 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], AdminUsersController.prototype, "getUserDetail", null);
+__decorate([
+    (0, common_1.Post)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Create new user (admin)' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'User created successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Validation failed' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: 'Email already in use' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.AdminCreateUserDto]),
+    __metadata("design:returntype", Promise)
+], AdminUsersController.prototype, "createUser", null);
 __decorate([
     (0, common_1.Put)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Update user data (admin)' }),

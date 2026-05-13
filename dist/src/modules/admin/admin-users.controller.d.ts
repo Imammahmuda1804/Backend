@@ -1,5 +1,5 @@
 import { UsersService } from '../users/users.service';
-import { AdminUserQueryDto, AdminUpdateUserDto } from '../users/dto';
+import { AdminUserQueryDto, AdminUpdateUserDto, AdminCreateUserDto } from '../users/dto';
 export declare class AdminUsersController {
     private readonly usersService;
     constructor(usersService: UsersService);
@@ -62,6 +62,15 @@ export declare class AdminUsersController {
             userId: number;
             destinationId: number;
         })[];
+    }>;
+    createUser(dto: AdminCreateUserDto): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        role: import("@prisma/client").$Enums.Role;
+        status: string;
+        profilePicture: string | null;
+        createdAt: Date;
     }>;
     updateUser(id: number, dto: AdminUpdateUserDto): Promise<{
         id: number;

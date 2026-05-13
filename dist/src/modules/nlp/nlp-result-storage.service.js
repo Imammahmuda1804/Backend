@@ -32,9 +32,10 @@ let NlpResultStorageService = class NlpResultStorageService {
             };
             return sentimentMap[sentiment.toLowerCase()] || sentiment;
         };
+        const savedTopicIds = new Set();
         if (nlpResult.topics && Array.isArray(nlpResult.topics)) {
             for (const topic of nlpResult.topics) {
-                if (!topic.topic_id) {
+                if (!topic.topic_id && topic.topic_id !== 0) {
                     console.warn('⚠️ Skipping topic with no topic_id:', topic);
                     continue;
                 }
@@ -52,6 +53,7 @@ let NlpResultStorageService = class NlpResultStorageService {
                         keywords: topic.keywords
                     },
                 });
+                savedTopicIds.add(topicId);
             }
         }
         if (nlpResult.results && Array.isArray(nlpResult.results)) {
@@ -59,12 +61,15 @@ let NlpResultStorageService = class NlpResultStorageService {
                 const review = nlpResult.results[index];
                 const realReviewId = reviewIds[index];
                 const mappedSentiment = mapSentiment(review.sentiment);
+                const safeTopicId = (review.topic_id != null && savedTopicIds.has(review.topic_id))
+                    ? review.topic_id
+                    : null;
                 await this.prisma.review.update({
                     where: { id: realReviewId },
                     data: {
                         cleanedText: review.cleaned_text,
                         sentiment: mappedSentiment,
-                        topicId: review.topic_id,
+                        topicId: safeTopicId,
                     },
                 });
             }

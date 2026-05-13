@@ -1,0 +1,180 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+/**
+ * Daftar SEMUA model Gemini gratis yang akan dicoba secara berurutan (fallback chain).
+ * Jika model pertama gagal (quota habis / tidak tersedia), otomatis pindah ke model berikutnya.
+ * Urutan: model terbaru & tercepat duluan, lalu fallback ke model lama.
+ */
+const GEMINI_MODELS = [
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+  'gemini-3-flash-preview',
+  'gemini-3.1-flash-lite',
+];
+
+/** Delay antar request API (ms) — mencegah rate limit pada free tier */
+const DELAY_BETWEEN_REQUESTS_MS = 4000; // 4 detik = maks 15 request/menit
+
+/** Jumlah retry jika kena rate limit per-menit (429) */
+const MAX_RETRIES = 1;
+
+/** Delay sebelum retry saat kena rate limit per-menit */
+const RETRY_DELAY_MS = 15000; // 15 detik
+
+/** Durasi cooldown saat daily quota habis (1 jam) — model akan di-skip selama ini */
+const DAILY_QUOTA_COOLDOWN_MS = 60 * 60 * 1000;
+
+@Injectable()
+export class AiNamingService {
+  private readonly logger = new Logger(AiNamingService.name);
+  private genAI: GoogleGenerativeAI | null = null;
+  private lastRequestTime = 0;
+
+  /**
+   * Track model yang daily quota-nya sudah habis.
+   * Key = model name, Value = timestamp kapan di-block.
+   * Setelah DAILY_QUOTA_COOLDOWN_MS, model bisa dicoba lagi.
+   */
+  private exhaustedModels = new Map<string, number>();
+
+  constructor() {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (apiKey) {
+      this.genAI = new GoogleGenerativeAI(apiKey);
+      this.logger.log(`Gemini AI initialized. Fallback chain: ${GEMINI_MODELS.join(' → ')}`);
+    } else {
+      this.logger.warn('GEMINI_API_KEY is not set. AI naming will be disabled.');
+    }
+  }
+
+  /**
+   * Cek apakah model masih dalam cooldown karena daily quota habis.
+   */
+  private isModelExhausted(modelName: string): boolean {
+    const blockedAt = this.exhaustedModels.get(modelName);
+    if (!blockedAt) return false;
+
+    const elapsed = Date.now() - blockedAt;
+    if (elapsed >= DAILY_QUOTA_COOLDOWN_MS) {
+      // Cooldown selesai, bisa dicoba lagi
+      this.exhaustedModels.delete(modelName);
+      this.logger.log(`♻️ ${modelName} cooldown selesai, bisa dicoba lagi.`);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Deteksi apakah error 429 disebabkan oleh daily quota (bukan per-menit).
+   * Daily quota error biasanya mengandung kata "PerDay" atau "limit: 0".
+   */
+  private isDailyQuotaExhausted(error: any): boolean {
+    const msg = error?.message || String(error);
+    return msg.includes('PerDay') || msg.includes('limit: 0');
+  }
+
+  /**
+   * Menunggu agar tidak mengirim request terlalu cepat (rate limiting).
+   */
+  private async throttle(): Promise<void> {
+    const now = Date.now();
+    const elapsed = now - this.lastRequestTime;
+    if (elapsed < DELAY_BETWEEN_REQUESTS_MS) {
+      const waitMs = DELAY_BETWEEN_REQUESTS_MS - elapsed;
+      await new Promise(resolve => setTimeout(resolve, waitMs));
+    }
+    this.lastRequestTime = Date.now();
+  }
+
+  /**
+   * Mendapatkan daftar model yang masih available (belum exhausted).
+   */
+  private getAvailableModels(): string[] {
+    return GEMINI_MODELS.filter(m => !this.isModelExhausted(m));
+  }
+
+  async generateTopicName(topicId: number, keywords: string[]): Promise<string> {
+    if (!this.genAI) {
+      return `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
+    }
+
+    const prompt = `Anda adalah asisten AI untuk analisis data pariwisata.
+Tugas Anda adalah membuat NAMA TOPIK yang singkat, jelas, dan informatif (maksimal 5 kata),buat agar nama topiknya bisa digunakan sebagai filter kategori berdasarkan daftar kata kunci berikut.
+Kata kunci: ${keywords.join(', ')}
+
+Hanya kembalikan nama topiknya saja, tanpa penjelasan apapun, tanpa tanda kutip. Contoh output: Keluhan Harga Tiket, Fasilitas Kamar Mandi, Pemandangan Alam Indah.`;
+
+    const availableModels = this.getAvailableModels();
+
+    if (availableModels.length === 0) {
+      this.logger.error(
+        `❌ Semua ${GEMINI_MODELS.length} model Gemini sedang dalam cooldown. ` +
+        `Menggunakan nama keyword-based untuk topic ${topicId}.`
+      );
+      return `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
+    }
+
+    // Coba setiap model yang masih available secara berurutan
+    for (const modelName of availableModels) {
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          // Throttle: pastikan ada jeda antar request
+          await this.throttle();
+
+          const model = this.genAI.getGenerativeModel({ model: modelName });
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          let text = response.text().trim();
+
+          // Clean up potential quotes generated by AI
+          text = text.replace(/^["']|["']$/g, '');
+
+          this.logger.log(`✅ Topic ${topicId} named by ${modelName}: "${text}"`);
+          return text;
+        } catch (error) {
+          const isRateLimit = error?.status === 429 ||
+            (error?.message && error.message.includes('429'));
+
+          if (isRateLimit) {
+            if (this.isDailyQuotaExhausted(error)) {
+              // Daily quota habis — langsung skip ke model berikutnya
+              this.exhaustedModels.set(modelName, Date.now());
+              const remaining = this.getAvailableModels().length;
+              this.logger.warn(
+                `🚫 ${modelName} daily quota habis untuk topic ${topicId}. ` +
+                `Cooldown 1 jam. Sisa model tersedia: ${remaining}/${GEMINI_MODELS.length}`
+              );
+              break; // keluar dari retry loop, lanjut ke model berikutnya
+            }
+
+            if (attempt < MAX_RETRIES) {
+              // Per-minute rate limit — tunggu lalu retry
+              this.logger.warn(
+                `⏳ Rate limited on ${modelName} for topic ${topicId}. ` +
+                `Retrying in ${RETRY_DELAY_MS / 1000}s (attempt ${attempt + 1}/${MAX_RETRIES})...`
+              );
+              await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+              continue;
+            }
+
+            // Retry habis tapi bukan daily — skip ke model berikutnya
+            this.logger.warn(`⚠️ ${modelName} retry habis untuk topic ${topicId}. Pindah ke model berikutnya.`);
+            break;
+          }
+
+          // Error non-429 (misalnya model tidak tersedia, network error)
+          this.logger.warn(`⚠️ ${modelName} failed for topic ${topicId}: ${error.message || error}`);
+          break;
+        }
+      }
+    }
+
+    // Semua model gagal — gunakan fallback manual
+    this.logger.error(`❌ All Gemini models failed for topic ${topicId}. Using keyword-based name.`);
+    return `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
+  }
+}

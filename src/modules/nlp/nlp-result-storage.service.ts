@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { VectorService } from '../vector/vector.service';
+import { AiNamingService } from './ai-naming.service';
 import { NlpPipelineResult } from './interfaces/nlp-pipeline-result.interface';
 
 @Injectable()
@@ -8,6 +9,7 @@ export class NlpResultStorageService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly vectorService: VectorService,
+    private readonly aiNamingService: AiNamingService,
   ) { }
 
   async saveNlpResults(
@@ -19,6 +21,17 @@ export class NlpResultStorageService {
     console.log('📊 NLP Result Summary:', JSON.stringify(nlpResult.summary, null, 2));
     console.log('📊 NLP Result Topics:', JSON.stringify(nlpResult.topics?.slice(0, 3), null, 2));
     console.log('📊 NLP Result Results (first 2):', JSON.stringify(nlpResult.results?.slice(0, 2), null, 2));
+
+    // Log topik baru yang ditemukan oleh BIRCH clustering
+    if (nlpResult.new_topics && nlpResult.new_topics.length > 0) {
+      console.log(`🆕 ${nlpResult.new_topics.length} new topics discovered by BIRCH clustering!`);
+      console.log('🆕 New Topics:', JSON.stringify(nlpResult.new_topics, null, 2));
+    }
+
+    // Log warning jika ada graceful degradation
+    if (nlpResult.warning) {
+      console.warn('⚠️ Pipeline Warning:', nlpResult.warning);
+    }
 
     // Helper function untuk map sentiment Indonesia ke English
     const mapSentiment = (sentiment: string): string => {
@@ -40,11 +53,23 @@ export class NlpResultStorageService {
           continue;
         }
 
-        // topic_id 0 is technically valid but often means "unassigned" — 
-        // still save it so reviews referencing it don't break FK constraints
         const topicId = topic.topic_id;
-        // Generate topic name dari keywords teratas
-        const topicName = `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
+        
+        // Cek apakah topik sudah ada di DB
+        const existingTopic = await this.prisma.topic.findUnique({
+          where: { id: topicId }
+        });
+
+        let topicName = existingTopic?.topicName;
+
+        if (!existingTopic) {
+           // Jika topik baru, gunakan AI untuk generate nama
+           console.log(`🤖 Generating AI name for new topic ${topicId}...`);
+           topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords);
+        } else {
+           // Fallback kalau nama topik kosong di db
+           topicName = topicName || `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
+        }
 
         await this.prisma.topic.upsert({
           where: { id: topicId },
@@ -54,7 +79,7 @@ export class NlpResultStorageService {
             keywords: topic.keywords,
           },
           update: {
-            topicName: topicName,
+            // Kita tidak mengupdate topicName jika sudah ada, agar nama dari AI tetap tersimpan
             keywords: topic.keywords
           },
         });

@@ -8,7 +8,7 @@ export class StartScrapingDto {
   destination_id: number;
 
   @ApiPropertyOptional({
-    description: 'Jumlah maksimal ulasan yang diambil (default: 100). Kosongkan untuk ambil semua.',
+    description:'Jumlah maksimal ulasan yang diambil (default: 100). Kosongkan untuk ambil semua.',
     default: 100,
   })
   @IsOptional()

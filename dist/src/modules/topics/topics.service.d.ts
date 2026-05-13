@@ -1,7 +1,15 @@
 import { PrismaService } from '../../prisma/prisma.service';
+import { AiNamingService } from '../nlp/ai-naming.service';
 export declare class TopicsService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly aiNamingService;
+    private readonly logger;
+    constructor(prisma: PrismaService, aiNamingService: AiNamingService);
+    renameUnnamedTopics(): Promise<{
+        renamed: number;
+        failed: number;
+        total: number;
+    }>;
     findAll(): Promise<{
         id: number;
         topic_name: string;
@@ -26,5 +34,13 @@ export declare class TopicsService {
             total: number;
             total_pages: number;
         };
+    }>;
+    renameTopic(topicId: number, newName: string): Promise<{
+        id: number;
+        topicName: string;
+    }>;
+    deleteTopic(topicId: number): Promise<{
+        deleted: boolean;
+        id: number;
     }>;
 }

@@ -12,14 +12,15 @@ const axios_1 = require("@nestjs/axios");
 const nlp_service_1 = require("./nlp.service");
 const nlp_result_storage_service_1 = require("./nlp-result-storage.service");
 const vector_module_1 = require("../vector/vector.module");
+const ai_naming_service_1 = require("./ai-naming.service");
 let NlpModule = class NlpModule {
 };
 exports.NlpModule = NlpModule;
 exports.NlpModule = NlpModule = __decorate([
     (0, common_1.Module)({
         imports: [axios_1.HttpModule, vector_module_1.VectorModule],
-        providers: [nlp_service_1.NlpService, nlp_result_storage_service_1.NlpResultStorageService],
-        exports: [nlp_service_1.NlpService, nlp_result_storage_service_1.NlpResultStorageService],
+        providers: [nlp_service_1.NlpService, nlp_result_storage_service_1.NlpResultStorageService, ai_naming_service_1.AiNamingService],
+        exports: [nlp_service_1.NlpService, nlp_result_storage_service_1.NlpResultStorageService, ai_naming_service_1.AiNamingService],
     })
 ], NlpModule);
 //# sourceMappingURL=nlp.module.js.map

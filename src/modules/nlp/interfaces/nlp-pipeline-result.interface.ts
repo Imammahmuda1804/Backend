@@ -16,4 +16,11 @@ export interface NlpPipelineResult {
     topic_id: number;
     keywords: string[];
   }>;
+  /** Topik baru yang ditemukan oleh BIRCH clustering saat pipeline berjalan */
+  new_topics?: Array<{
+    topic_id: number;
+    keywords: string[];
+  }>;
+  /** Peringatan jika terjadi graceful degradation (OOM, dll) */
+  warning?: string;
 }

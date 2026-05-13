@@ -1,8 +1,12 @@
 import {
     Controller,
     Get,
+    Post,
+    Put,
+    Delete,
     Param,
     Query,
+    Body,
     ParseIntPipe,
 } from '@nestjs/common';
 import {
@@ -22,6 +26,17 @@ export class TopicsController {
     constructor(private readonly topicsService: TopicsService) { }
 
     /**
+     * POST /api/topics/rename-ai
+     * Trigger AI rename untuk semua topik yang masih menggunakan nama keyword-based.
+     */
+    @Post('rename-ai')
+    @ApiOperation({ summary: 'Rename semua topik menggunakan AI (Gemini)' })
+    @ApiResponse({ status: 200, description: 'Hasil rename topik' })
+    async renameTopics() {
+        return this.topicsService.renameUnnamedTopics();
+    }
+
+    /**
      * GET /api/topics
      */
     @Get()
@@ -29,6 +44,35 @@ export class TopicsController {
     @ApiResponse({ status: 200, description: 'Topics berhasil diambil' })
     async findAll() {
         return this.topicsService.findAll();
+    }
+
+    /**
+     * PUT /api/topics/:id/rename
+     * Rename topik tertentu secara manual.
+     */
+    @Put(':id/rename')
+    @ApiOperation({ summary: 'Rename topik secara manual' })
+    @ApiParam({ name: 'id', type: Number, description: 'Topic ID' })
+    @ApiResponse({ status: 200, description: 'Topik berhasil di-rename' })
+    @ApiResponse({ status: 404, description: 'Topic tidak ditemukan' })
+    async renameTopic(
+        @Param('id', ParseIntPipe) id: number,
+        @Body('topicName') topicName: string,
+    ) {
+        return this.topicsService.renameTopic(id, topicName);
+    }
+
+    /**
+     * DELETE /api/topics/:id
+     * Hapus topik beserta relasinya.
+     */
+    @Delete(':id')
+    @ApiOperation({ summary: 'Hapus topik' })
+    @ApiParam({ name: 'id', type: Number, description: 'Topic ID' })
+    @ApiResponse({ status: 200, description: 'Topik berhasil dihapus' })
+    @ApiResponse({ status: 404, description: 'Topic tidak ditemukan' })
+    async deleteTopic(@Param('id', ParseIntPipe) id: number) {
+        return this.topicsService.deleteTopic(id);
     }
 
     /**

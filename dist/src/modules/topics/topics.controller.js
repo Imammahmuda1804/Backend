@@ -22,8 +22,17 @@ let TopicsController = class TopicsController {
     constructor(topicsService) {
         this.topicsService = topicsService;
     }
+    async renameTopics() {
+        return this.topicsService.renameUnnamedTopics();
+    }
     async findAll() {
         return this.topicsService.findAll();
+    }
+    async renameTopic(id, topicName) {
+        return this.topicsService.renameTopic(id, topicName);
+    }
+    async deleteTopic(id) {
+        return this.topicsService.deleteTopic(id);
     }
     async findDestinationsByTopic(id, page, limit) {
         const parsedPage = page ? parseInt(page, 10) : 1;
@@ -33,6 +42,14 @@ let TopicsController = class TopicsController {
 };
 exports.TopicsController = TopicsController;
 __decorate([
+    (0, common_1.Post)('rename-ai'),
+    (0, swagger_1.ApiOperation)({ summary: 'Rename semua topik menggunakan AI (Gemini)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Hasil rename topik' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "renameTopics", null);
+__decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'List semua topics dengan jumlah destinasi' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Topics berhasil diambil' }),
@@ -40,6 +57,29 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], TopicsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Put)(':id/rename'),
+    (0, swagger_1.ApiOperation)({ summary: 'Rename topik secara manual' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Topik berhasil di-rename' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Topic tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('topicName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "renameTopic", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiOperation)({ summary: 'Hapus topik' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Topik berhasil dihapus' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Topic tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "deleteTopic", null);
 __decorate([
     (0, common_1.Get)(':id/destinations'),
     (0, swagger_1.ApiOperation)({ summary: 'Destinasi berdasarkan topic' }),

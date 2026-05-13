@@ -13,17 +13,27 @@ exports.NlpResultStorageService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const vector_service_1 = require("../vector/vector.service");
+const ai_naming_service_1 = require("./ai-naming.service");
 let NlpResultStorageService = class NlpResultStorageService {
     prisma;
     vectorService;
-    constructor(prisma, vectorService) {
+    aiNamingService;
+    constructor(prisma, vectorService, aiNamingService) {
         this.prisma = prisma;
         this.vectorService = vectorService;
+        this.aiNamingService = aiNamingService;
     }
     async saveNlpResults(destinationId, nlpResult, reviewIds) {
         console.log('📊 NLP Result Summary:', JSON.stringify(nlpResult.summary, null, 2));
         console.log('📊 NLP Result Topics:', JSON.stringify(nlpResult.topics?.slice(0, 3), null, 2));
         console.log('📊 NLP Result Results (first 2):', JSON.stringify(nlpResult.results?.slice(0, 2), null, 2));
+        if (nlpResult.new_topics && nlpResult.new_topics.length > 0) {
+            console.log(`🆕 ${nlpResult.new_topics.length} new topics discovered by BIRCH clustering!`);
+            console.log('🆕 New Topics:', JSON.stringify(nlpResult.new_topics, null, 2));
+        }
+        if (nlpResult.warning) {
+            console.warn('⚠️ Pipeline Warning:', nlpResult.warning);
+        }
         const mapSentiment = (sentiment) => {
             const sentimentMap = {
                 'positif': 'positive',
@@ -40,7 +50,17 @@ let NlpResultStorageService = class NlpResultStorageService {
                     continue;
                 }
                 const topicId = topic.topic_id;
-                const topicName = `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
+                const existingTopic = await this.prisma.topic.findUnique({
+                    where: { id: topicId }
+                });
+                let topicName = existingTopic?.topicName;
+                if (!existingTopic) {
+                    console.log(`🤖 Generating AI name for new topic ${topicId}...`);
+                    topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords);
+                }
+                else {
+                    topicName = topicName || `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
+                }
                 await this.prisma.topic.upsert({
                     where: { id: topicId },
                     create: {
@@ -49,7 +69,6 @@ let NlpResultStorageService = class NlpResultStorageService {
                         keywords: topic.keywords,
                     },
                     update: {
-                        topicName: topicName,
                         keywords: topic.keywords
                     },
                 });
@@ -211,6 +230,7 @@ exports.NlpResultStorageService = NlpResultStorageService;
 exports.NlpResultStorageService = NlpResultStorageService = __decorate([
     (0, common_1.Injectable)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
-        vector_service_1.VectorService])
+        vector_service_1.VectorService,
+        ai_naming_service_1.AiNamingService])
 ], NlpResultStorageService);
 //# sourceMappingURL=nlp-result-storage.service.js.map

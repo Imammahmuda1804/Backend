@@ -8,14 +8,53 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var TopicsService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TopicsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
-let TopicsService = class TopicsService {
+const ai_naming_service_1 = require("../nlp/ai-naming.service");
+let TopicsService = TopicsService_1 = class TopicsService {
     prisma;
-    constructor(prisma) {
+    aiNamingService;
+    logger = new common_1.Logger(TopicsService_1.name);
+    constructor(prisma, aiNamingService) {
         this.prisma = prisma;
+        this.aiNamingService = aiNamingService;
+    }
+    async renameUnnamedTopics() {
+        const topics = await this.prisma.topic.findMany({
+            where: {
+                topicName: { startsWith: 'Topic ' },
+            },
+            select: { id: true, topicName: true, keywords: true },
+        });
+        this.logger.log(`Found ${topics.length} topics to rename with AI`);
+        let renamed = 0;
+        let failed = 0;
+        for (const topic of topics) {
+            const keywords = Array.isArray(topic.keywords)
+                ? topic.keywords
+                : [];
+            if (keywords.length === 0) {
+                failed++;
+                continue;
+            }
+            const newName = await this.aiNamingService.generateTopicName(topic.id, keywords);
+            if (!newName.startsWith('Topic ')) {
+                await this.prisma.topic.update({
+                    where: { id: topic.id },
+                    data: { topicName: newName },
+                });
+                this.logger.log(`Renamed topic ${topic.id}: "${topic.topicName}" → "${newName}"`);
+                renamed++;
+            }
+            else {
+                failed++;
+            }
+        }
+        this.logger.log(`Rename complete: ${renamed} renamed, ${failed} failed, ${topics.length} total`);
+        return { renamed, failed, total: topics.length };
     }
     async findAll() {
         const topics = await this.prisma.topic.findMany({
@@ -91,10 +130,35 @@ let TopicsService = class TopicsService {
             },
         };
     }
+    async renameTopic(topicId, newName) {
+        const topic = await this.prisma.topic.findUnique({ where: { id: topicId } });
+        if (!topic)
+            throw new common_1.NotFoundException('Topic tidak ditemukan');
+        const updated = await this.prisma.topic.update({
+            where: { id: topicId },
+            data: { topicName: newName },
+            select: { id: true, topicName: true },
+        });
+        this.logger.log(`Topic ${topicId} renamed to "${newName}"`);
+        return updated;
+    }
+    async deleteTopic(topicId) {
+        const topic = await this.prisma.topic.findUnique({ where: { id: topicId } });
+        if (!topic)
+            throw new common_1.NotFoundException('Topic tidak ditemukan');
+        await this.prisma.$transaction([
+            this.prisma.destinationTopic.deleteMany({ where: { topicId } }),
+            this.prisma.review.updateMany({ where: { topicId }, data: { topicId: null } }),
+            this.prisma.topic.delete({ where: { id: topicId } }),
+        ]);
+        this.logger.log(`Topic ${topicId} ("${topic.topicName}") deleted`);
+        return { deleted: true, id: topicId };
+    }
 };
 exports.TopicsService = TopicsService;
-exports.TopicsService = TopicsService = __decorate([
+exports.TopicsService = TopicsService = TopicsService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        ai_naming_service_1.AiNamingService])
 ], TopicsService);
 //# sourceMappingURL=topics.service.js.map

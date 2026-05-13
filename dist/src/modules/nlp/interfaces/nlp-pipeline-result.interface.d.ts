@@ -16,4 +16,9 @@ export interface NlpPipelineResult {
         topic_id: number;
         keywords: string[];
     }>;
+    new_topics?: Array<{
+        topic_id: number;
+        keywords: string[];
+    }>;
+    warning?: string;
 }

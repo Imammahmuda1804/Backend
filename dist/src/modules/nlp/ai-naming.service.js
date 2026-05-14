@@ -61,19 +61,19 @@ let AiNamingService = AiNamingService_1 = class AiNamingService {
         const elapsed = now - this.lastRequestTime;
         if (elapsed < DELAY_BETWEEN_REQUESTS_MS) {
             const waitMs = DELAY_BETWEEN_REQUESTS_MS - elapsed;
-            await new Promise(resolve => setTimeout(resolve, waitMs));
+            await new Promise((resolve) => setTimeout(resolve, waitMs));
         }
         this.lastRequestTime = Date.now();
     }
     getAvailableModels() {
-        return GEMINI_MODELS.filter(m => !this.isModelExhausted(m));
+        return GEMINI_MODELS.filter((m) => !this.isModelExhausted(m));
     }
     async generateTopicName(topicId, keywords) {
         if (!this.genAI) {
             return `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
         }
         const prompt = `Anda adalah asisten AI untuk analisis data pariwisata.
-Tugas Anda adalah membuat NAMA TOPIK yang singkat, jelas, dan informatif (maksimal 5 kata) berdasarkan daftar kata kunci berikut.
+Tugas Anda adalah membuat NAMA TOPIK yang singkat, jelas, dan informatif (maksimal 5 kata),buat agar nama topiknya bisa digunakan sebagai filter kategori berdasarkan daftar kata kunci berikut.
 Kata kunci: ${keywords.join(', ')}
 
 Hanya kembalikan nama topiknya saja, tanpa penjelasan apapun, tanpa tanda kutip. Contoh output: Keluhan Harga Tiket, Fasilitas Kamar Mandi, Pemandangan Alam Indah.`;
@@ -109,7 +109,7 @@ Hanya kembalikan nama topiknya saja, tanpa penjelasan apapun, tanpa tanda kutip.
                         if (attempt < MAX_RETRIES) {
                             this.logger.warn(`⏳ Rate limited on ${modelName} for topic ${topicId}. ` +
                                 `Retrying in ${RETRY_DELAY_MS / 1000}s (attempt ${attempt + 1}/${MAX_RETRIES})...`);
-                            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+                            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
                             continue;
                         }
                         this.logger.warn(`⚠️ ${modelName} retry habis untuk topic ${topicId}. Pindah ke model berikutnya.`);

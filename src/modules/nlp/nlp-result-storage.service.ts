@@ -18,14 +18,28 @@ export class NlpResultStorageService {
     reviewIds: number[],
   ): Promise<void> {
     // Log untuk debugging
-    console.log('📊 NLP Result Summary:', JSON.stringify(nlpResult.summary, null, 2));
-    console.log('📊 NLP Result Topics:', JSON.stringify(nlpResult.topics?.slice(0, 3), null, 2));
-    console.log('📊 NLP Result Results (first 2):', JSON.stringify(nlpResult.results?.slice(0, 2), null, 2));
+    console.log(
+      '📊 NLP Result Summary:',
+      JSON.stringify(nlpResult.summary, null, 2),
+    );
+    console.log(
+      '📊 NLP Result Topics:',
+      JSON.stringify(nlpResult.topics?.slice(0, 3), null, 2),
+    );
+    console.log(
+      '📊 NLP Result Results (first 2):',
+      JSON.stringify(nlpResult.results?.slice(0, 2), null, 2),
+    );
 
     // Log topik baru yang ditemukan oleh BIRCH clustering
     if (nlpResult.new_topics && nlpResult.new_topics.length > 0) {
-      console.log(`🆕 ${nlpResult.new_topics.length} new topics discovered by BIRCH clustering!`);
-      console.log('🆕 New Topics:', JSON.stringify(nlpResult.new_topics, null, 2));
+      console.log(
+        `🆕 ${nlpResult.new_topics.length} new topics discovered by BIRCH clustering!`,
+      );
+      console.log(
+        '🆕 New Topics:',
+        JSON.stringify(nlpResult.new_topics, null, 2),
+      );
     }
 
     // Log warning jika ada graceful degradation
@@ -54,7 +68,7 @@ export class NlpResultStorageService {
         }
 
         const topicId = topic.topic_id;
-        
+
         // Cek apakah topik sudah ada di DB
         const existingTopic = await this.prisma.topic.findUnique({
           where: { id: topicId }
@@ -63,12 +77,12 @@ export class NlpResultStorageService {
         let topicName = existingTopic?.topicName;
 
         if (!existingTopic) {
-           // Jika topik baru, gunakan AI untuk generate nama
-           console.log(`🤖 Generating AI name for new topic ${topicId}...`);
-           topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords);
+          // Jika topik baru, gunakan AI untuk generate nama
+          console.log(`🤖 Generating AI name for new topic ${topicId}...`);
+          topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords);
         } else {
-           // Fallback kalau nama topik kosong di db
-           topicName = topicName || `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
+          // Fallback kalau nama topik kosong di db
+          topicName = topicName || `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
         }
 
         await this.prisma.topic.upsert({

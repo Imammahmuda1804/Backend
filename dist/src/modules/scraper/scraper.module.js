@@ -15,8 +15,6 @@ const apify_service_1 = require("./apify.service");
 const scraper_processor_1 = require("./scraper.processor");
 const axios_1 = require("@nestjs/axios");
 const csv_service_1 = require("./csv.service");
-const nlp_process_processor_1 = require("./nlp-process.processor");
-const nlp_module_1 = require("../nlp/nlp.module");
 let ScraperModule = class ScraperModule {
 };
 exports.ScraperModule = ScraperModule;
@@ -26,11 +24,7 @@ exports.ScraperModule = ScraperModule = __decorate([
             bullmq_1.BullModule.registerQueue({
                 name: 'scraping-queue',
             }),
-            bullmq_1.BullModule.registerQueue({
-                name: 'nlp-queue',
-            }),
             axios_1.HttpModule,
-            nlp_module_1.NlpModule,
         ],
         controllers: [scraper_controller_1.ScraperController],
         providers: [
@@ -38,7 +32,6 @@ exports.ScraperModule = ScraperModule = __decorate([
             apify_service_1.ApifyService,
             scraper_processor_1.ScraperProcessor,
             csv_service_1.CsvService,
-            nlp_process_processor_1.NlpProcessProcessor,
         ],
         exports: [scraper_service_1.ScraperService],
     })

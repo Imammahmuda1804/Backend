@@ -39,30 +39,80 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FileParserService = void 0;
+exports.FileParserService = exports.FIELD_MAPPING = void 0;
+exports.normalizeKey = normalizeKey;
+exports.detectColumnMapping = detectColumnMapping;
 const common_1 = require("@nestjs/common");
 const xlsx = __importStar(require("xlsx"));
+exports.FIELD_MAPPING = {
+    reviewText: [
+        'teks_ulasan', 'review_text', 'reviewtext', 'text', 'content', 'komentar', 'review', 'ulasan'
+    ],
+    reviewDate: [
+        'tanggal_ulasan', 'review_date', 'reviewdate', 'published_at', 'publishedatdate', 'date', 'tanggal', 'time', 'waktu'
+    ],
+    reviewerName: [
+        'nama_pengulas', 'reviewer_name', 'reviewername', 'name', 'author', 'user', 'nama', 'penulis'
+    ],
+    rating: [
+        'rating', 'stars', 'star', 'score', 'bintang', 'nilai'
+    ],
+    likesCount: [
+        'jumlah_suka', 'likes_count', 'likescount', 'likes', 'like', 'helpful', 'suka', 'berguna'
+    ],
+    ownerReply: [
+        'balasan_pemilik', 'owner_reply', 'responsefromownertext', 'response', 'balasan'
+    ]
+};
+function normalizeKey(key) {
+    return key.toLowerCase().trim().replace(/[\s\-]/g, '_');
+}
+function detectColumnMapping(row, logger) {
+    const mapping = {};
+    const usedKeys = new Set();
+    const normalizedKeys = Object.keys(row).map(k => ({
+        original: k,
+        normalized: normalizeKey(k)
+    }));
+    const findMatch = (canonicalNames) => {
+        for (const name of canonicalNames) {
+            const match = normalizedKeys.find(k => k.normalized === name && !usedKeys.has(k.original));
+            if (match) {
+                usedKeys.add(match.original);
+                return match.original;
+            }
+        }
+        return null;
+    };
+    mapping.reviewText = findMatch(exports.FIELD_MAPPING.reviewText);
+    mapping.reviewDate = findMatch(exports.FIELD_MAPPING.reviewDate);
+    mapping.reviewerName = findMatch(exports.FIELD_MAPPING.reviewerName);
+    mapping.rating = findMatch(exports.FIELD_MAPPING.rating);
+    mapping.likesCount = findMatch(exports.FIELD_MAPPING.likesCount);
+    mapping.ownerReply = findMatch(exports.FIELD_MAPPING.ownerReply);
+    if (logger) {
+        logger.log(`Detected Column Mapping: ${JSON.stringify(mapping)}`);
+        if (!mapping.reviewText) {
+            logger.warn('Warning: Mandatory column "reviewText" not found in the file headers.');
+        }
+    }
+    return mapping;
+}
 let FileParserService = class FileParserService {
     parseExcelOrCsv(buffer, originalname) {
         const ext = originalname.split('.').pop()?.toLowerCase();
-        try {
-            if (ext === 'csv') {
-                const workbook = xlsx.read(buffer, { type: 'buffer', raw: true });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                return xlsx.utils.sheet_to_json(sheet);
-            }
-            else if (ext === 'xlsx' || ext === 'xls') {
-                const workbook = xlsx.read(buffer, { type: 'buffer' });
-                const sheetName = workbook.SheetNames[0];
-                const sheet = workbook.Sheets[sheetName];
-                return xlsx.utils.sheet_to_json(sheet);
-            }
-            else {
-                throw new common_1.BadRequestException('Format file tidak didukung. Gunakan CSV, XLSX, atau XLS.');
-            }
+        if (ext !== 'csv' && ext !== 'xlsx' && ext !== 'xls') {
+            throw new common_1.BadRequestException('Format file tidak didukung. Gunakan CSV, XLSX, atau XLS.');
         }
-        catch {
+        try {
+            const workbook = xlsx.read(buffer, { type: 'buffer', cellDates: true });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            return xlsx.utils.sheet_to_json(sheet);
+        }
+        catch (err) {
+            if (err instanceof common_1.BadRequestException)
+                throw err;
             throw new common_1.BadRequestException('Gagal mem-parsing file. Pastikan file tidak rusak dan formatnya benar.');
         }
     }
@@ -74,14 +124,8 @@ let FileParserService = class FileParserService {
             throw new common_1.BadRequestException('Jumlah baris melebihi batas maksimal 50.000 baris.');
         }
         const firstRow = data[0];
-        const columns = Object.keys(firstRow).map((k) => k.toLowerCase());
-        const hasReviewText = columns.some((c) => c.includes('text') ||
-            c.includes('review') ||
-            c.includes('content') ||
-            c.includes('ulasan') ||
-            c.includes('teks') ||
-            c.includes('komentar'));
-        if (!hasReviewText) {
+        const mapping = detectColumnMapping(firstRow);
+        if (!mapping.reviewText) {
             throw new common_1.BadRequestException('File tidak memiliki kolom yang merepresentasikan teks review. ' +
                 'Kolom yang valid: "Teks Ulasan", "review_text", "text", "content", "ulasan", dll.');
         }

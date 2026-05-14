@@ -96,9 +96,5 @@ export declare class ScraperController {
             total_pages: number;
         };
     }>;
-    downloadCsv(jobId: number, res: Response): Promise<Response<any, Record<string, any>>>;
-    processNlp(jobId: number): Promise<{
-        message: string;
-        job_id: number;
-    }>;
+    downloadExcel(jobId: number, res: Response): Promise<void>;
 }

@@ -325,17 +325,30 @@ export class DestinationsService {
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
 
-    // Aggregate user rating
+    // Aggregate user (platform) rating
     const reviewAgg = await this.prisma.userReview.aggregate({
       where: { destinationId: id },
       _avg: { rating: true },
       _count: true,
     });
 
+    // Aggregate scraped (Google Maps) review rating
+    const scrapedAgg = await this.prisma.review.aggregate({
+      where: { destinationId: id },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
     return {
       ...destination,
-      averageUserRating: reviewAgg._avg.rating || destination.userRating,
+      // Platform user reviews
+      averageUserRating: reviewAgg._avg.rating || null,
       totalUserReviews: reviewAgg._count,
+      // Scraped Google Maps reviews
+      scrapedAverageRating: scrapedAgg._avg.rating
+        ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
+        : destination.userRating,
+      scrapedReviewCount: scrapedAgg._count.rating,
     };
   }
 
@@ -372,17 +385,30 @@ export class DestinationsService {
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
 
-    // Aggregate user rating
+    // Aggregate user (platform) rating
     const reviewAgg = await this.prisma.userReview.aggregate({
       where: { destinationId: destination.id },
       _avg: { rating: true },
       _count: true,
     });
 
+    // Aggregate scraped (Google Maps) review rating
+    const scrapedAgg = await this.prisma.review.aggregate({
+      where: { destinationId: destination.id },
+      _avg: { rating: true },
+      _count: { rating: true },
+    });
+
     return {
       ...destination,
-      averageUserRating: reviewAgg._avg.rating || destination.userRating,
+      // Platform user reviews
+      averageUserRating: reviewAgg._avg.rating || null,
       totalUserReviews: reviewAgg._count,
+      // Scraped Google Maps reviews
+      scrapedAverageRating: scrapedAgg._avg.rating
+        ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
+        : destination.userRating,
+      scrapedReviewCount: scrapedAgg._count.rating,
     };
   }
 

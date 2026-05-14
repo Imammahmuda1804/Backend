@@ -65,8 +65,10 @@ export class ScraperController {
    *  ✅ Has text : hanya ulasan yang mengandung teks
    *
    * Yang bisa dikontrol admin:
-   *  - max_reviews : batas jumlah ulasan (opsional)
+   *  - max_reviews : jumlah ulasan BERTEKS yang ingin didapat (sistem akan mencari hingga tercapai)
    *  - maps_url    : override URL Maps jika berbeda dari yang tersimpan di DB (opsional)
+   *
+   * Hasil scraping disimpan sebagai file Excel, BUKAN ke database.
    */
   @Post('start')
   @HttpCode(HttpStatus.ACCEPTED)
@@ -74,8 +76,8 @@ export class ScraperController {
     summary: 'Mulai scraping ulasan dari Google Maps',
     description:
       'Memulai job scraping untuk destinasi yang dipilih. ' +
-      'Ulasan yang diambil: terbaru, semua bintang, hanya yang berteks. ' +
-      'Gunakan max_reviews untuk membatasi jumlah ulasan yang diambil.',
+      'Sistem akan mencari ulasan berteks hingga mencapai jumlah yang diminta. ' +
+      'Hasil berupa file Excel yang dapat diunduh setelah selesai.',
   })
   @ApiResponse({ status: 202, description: 'Scraping job berhasil dimulai dan masuk antrian' })
   @ApiResponse({ status: 400, description: 'Destinasi tidak memiliki URL Google Maps' })
@@ -120,37 +122,37 @@ export class ScraperController {
     return this.scraperService.getHistory(page, limit, query.destination_id);
   }
 
+  /**
+   * Download file Excel hasil scraping.
+   * File berformat .xlsx dengan styling yang rapi:
+   * - Header berwarna dan tebal
+   * - Wrap text aktif
+   * - Alignment center & middle
+   * - Penamaan file informatif
+   */
   @Get('download/:jobId')
-  @ApiOperation({ summary: 'Download hasil scraping sebagai file CSV' })
-  @ApiResponse({ status: 200, description: 'File CSV berhasil diunduh' })
+  @ApiOperation({ summary: 'Download hasil scraping sebagai file Excel (.xlsx)' })
+  @ApiResponse({ status: 200, description: 'File Excel berhasil diunduh' })
   @ApiResponse({ status: 400, description: 'Job belum selesai' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
-  @ApiResponse({ status: 404, description: 'Job tidak ditemukan' })
-  async downloadCsv(
+  @ApiResponse({ status: 404, description: 'Job atau file tidak ditemukan' })
+  async downloadExcel(
     @Param('jobId', ParseIntPipe) jobId: number,
     @Res() res: Response,
   ) {
-    const csvData = await this.scraperService.downloadCsv(jobId);
+    const { filePath, filename } =
+      await this.scraperService.downloadExcel(jobId);
 
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
     res.setHeader(
       'Content-Disposition',
-      `attachment; filename="reviews_job_${jobId}.csv"`,
+      `attachment; filename="${encodeURIComponent(filename)}"`,
     );
 
-    return res.send(csvData);
-  }
-
-  @Post('process/:jobId')
-  @HttpCode(HttpStatus.ACCEPTED)
-  @ApiOperation({ summary: 'Trigger NLP pipeline untuk memproses ulasan job ini' })
-  @ApiResponse({ status: 202, description: 'NLP processing berhasil dimulai' })
-  @ApiResponse({ status: 400, description: 'Job belum selesai' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
-  @ApiResponse({ status: 404, description: 'Job tidak ditemukan' })
-  async processNlp(@Param('jobId', ParseIntPipe) jobId: number) {
-    return this.scraperService.processNlp(jobId);
+    return res.sendFile(filePath);
   }
 }

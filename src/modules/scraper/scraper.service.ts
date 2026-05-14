@@ -10,6 +10,8 @@ import { CsvService } from './csv.service';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { StartScrapingDto } from './dto';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class ScraperService {
@@ -20,7 +22,6 @@ export class ScraperService {
     private readonly apifyService: ApifyService,
     private readonly csvService: CsvService,
     @InjectQueue('scraping-queue') private readonly scrapingQueue: Queue,
-    @InjectQueue('nlp-queue') private readonly nlpQueue: Queue,
   ) {}
 
   /**
@@ -49,8 +50,10 @@ export class ScraperService {
    *  - Has text : true
    *
    * Yang bisa dikontrol admin:
-   *  - max_reviews : batas jumlah ulasan (opsional)
+   *  - max_reviews : batas jumlah ulasan berteks yang HARUS didapat
    *  - maps_url    : override URL Maps (opsional, fallback ke DB)
+   *
+   * Hasil scraping disimpan sebagai file Excel, TIDAK ke database.
    */
   async startScraping(dto: StartScrapingDto, adminId?: number) {
     const destination = await this.prisma.destination.findUnique({
@@ -78,16 +81,17 @@ export class ScraperService {
       },
     });
 
-    // Hanya teruskan data yang diperlukan — filter dikunci di processor/apify service
+    // Kirim data ke queue — termasuk nama destinasi untuk penamaan file
     await this.scrapingQueue.add('scrape-reviews', {
       jobId: job.id,
       destinationId: destination.id,
+      destinationName: destination.name,
       url: finalMapsUrl,
       maxReviews: dto.max_reviews,
     });
 
     this.logger.log(
-      `Scraping job #${job.id} queued for destination "${destination.name}" (maxReviews: ${dto.max_reviews ?? 'ALL'})`,
+      `Scraping job #${job.id} queued for destination "${destination.name}" (target: ${dto.max_reviews ?? 'ALL'} text reviews)`,
     );
 
     return {
@@ -95,7 +99,8 @@ export class ScraperService {
       status: 'pending',
       destination_name: destination.name,
       maps_url: finalMapsUrl,
-      message: 'Scraping job started. Ulasan akan diambil: terbaru, semua bintang, hanya yang berteks.',
+      message:
+        'Scraping job dimulai. Sistem akan mengambil ulasan berteks sesuai jumlah yang diminta. Hasil berupa file Excel yang bisa diunduh.',
     };
   }
 
@@ -177,56 +182,50 @@ export class ScraperService {
     };
   }
 
-  async downloadCsv(jobId: number) {
+  /**
+   * Download file Excel hasil scraping.
+   * File disimpan oleh ScraperProcessor di uploads/scraped_data/job_{jobId}.xlsx
+   */
+  async downloadExcel(jobId: number): Promise<{ filePath: string; filename: string }> {
     const job = await this.prisma.scrapingJob.findUnique({
       where: { id: jobId },
-    });
-
-    if (!job) {
-      throw new NotFoundException('Scraping job not found');
-    }
-
-    if (job.status !== 'completed') {
-      throw new BadRequestException('Job is not completed yet');
-    }
-
-    const reviews = await this.prisma.review.findMany({
-      where: { scrapingJobId: jobId },
-      select: {
-        id: true,
-        reviewerName: true,
-        rating: true,
-        reviewText: true,
-        reviewDate: true,
-        likesCount: true,
+      include: {
+        destination: { select: { name: true } },
       },
     });
 
-    const csvData = this.csvService.generateCsv(reviews);
-    return csvData;
-  }
-
-  async processNlp(jobId: number) {
-    const job = await this.prisma.scrapingJob.findUnique({
-      where: { id: jobId },
-    });
-
     if (!job) {
       throw new NotFoundException('Scraping job not found');
     }
 
     if (job.status !== 'completed') {
-      throw new BadRequestException('Job is not completed yet');
+      throw new BadRequestException('Job belum selesai');
     }
 
-    await this.nlpQueue.add('process-nlp', {
-      jobId,
-      destinationId: job.destinationId,
-    });
+    const uploadDir = path.join(process.cwd(), 'uploads', 'scraped_data');
+    const jobFilePath = path.join(uploadDir, `job_${jobId}.xlsx`);
 
-    return {
-      message: 'NLP processing started',
-      job_id: jobId,
-    };
+    if (!fs.existsSync(jobFilePath)) {
+      throw new NotFoundException(
+        'File Excel tidak ditemukan. Mungkin sudah dihapus.',
+      );
+    }
+
+    // Generate nama file download yang informatif
+    const safeName = (job.destination?.name || 'Destination')
+      .replace(/[^a-zA-Z0-9\s]/g, '')
+      .replace(/\s+/g, '_')
+      .substring(0, 40);
+    const dateStr = new Date(job.createdAt)
+      .toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+      .replace(/ /g, '-');
+
+    const filename = `[RanahInsight]_Scrape_${safeName}_${job.totalReviews || 0}_Reviews_${dateStr}.xlsx`;
+
+    return { filePath: jobFilePath, filename };
   }
 }

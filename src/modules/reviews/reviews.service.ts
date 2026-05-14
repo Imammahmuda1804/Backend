@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 import { CreateUserReviewDto } from './dto';
 
 @Injectable()
@@ -133,5 +134,87 @@ export class ReviewsService {
                 ...(recommendationScore !== undefined && { recommendationScore }),
             },
         });
+    }
+
+    /**
+     * GET /admin/reviews/destination/:id
+     * Get paginated reviews for a specific destination with optional filters.
+     */
+    async getReviewsByDestination(
+        destinationId: number,
+        page: number,
+        limit: number,
+        sentiment?: string,
+        topicId?: number,
+        dateFrom?: string,
+        dateTo?: string,
+        sortBy?: 'newest' | 'oldest',
+        nlpStatus?: 'all' | 'processed' | 'unprocessed',
+    ) {
+        const skip = (page - 1) * limit;
+
+        const where: Prisma.ReviewWhereInput = {
+            destinationId,
+            ...(sentiment && { sentiment }),
+            ...(topicId && { topicId }),
+            ...(dateFrom || dateTo
+                ? {
+                    reviewDate: {
+                        ...(dateFrom && { gte: new Date(dateFrom) }),
+                        ...(dateTo && { lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)) }),
+                    },
+                }
+                : {}),
+            ...(nlpStatus === 'processed' && { cleanedText: { not: null } }),
+            ...(nlpStatus === 'unprocessed' && { cleanedText: null }),
+        };
+
+        const orderBy: Prisma.ReviewOrderByWithRelationInput =
+            sortBy === 'oldest'
+                ? { reviewDate: 'asc' }
+                : { reviewDate: 'desc' };
+
+        const [total, reviews] = await Promise.all([
+            this.prisma.review.count({ where }),
+            this.prisma.review.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy,
+                include: {
+                    topic: { select: { id: true, topicName: true } },
+                },
+            }),
+        ]);
+
+        return {
+            data: reviews,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
+    }
+
+    /**
+     * DELETE /admin/reviews/bulk
+     * Hapus masal review berdasarkan destinasi dan kategori
+     */
+    async deleteBulkReviews(destinationId: number, category: 'all' | 'processed' | 'unprocessed') {
+        const whereClause: Prisma.ReviewWhereInput = { destinationId };
+
+        if (category === 'processed') {
+            whereClause.cleanedText = { not: null };
+        } else if (category === 'unprocessed') {
+            whereClause.cleanedText = null;
+        }
+
+        const result = await this.prisma.review.deleteMany({
+            where: whereClause,
+        });
+
+        return { message: `${result.count} review berhasil dihapus` };
     }
 }

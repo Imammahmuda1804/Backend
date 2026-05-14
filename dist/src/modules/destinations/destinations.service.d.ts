@@ -247,6 +247,8 @@ export declare class DestinationsService {
     findOnePublic(id: number): Promise<{
         averageUserRating: number | null;
         totalUserReviews: number;
+        scrapedAverageRating: number | null;
+        scrapedReviewCount: number;
         userReviews: ({
             user: {
                 id: number;
@@ -257,9 +259,9 @@ export declare class DestinationsService {
             id: number;
             createdAt: Date;
             rating: number;
+            destinationId: number;
             reviewText: string | null;
             userId: number;
-            destinationId: number;
         })[];
         images: {
             id: number;
@@ -313,6 +315,8 @@ export declare class DestinationsService {
     findOnePublicBySlug(slug: string): Promise<{
         averageUserRating: number | null;
         totalUserReviews: number;
+        scrapedAverageRating: number | null;
+        scrapedReviewCount: number;
         userReviews: ({
             user: {
                 id: number;
@@ -323,9 +327,9 @@ export declare class DestinationsService {
             id: number;
             createdAt: Date;
             rating: number;
+            destinationId: number;
             reviewText: string | null;
             userId: number;
-            destinationId: number;
         })[];
         images: {
             id: number;

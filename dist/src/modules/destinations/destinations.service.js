@@ -320,10 +320,19 @@ let DestinationsService = class DestinationsService {
             _avg: { rating: true },
             _count: true,
         });
+        const scrapedAgg = await this.prisma.review.aggregate({
+            where: { destinationId: id },
+            _avg: { rating: true },
+            _count: { rating: true },
+        });
         return {
             ...destination,
-            averageUserRating: reviewAgg._avg.rating || destination.userRating,
+            averageUserRating: reviewAgg._avg.rating || null,
             totalUserReviews: reviewAgg._count,
+            scrapedAverageRating: scrapedAgg._avg.rating
+                ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
+                : destination.userRating,
+            scrapedReviewCount: scrapedAgg._count.rating,
         };
     }
     async findOnePublicBySlug(slug) {
@@ -362,10 +371,19 @@ let DestinationsService = class DestinationsService {
             _avg: { rating: true },
             _count: true,
         });
+        const scrapedAgg = await this.prisma.review.aggregate({
+            where: { destinationId: destination.id },
+            _avg: { rating: true },
+            _count: { rating: true },
+        });
         return {
             ...destination,
-            averageUserRating: reviewAgg._avg.rating || destination.userRating,
+            averageUserRating: reviewAgg._avg.rating || null,
             totalUserReviews: reviewAgg._count,
+            scrapedAverageRating: scrapedAgg._avg.rating
+                ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
+                : destination.userRating,
+            scrapedReviewCount: scrapedAgg._count.rating,
         };
     }
     async findRanking(sortBy, limit) {

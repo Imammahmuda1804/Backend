@@ -44,14 +44,11 @@ let ScraperController = class ScraperController {
         const limit = Number(query.limit) || 10;
         return this.scraperService.getHistory(page, limit, query.destination_id);
     }
-    async downloadCsv(jobId, res) {
-        const csvData = await this.scraperService.downloadCsv(jobId);
-        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="reviews_job_${jobId}.csv"`);
-        return res.send(csvData);
-    }
-    async processNlp(jobId) {
-        return this.scraperService.processNlp(jobId);
+    async downloadExcel(jobId, res) {
+        const { filePath, filename } = await this.scraperService.downloadExcel(jobId);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+        return res.sendFile(filePath);
     }
 };
 exports.ScraperController = ScraperController;
@@ -82,8 +79,8 @@ __decorate([
     (0, swagger_1.ApiOperation)({
         summary: 'Mulai scraping ulasan dari Google Maps',
         description: 'Memulai job scraping untuk destinasi yang dipilih. ' +
-            'Ulasan yang diambil: terbaru, semua bintang, hanya yang berteks. ' +
-            'Gunakan max_reviews untuk membatasi jumlah ulasan yang diambil.',
+            'Sistem akan mencari ulasan berteks hingga mencapai jumlah yang diminta. ' +
+            'Hasil berupa file Excel yang dapat diunduh setelah selesai.',
     }),
     (0, swagger_1.ApiResponse)({ status: 202, description: 'Scraping job berhasil dimulai dan masuk antrian' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Destinasi tidak memiliki URL Google Maps' }),
@@ -132,32 +129,18 @@ __decorate([
 ], ScraperController.prototype, "getHistory", null);
 __decorate([
     (0, common_1.Get)('download/:jobId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Download hasil scraping sebagai file CSV' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'File CSV berhasil diunduh' }),
+    (0, swagger_1.ApiOperation)({ summary: 'Download hasil scraping sebagai file Excel (.xlsx)' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'File Excel berhasil diunduh' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Job belum selesai' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Job tidak ditemukan' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Job atau file tidak ditemukan' }),
     __param(0, (0, common_1.Param)('jobId', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Res)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
-], ScraperController.prototype, "downloadCsv", null);
-__decorate([
-    (0, common_1.Post)('process/:jobId'),
-    (0, common_1.HttpCode)(common_1.HttpStatus.ACCEPTED),
-    (0, swagger_1.ApiOperation)({ summary: 'Trigger NLP pipeline untuk memproses ulasan job ini' }),
-    (0, swagger_1.ApiResponse)({ status: 202, description: 'NLP processing berhasil dimulai' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Job belum selesai' }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
-    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Job tidak ditemukan' }),
-    __param(0, (0, common_1.Param)('jobId', common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", Promise)
-], ScraperController.prototype, "processNlp", null);
+], ScraperController.prototype, "downloadExcel", null);
 exports.ScraperController = ScraperController = __decorate([
     (0, swagger_1.ApiTags)('Admin - Scraper'),
     (0, swagger_1.ApiBearerAuth)(),

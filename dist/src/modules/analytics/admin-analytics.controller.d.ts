@@ -74,8 +74,8 @@ export declare class AdminAnalyticsController {
                 name: string;
             };
             rating: number | null;
-            reviewerName: string;
             sentiment: string | null;
+            reviewerName: string;
         }[];
         recent_user_reviews: {
             id: number;

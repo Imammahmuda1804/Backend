@@ -8,9 +8,8 @@ export declare class ScraperService {
     private readonly apifyService;
     private readonly csvService;
     private readonly scrapingQueue;
-    private readonly nlpQueue;
     private readonly logger;
-    constructor(prisma: PrismaService, apifyService: ApifyService, csvService: CsvService, scrapingQueue: Queue, nlpQueue: Queue);
+    constructor(prisma: PrismaService, apifyService: ApifyService, csvService: CsvService, scrapingQueue: Queue);
     searchMaps(query: string): Promise<{
         title: string | undefined;
         address: string | undefined;
@@ -103,9 +102,8 @@ export declare class ScraperService {
             total_pages: number;
         };
     }>;
-    downloadCsv(jobId: number): Promise<string>;
-    processNlp(jobId: number): Promise<{
-        message: string;
-        job_id: number;
+    downloadExcel(jobId: number): Promise<{
+        filePath: string;
+        filename: string;
     }>;
 }

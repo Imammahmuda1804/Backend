@@ -11,17 +11,20 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var UploadsService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UploadsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const file_parser_service_1 = require("./file-parser.service");
+const common_2 = require("@nestjs/common");
 const bullmq_1 = require("@nestjs/bullmq");
 const bullmq_2 = require("bullmq");
-let UploadsService = class UploadsService {
+let UploadsService = UploadsService_1 = class UploadsService {
     prisma;
     fileParser;
     nlpQueue;
+    logger = new common_2.Logger(UploadsService_1.name);
     constructor(prisma, fileParser, nlpQueue) {
         this.prisma = prisma;
         this.fileParser = fileParser;
@@ -53,41 +56,44 @@ let UploadsService = class UploadsService {
                 createdBy: adminId,
             },
         });
+        const firstRow = validData.length > 0 ? validData[0] : {};
+        const mapping = (0, file_parser_service_1.detectColumnMapping)(firstRow, this.logger);
+        this.logger.log(`Raw column keys: ${JSON.stringify(Object.keys(firstRow))}`);
+        this.logger.log(`Sample mapped values from row[0]: reviewText=${JSON.stringify(mapping.reviewText ? firstRow[mapping.reviewText] : null)}, reviewDate=${JSON.stringify(mapping.reviewDate ? firstRow[mapping.reviewDate] : null)}, reviewerName=${JSON.stringify(mapping.reviewerName ? firstRow[mapping.reviewerName] : null)}`);
         const reviewsToInsert = validData.map((row) => {
-            const getVal = (keys) => {
-                const foundKey = Object.keys(row).find((k) => keys.some((searchKey) => k.toLowerCase().includes(searchKey)));
-                return foundKey ? row[foundKey] : null;
-            };
-            const reviewText = getVal([
-                'text',
-                'review',
-                'content',
-                'ulasan',
-                'teks',
-                'komentar',
-            ]);
-            const rating = getVal(['rating', 'star', 'score', 'nilai', 'bintang']);
-            const reviewerName = getVal(['name', 'author', 'user', 'nama', 'penulis']) || 'Anonymous';
-            const dateRaw = getVal([
-                'date',
-                'time',
-                'published',
-                'tanggal',
-                'waktu',
-            ]);
-            const likesCount = getVal(['like', 'helpful', 'suka', 'berguna']);
+            const reviewText = mapping.reviewText ? row[mapping.reviewText] : null;
+            const rating = mapping.rating ? row[mapping.rating] : null;
+            const reviewerName = mapping.reviewerName ? row[mapping.reviewerName] : 'Anonymous';
+            const dateRaw = mapping.reviewDate ? row[mapping.reviewDate] : null;
+            const likesCount = mapping.likesCount ? row[mapping.likesCount] : null;
             let reviewDate = null;
-            if (dateRaw &&
-                (typeof dateRaw === 'string' || typeof dateRaw === 'number')) {
-                const parsedDate = new Date(dateRaw);
-                if (!isNaN(parsedDate.getTime())) {
-                    reviewDate = parsedDate;
+            try {
+                if (dateRaw) {
+                    if (dateRaw instanceof Date) {
+                        reviewDate = dateRaw;
+                    }
+                    else if (typeof dateRaw === 'number') {
+                        if (dateRaw < 100000) {
+                            reviewDate = new Date(Math.round((dateRaw - 25569) * 86400 * 1000));
+                        }
+                        else {
+                            reviewDate = new Date(dateRaw);
+                        }
+                    }
+                    else if (typeof dateRaw === 'string') {
+                        const parsedDate = new Date(dateRaw);
+                        if (!isNaN(parsedDate.getTime())) {
+                            reviewDate = parsedDate;
+                        }
+                    }
                 }
+            }
+            catch (error) {
             }
             return {
                 destinationId,
                 scrapingJobId: job.id,
-                reviewerName: String(reviewerName).substring(0, 255),
+                reviewerName: String(reviewerName || 'Anonymous').substring(0, 255),
                 reviewText: reviewText ? String(reviewText) : null,
                 rating: rating ? parseInt(String(rating), 10) : null,
                 reviewDate,
@@ -110,7 +116,7 @@ let UploadsService = class UploadsService {
     }
 };
 exports.UploadsService = UploadsService;
-exports.UploadsService = UploadsService = __decorate([
+exports.UploadsService = UploadsService = UploadsService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(2, (0, bullmq_1.InjectQueue)('nlp-queue')),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,

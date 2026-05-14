@@ -59,7 +59,9 @@ let NlpResultStorageService = class NlpResultStorageService {
                     topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords);
                 }
                 else {
-                    topicName = topicName || `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
+                    topicName =
+                        topicName ||
+                            `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
                 }
                 await this.prisma.topic.upsert({
                     where: { id: topicId },
@@ -78,9 +80,9 @@ let NlpResultStorageService = class NlpResultStorageService {
         if (nlpResult.results && Array.isArray(nlpResult.results)) {
             for (let index = 0; index < nlpResult.results.length; index++) {
                 const review = nlpResult.results[index];
-                const realReviewId = reviewIds[index];
+                const realReviewId = review.review_id || reviewIds[index];
                 const mappedSentiment = mapSentiment(review.sentiment);
-                const safeTopicId = (review.topic_id != null && savedTopicIds.has(review.topic_id))
+                const safeTopicId = review.topic_id != null && savedTopicIds.has(review.topic_id)
                     ? review.topic_id
                     : null;
                 await this.prisma.review.update({
@@ -96,7 +98,7 @@ let NlpResultStorageService = class NlpResultStorageService {
         const embeddingsToInsert = (nlpResult.results || [])
             .filter((r) => r.embedding && r.embedding.length > 0)
             .map((r, index) => ({
-            reviewId: reviewIds[index],
+            reviewId: r.review_id || reviewIds[index],
             embedding: r.embedding,
         }));
         if (embeddingsToInsert.length > 0) {

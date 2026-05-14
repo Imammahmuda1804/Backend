@@ -101,6 +101,61 @@ let ReviewsService = class ReviewsService {
             },
         });
     }
+    async getReviewsByDestination(destinationId, page, limit, sentiment, topicId, dateFrom, dateTo, sortBy, nlpStatus) {
+        const skip = (page - 1) * limit;
+        const where = {
+            destinationId,
+            ...(sentiment && { sentiment }),
+            ...(topicId && { topicId }),
+            ...(dateFrom || dateTo
+                ? {
+                    reviewDate: {
+                        ...(dateFrom && { gte: new Date(dateFrom) }),
+                        ...(dateTo && { lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)) }),
+                    },
+                }
+                : {}),
+            ...(nlpStatus === 'processed' && { cleanedText: { not: null } }),
+            ...(nlpStatus === 'unprocessed' && { cleanedText: null }),
+        };
+        const orderBy = sortBy === 'oldest'
+            ? { reviewDate: 'asc' }
+            : { reviewDate: 'desc' };
+        const [total, reviews] = await Promise.all([
+            this.prisma.review.count({ where }),
+            this.prisma.review.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy,
+                include: {
+                    topic: { select: { id: true, topicName: true } },
+                },
+            }),
+        ]);
+        return {
+            data: reviews,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
+    }
+    async deleteBulkReviews(destinationId, category) {
+        const whereClause = { destinationId };
+        if (category === 'processed') {
+            whereClause.cleanedText = { not: null };
+        }
+        else if (category === 'unprocessed') {
+            whereClause.cleanedText = null;
+        }
+        const result = await this.prisma.review.deleteMany({
+            where: whereClause,
+        });
+        return { message: `${result.count} review berhasil dihapus` };
+    }
 };
 exports.ReviewsService = ReviewsService;
 exports.ReviewsService = ReviewsService = __decorate([

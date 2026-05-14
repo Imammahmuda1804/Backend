@@ -6,19 +6,13 @@ import { ApifyService } from './apify.service';
 import { ScraperProcessor } from './scraper.processor';
 import { HttpModule } from '@nestjs/axios';
 import { CsvService } from './csv.service';
-import { NlpProcessProcessor } from './nlp-process.processor';
-import { NlpModule } from '../nlp/nlp.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({
       name: 'scraping-queue',
     }),
-    BullModule.registerQueue({
-      name: 'nlp-queue',
-    }),
     HttpModule,
-    NlpModule,
   ],
   controllers: [ScraperController],
   providers: [
@@ -26,7 +20,6 @@ import { NlpModule } from '../nlp/nlp.module';
     ApifyService,
     ScraperProcessor,
     CsvService,
-    NlpProcessProcessor,
   ],
   exports: [ScraperService],
 })

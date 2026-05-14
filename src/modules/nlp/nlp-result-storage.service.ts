@@ -82,7 +82,9 @@ export class NlpResultStorageService {
           topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords);
         } else {
           // Fallback kalau nama topik kosong di db
-          topicName = topicName || `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
+          topicName =
+            topicName ||
+            `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
         }
 
         await this.prisma.topic.upsert({
@@ -105,13 +107,14 @@ export class NlpResultStorageService {
     if (nlpResult.results && Array.isArray(nlpResult.results)) {
       for (let index = 0; index < nlpResult.results.length; index++) {
         const review = nlpResult.results[index];
-        const realReviewId = reviewIds[index];
+        const realReviewId = (review as any).review_id || reviewIds[index];
 
         // Map sentiment dari Indonesia ke English
         const mappedSentiment = mapSentiment(review.sentiment);
 
         // Nullify topic_id if the topic wasn't persisted (prevents FK violation)
-        const safeTopicId = (review.topic_id != null && savedTopicIds.has(review.topic_id))
+        const safeTopicId =
+          review.topic_id != null && savedTopicIds.has(review.topic_id)
           ? review.topic_id
           : null;
 
@@ -130,7 +133,7 @@ export class NlpResultStorageService {
     const embeddingsToInsert = (nlpResult.results || [])
       .filter((r) => r.embedding && r.embedding.length > 0)
       .map((r, index) => ({
-        reviewId: reviewIds[index],
+        reviewId: (r as any).review_id || reviewIds[index],
         embedding: r.embedding,
       }));
     if (embeddingsToInsert.length > 0) {

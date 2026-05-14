@@ -5,6 +5,7 @@ export declare class UploadsService {
     private readonly prisma;
     private readonly fileParser;
     private readonly nlpQueue;
+    private readonly logger;
     constructor(prisma: PrismaService, fileParser: FileParserService, nlpQueue: Queue);
     processUpload(destinationId: number, file: Express.Multer.File, adminId?: number): Promise<{
         message: string;

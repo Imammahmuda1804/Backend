@@ -67,8 +67,8 @@ export declare class UsersService {
         } & {
             id: number;
             createdAt: Date;
-            userId: number;
             destinationId: number;
+            userId: number;
         })[];
         searchLogs: {
             id: number;
@@ -86,9 +86,9 @@ export declare class UsersService {
             id: number;
             createdAt: Date;
             rating: number;
+            destinationId: number;
             reviewText: string | null;
             userId: number;
-            destinationId: number;
         })[];
     }>;
     adminCreate(dto: AdminCreateUserDto): Promise<{

@@ -8,4 +8,6 @@ export declare class ScraperProcessor extends WorkerHost {
     private readonly logger;
     constructor(prisma: PrismaService, apifyService: ApifyService);
     process(job: Job<any, any, string>): Promise<any>;
+    private fetchAndSaveGoogleRating;
+    private generateExcel;
 }

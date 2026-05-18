@@ -12,8 +12,8 @@ export declare class SearchService {
     getHistory(userId: number, page: number, limit: number): Promise<{
         data: {
             id: number;
-            createdAt: Date;
             keyword: string;
+            createdAt: Date;
         }[];
         meta: {
             page: number;

@@ -36,9 +36,9 @@ let NlpResultStorageService = class NlpResultStorageService {
         }
         const mapSentiment = (sentiment) => {
             const sentimentMap = {
-                'positif': 'positive',
-                'negatif': 'negative',
-                'netral': 'neutral',
+                positif: 'positive',
+                negatif: 'negative',
+                netral: 'neutral',
             };
             return sentimentMap[sentiment.toLowerCase()] || sentiment;
         };
@@ -51,7 +51,7 @@ let NlpResultStorageService = class NlpResultStorageService {
                 }
                 const topicId = topic.topic_id;
                 const existingTopic = await this.prisma.topic.findUnique({
-                    where: { id: topicId }
+                    where: { id: topicId },
                 });
                 let topicName = existingTopic?.topicName;
                 if (!existingTopic) {
@@ -71,7 +71,7 @@ let NlpResultStorageService = class NlpResultStorageService {
                         keywords: topic.keywords,
                     },
                     update: {
-                        keywords: topic.keywords
+                        keywords: topic.keywords,
                     },
                 });
                 savedTopicIds.add(topicId);
@@ -80,7 +80,7 @@ let NlpResultStorageService = class NlpResultStorageService {
         if (nlpResult.results && Array.isArray(nlpResult.results)) {
             for (let index = 0; index < nlpResult.results.length; index++) {
                 const review = nlpResult.results[index];
-                const realReviewId = review.review_id || reviewIds[index];
+                const realReviewId = review.review_id ?? reviewIds[index];
                 const mappedSentiment = mapSentiment(review.sentiment);
                 const safeTopicId = review.topic_id != null && savedTopicIds.has(review.topic_id)
                     ? review.topic_id
@@ -98,22 +98,26 @@ let NlpResultStorageService = class NlpResultStorageService {
         const embeddingsToInsert = (nlpResult.results || [])
             .filter((r) => r.embedding && r.embedding.length > 0)
             .map((r, index) => ({
-            reviewId: r.review_id || reviewIds[index],
+            reviewId: r.review_id ?? reviewIds[index],
             embedding: r.embedding,
         }));
         if (embeddingsToInsert.length > 0) {
             await this.vectorService.batchInsertReviewEmbeddings(embeddingsToInsert);
         }
         if (nlpResult.results && nlpResult.results.length > 0) {
-            const validEmbeddings = nlpResult.results
-                .filter((r) => r.embedding && r.embedding.length > 0)
-                .map((r) => r.embedding);
+            const validEmbeddings = nlpResult.results.reduce((acc, result) => {
+                if (result.embedding.length > 0) {
+                    acc.push(result.embedding);
+                }
+                return acc;
+            }, []);
             if (validEmbeddings.length > 0) {
                 const embeddingDim = validEmbeddings[0].length;
-                const destinationEmbedding = new Array(embeddingDim).fill(0);
+                const destinationEmbedding = Array.from({ length: embeddingDim }, () => 0);
                 for (const embedding of validEmbeddings) {
                     for (let i = 0; i < embeddingDim; i++) {
-                        destinationEmbedding[i] += embedding[i];
+                        destinationEmbedding[i] =
+                            (destinationEmbedding[i] ?? 0) + (embedding[i] ?? 0);
                     }
                 }
                 for (let i = 0; i < embeddingDim; i++) {

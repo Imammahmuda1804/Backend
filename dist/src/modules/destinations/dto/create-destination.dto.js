@@ -23,6 +23,8 @@ class CreateDestinationDto {
     youtubeUrl;
     googlePlaceId;
     thumbnailUrl;
+    googleRating;
+    googleReviewCount;
 }
 exports.CreateDestinationDto = CreateDestinationDto;
 __decorate([
@@ -94,4 +96,25 @@ __decorate([
     (0, class_validator_1.IsUrl)(),
     __metadata("design:type", String)
 ], CreateDestinationDto.prototype, "thumbnailUrl", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Rating Google Maps (1.0 - 5.0)',
+        example: 4.5,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    (0, class_validator_1.Max)(5),
+    __metadata("design:type", Number)
+], CreateDestinationDto.prototype, "googleRating", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Jumlah ulasan di Google Maps',
+        example: 1200,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateDestinationDto.prototype, "googleReviewCount", void 0);
 //# sourceMappingURL=create-destination.dto.js.map

@@ -11,5 +11,5 @@ export declare class VectorService {
         embedding: number[];
     }>): Promise<void>;
     searchSimilarDestinations(queryEmbedding: number[], limit?: number): Promise<SimilarDestination[]>;
-    hybridSearch(queryEmbedding: number[], limit?: number): Promise<SimilarDestination[]>;
+    hybridSearch(queryEmbedding: number[], limit?: number, sortType?: 'relevance' | 'hybrid'): Promise<SimilarDestination[]>;
 }

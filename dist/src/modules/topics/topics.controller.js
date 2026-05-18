@@ -17,6 +17,7 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const topics_service_1 = require("./topics.service");
 const public_decorator_1 = require("../../common/decorators/public.decorator");
+const roles_decorator_1 = require("../../common/decorators/roles.decorator");
 let TopicsController = class TopicsController {
     topicsService;
     constructor(topicsService) {
@@ -43,6 +44,8 @@ let TopicsController = class TopicsController {
 exports.TopicsController = TopicsController;
 __decorate([
     (0, common_1.Post)('rename-ai'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     (0, swagger_1.ApiOperation)({ summary: 'Rename semua topik menggunakan AI (Gemini)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Hasil rename topik' }),
     __metadata("design:type", Function),
@@ -51,6 +54,7 @@ __decorate([
 ], TopicsController.prototype, "renameTopics", null);
 __decorate([
     (0, common_1.Get)(),
+    (0, public_decorator_1.Public)(),
     (0, swagger_1.ApiOperation)({ summary: 'List semua topics dengan jumlah destinasi' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Topics berhasil diambil' }),
     __metadata("design:type", Function),
@@ -59,6 +63,8 @@ __decorate([
 ], TopicsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Put)(':id/rename'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     (0, swagger_1.ApiOperation)({ summary: 'Rename topik secara manual' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Topik berhasil di-rename' }),
@@ -71,6 +77,8 @@ __decorate([
 ], TopicsController.prototype, "renameTopic", null);
 __decorate([
     (0, common_1.Delete)(':id'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
     (0, swagger_1.ApiOperation)({ summary: 'Hapus topik' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic ID' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Topik berhasil dihapus' }),
@@ -82,6 +90,7 @@ __decorate([
 ], TopicsController.prototype, "deleteTopic", null);
 __decorate([
     (0, common_1.Get)(':id/destinations'),
+    (0, public_decorator_1.Public)(),
     (0, swagger_1.ApiOperation)({ summary: 'Destinasi berdasarkan topic' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic ID' }),
     (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number, example: 1 }),
@@ -97,7 +106,6 @@ __decorate([
 ], TopicsController.prototype, "findDestinationsByTopic", null);
 exports.TopicsController = TopicsController = __decorate([
     (0, swagger_1.ApiTags)('Topics'),
-    (0, public_decorator_1.Public)(),
     (0, common_1.Controller)('topics'),
     __metadata("design:paramtypes", [topics_service_1.TopicsService])
 ], TopicsController);

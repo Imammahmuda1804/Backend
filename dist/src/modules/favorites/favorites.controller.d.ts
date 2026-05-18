@@ -31,4 +31,7 @@ export declare class FavoritesController {
     removeFavorite(destinationId: number, userId: number): Promise<{
         message: string;
     }>;
+    checkFavorite(destinationId: number, userId: number): Promise<{
+        isFavorite: boolean;
+    }>;
 }

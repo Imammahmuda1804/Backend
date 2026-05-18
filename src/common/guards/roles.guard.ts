@@ -1,6 +1,17 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import type { Request } from 'express';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+
+interface AuthenticatedUser {
+  id: number;
+  email: string;
+  role: string;
+}
+
+type AuthenticatedRequest = Request & {
+  user?: AuthenticatedUser;
+};
 
 /**
  * Role-based Access Control Guard
@@ -21,7 +32,7 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest();
+    const { user } = context.switchToHttp().getRequest<AuthenticatedRequest>();
 
     // Jika tidak ada user (public endpoint yang lolos JWT guard)
     if (!user) {

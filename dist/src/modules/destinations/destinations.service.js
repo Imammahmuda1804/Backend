@@ -72,6 +72,8 @@ let DestinationsService = class DestinationsService {
                     googleMapsUrl: dto.googleMapsUrl,
                     youtubeUrl: dto.youtubeUrl,
                     thumbnailUrl: dto.thumbnailUrl,
+                    googleRating: dto.googleRating,
+                    googleReviewCount: dto.googleReviewCount,
                 },
             });
         }
@@ -85,8 +87,9 @@ let DestinationsService = class DestinationsService {
             throw error;
         }
     }
-    async findAll(page, limit, search, topicId) {
+    async findAll(page, limit, search, topicId, topicIds, city) {
         const skip = (page - 1) * limit;
+        const effectiveTopicIds = topicIds && topicIds.length > 0 ? topicIds : topicId ? [topicId] : [];
         const whereCondition = {
             deletedAt: null,
             ...(search && {
@@ -95,23 +98,27 @@ let DestinationsService = class DestinationsService {
                     { city: { contains: search, mode: 'insensitive' } },
                 ],
             }),
-            ...(topicId && {
+            ...(effectiveTopicIds.length > 0 && {
                 destinationTopics: {
                     some: {
-                        topicId: topicId,
+                        topicId: { in: effectiveTopicIds },
                     },
                 },
             }),
-        };
-        const [data, total] = await Promise.all([
-            this.prisma.destination.findMany({
-                where: whereCondition,
-                skip,
-                take: limit,
-                orderBy: { createdAt: 'desc' },
+            ...(city && {
+                city: { equals: city, mode: 'insensitive' },
             }),
-            this.prisma.destination.count({ where: whereCondition }),
-        ]);
+        };
+        const data = await this.prisma.destination.findMany({
+            where: whereCondition,
+            skip,
+            take: limit,
+            orderBy: { createdAt: 'desc' },
+            include: { images: true },
+        });
+        const total = await this.prisma.destination.count({
+            where: whereCondition,
+        });
         return {
             data,
             meta: {
@@ -121,6 +128,15 @@ let DestinationsService = class DestinationsService {
                 total_pages: Math.ceil(total / limit),
             },
         };
+    }
+    async getCities() {
+        const results = await this.prisma.destination.findMany({
+            where: { deletedAt: null },
+            select: { city: true },
+            distinct: ['city'],
+            orderBy: { city: 'asc' },
+        });
+        return results.map((r) => r.city).filter(Boolean);
     }
     async findOneAdmin(id) {
         const destination = await this.prisma.destination.findUnique({
@@ -166,6 +182,12 @@ let DestinationsService = class DestinationsService {
                 googleMapsUrl: dto.googleMapsUrl,
                 youtubeUrl: dto.youtubeUrl,
                 thumbnailUrl: dto.thumbnailUrl,
+                ...(dto.googleRating !== undefined && {
+                    googleRating: dto.googleRating,
+                }),
+                ...(dto.googleReviewCount !== undefined && {
+                    googleReviewCount: dto.googleReviewCount,
+                }),
             },
         });
     }
@@ -253,27 +275,27 @@ let DestinationsService = class DestinationsService {
     async findRecommendations(page, limit) {
         const skip = (page - 1) * limit;
         const whereCondition = { deletedAt: null };
-        const [data, total] = await Promise.all([
-            this.prisma.destination.findMany({
-                where: whereCondition,
-                skip,
-                take: limit,
-                orderBy: { recommendationScore: 'desc' },
-                select: {
-                    id: true,
-                    name: true,
-                    slug: true,
-                    city: true,
-                    province: true,
-                    thumbnailUrl: true,
-                    googleRating: true,
-                    userRating: true,
-                    positiveRatio: true,
-                    recommendationScore: true,
-                },
-            }),
-            this.prisma.destination.count({ where: whereCondition }),
-        ]);
+        const data = await this.prisma.destination.findMany({
+            where: whereCondition,
+            skip,
+            take: limit,
+            orderBy: { recommendationScore: 'desc' },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                city: true,
+                province: true,
+                thumbnailUrl: true,
+                googleRating: true,
+                userRating: true,
+                positiveRatio: true,
+                recommendationScore: true,
+            },
+        });
+        const total = await this.prisma.destination.count({
+            where: whereCondition,
+        });
         return {
             data,
             meta: {
@@ -325,6 +347,7 @@ let DestinationsService = class DestinationsService {
             _avg: { rating: true },
             _count: { rating: true },
         });
+        const topicSentimentBreakdown = await this.buildTopicSentimentBreakdown(id);
         return {
             ...destination,
             averageUserRating: reviewAgg._avg.rating || null,
@@ -333,6 +356,7 @@ let DestinationsService = class DestinationsService {
                 ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
                 : destination.userRating,
             scrapedReviewCount: scrapedAgg._count.rating,
+            topicSentimentBreakdown,
         };
     }
     async findOnePublicBySlug(slug) {
@@ -376,6 +400,7 @@ let DestinationsService = class DestinationsService {
             _avg: { rating: true },
             _count: { rating: true },
         });
+        const topicSentimentBreakdown = await this.buildTopicSentimentBreakdown(destination.id);
         return {
             ...destination,
             averageUserRating: reviewAgg._avg.rating || null,
@@ -384,6 +409,7 @@ let DestinationsService = class DestinationsService {
                 ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
                 : destination.userRating,
             scrapedReviewCount: scrapedAgg._count.rating,
+            topicSentimentBreakdown,
         };
     }
     async findRanking(sortBy, limit) {
@@ -413,6 +439,73 @@ let DestinationsService = class DestinationsService {
                 recommendationScore: true,
             },
         });
+    }
+    async getReviewsByTopic(destinationId, topicId, page, limit) {
+        const destination = await this.prisma.destination.findFirst({
+            where: { id: destinationId, deletedAt: null },
+            select: { id: true },
+        });
+        if (!destination) {
+            throw new common_1.NotFoundException('Destinasi tidak ditemukan');
+        }
+        const skip = (page - 1) * limit;
+        const total = await this.prisma.review.count({
+            where: { destinationId, topicId },
+        });
+        const reviews = await this.prisma.review.findMany({
+            where: { destinationId, topicId },
+            skip,
+            take: limit,
+            orderBy: { reviewDate: 'desc' },
+            select: {
+                id: true,
+                reviewerName: true,
+                reviewText: true,
+                rating: true,
+                reviewDate: true,
+                sentiment: true,
+                likesCount: true,
+            },
+        });
+        return {
+            data: reviews,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
+    }
+    async buildTopicSentimentBreakdown(destinationId) {
+        const grouped = await this.prisma.review.groupBy({
+            by: ['topicId', 'sentiment'],
+            where: {
+                destinationId,
+                topicId: { not: null },
+                sentiment: { not: null },
+            },
+            _count: { sentiment: true },
+        });
+        const breakdown = {};
+        for (const row of grouped) {
+            if (row.topicId === null)
+                continue;
+            if (!breakdown[row.topicId]) {
+                breakdown[row.topicId] = { positive: 0, negative: 0, neutral: 0 };
+            }
+            const sentiment = (row.sentiment || '').toLowerCase();
+            if (sentiment === 'positive' || sentiment === 'positif') {
+                breakdown[row.topicId].positive = row._count.sentiment;
+            }
+            else if (sentiment === 'negative' || sentiment === 'negatif') {
+                breakdown[row.topicId].negative = row._count.sentiment;
+            }
+            else {
+                breakdown[row.topicId].neutral = row._count.sentiment;
+            }
+        }
+        return breakdown;
     }
 };
 exports.DestinationsService = DestinationsService;

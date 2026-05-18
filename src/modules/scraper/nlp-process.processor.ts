@@ -42,7 +42,7 @@ export class NlpProcessProcessor extends WorkerHost {
         index,
         'Teks Ulasan': r.reviewText || '',
         'Nama Pengulas': r.reviewerName || '',
-        'Rating': r.rating || 0,
+        Rating: r.rating || 0,
         'Tanggal Ulasan': r.reviewDate ? r.reviewDate.toISOString() : '',
         'Jumlah Suka': r.likesCount || 0,
       }));
@@ -60,7 +60,9 @@ export class NlpProcessProcessor extends WorkerHost {
           `reviews_job_${jobId}.csv`,
         );
 
-        this.logger.log(`✅ FastAPI returned ${nlpResult.results?.length || 0} results`);
+        this.logger.log(
+          `✅ FastAPI returned ${nlpResult.results?.length || 0} results`,
+        );
       } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : String(err);
         this.logger.warn(`FastAPI failed: ${errorMessage}`);
@@ -75,8 +77,12 @@ export class NlpProcessProcessor extends WorkerHost {
         this.logger.warn('Using dummy data fallback (development only).');
         // Fallback for development if FastAPI is not up
         // Match the actual FastAPI response format
-        const positiveCount = reviews.filter(r => r.rating && r.rating >= 4).length;
-        const negativeCount = reviews.filter(r => r.rating && r.rating <= 2).length;
+        const positiveCount = reviews.filter(
+          (r) => r.rating && r.rating >= 4,
+        ).length;
+        const negativeCount = reviews.filter(
+          (r) => r.rating && r.rating <= 2,
+        ).length;
         const neutralCount = reviews.length - positiveCount - negativeCount;
 
         nlpResult = {

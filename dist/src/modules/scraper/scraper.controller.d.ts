@@ -1,6 +1,13 @@
 import type { Request, Response } from 'express';
 import { ScraperService } from './scraper.service';
 import { SearchQueryDto, StartScrapingDto, JobQueryDto, HistoryQueryDto } from './dto';
+type AuthenticatedRequest = Request & {
+    user?: {
+        id: number;
+        email: string;
+        role: string;
+    };
+};
 export declare class ScraperController {
     private readonly scraperService;
     constructor(scraperService: ScraperService);
@@ -12,7 +19,7 @@ export declare class ScraperController {
         placeId: string | undefined;
         url: string | undefined;
     }[]>;
-    startScraping(dto: StartScrapingDto, req: Request): Promise<{
+    startScraping(dto: StartScrapingDto, req: AuthenticatedRequest): Promise<{
         job_id: number;
         status: string;
         destination_name: string;
@@ -26,15 +33,15 @@ export declare class ScraperController {
             province: string;
         };
     } & {
-        id: number;
         status: string;
-        createdAt: Date;
-        destinationId: number;
         source: string;
         totalReviews: number | null;
         startedAt: Date | null;
         finishedAt: Date | null;
         errorMessage: string | null;
+        createdAt: Date;
+        id: number;
+        destinationId: number;
         createdBy: number | null;
     }>;
     getJobs(query: JobQueryDto): Promise<{
@@ -44,15 +51,15 @@ export declare class ScraperController {
                 city: string;
             };
         } & {
-            id: number;
             status: string;
-            createdAt: Date;
-            destinationId: number;
             source: string;
             totalReviews: number | null;
             startedAt: Date | null;
             finishedAt: Date | null;
             errorMessage: string | null;
+            createdAt: Date;
+            id: number;
+            destinationId: number;
             createdBy: number | null;
         })[];
         meta: {
@@ -68,26 +75,26 @@ export declare class ScraperController {
                 name: string;
             };
             job: {
-                id: number;
                 status: string;
-                createdAt: Date;
-                destinationId: number;
                 source: string;
                 totalReviews: number | null;
                 startedAt: Date | null;
                 finishedAt: Date | null;
                 errorMessage: string | null;
+                createdAt: Date;
+                id: number;
+                destinationId: number;
                 createdBy: number | null;
             };
         } & {
-            id: number;
-            createdAt: Date;
-            sort: string | null;
-            destinationId: number;
             totalReviews: number | null;
+            createdAt: Date;
+            id: number;
+            destinationId: number;
             jobId: number;
             starsFilter: import("@prisma/client/runtime/client").JsonValue | null;
             hasText: boolean | null;
+            sort: string | null;
         })[];
         meta: {
             page: number;
@@ -98,3 +105,4 @@ export declare class ScraperController {
     }>;
     downloadExcel(jobId: number, res: Response): Promise<void>;
 }
+export {};

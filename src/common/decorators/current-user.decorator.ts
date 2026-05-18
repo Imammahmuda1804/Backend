@@ -1,4 +1,15 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import type { Request } from 'express';
+
+interface AuthenticatedUser {
+  id: number;
+  email: string;
+  role: string;
+}
+
+type AuthenticatedRequest = Request & {
+  user?: AuthenticatedUser;
+};
 
 /**
  * @CurrentUser() decorator
@@ -12,8 +23,8 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
  *   getProfile(@CurrentUser('sub') userId: number) { ... }
  */
 export const CurrentUser = createParamDecorator(
-  (data: string | undefined, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
+  (data: keyof AuthenticatedUser | undefined, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
     const user = request.user;
 
     // Jika data diberikan, return property spesifik (e.g., 'sub', 'email')

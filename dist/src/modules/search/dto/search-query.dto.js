@@ -16,6 +16,7 @@ const swagger_1 = require("@nestjs/swagger");
 class SearchQueryDto {
     query;
     limit = 10;
+    sort = 'hybrid';
 }
 exports.SearchQueryDto = SearchQueryDto;
 __decorate([
@@ -44,4 +45,14 @@ __decorate([
     (0, class_validator_1.Max)(50),
     __metadata("design:type", Number)
 ], SearchQueryDto.prototype, "limit", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Mode urutan pencarian semantik (relevance = murni kemiripan teks, hybrid = rekomendasi + rating + sentimen)',
+        enum: ['relevance', 'hybrid'],
+        default: 'hybrid',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SearchQueryDto.prototype, "sort", void 0);
 //# sourceMappingURL=search-query.dto.js.map

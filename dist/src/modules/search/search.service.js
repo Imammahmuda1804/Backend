@@ -39,16 +39,17 @@ let SearchService = SearchService_1 = class SearchService {
             }
             throw error;
         }
-        const results = await this.vectorService.hybridSearch(embedding, limit);
+        const results = await this.vectorService.hybridSearch(embedding, limit, dto.sort);
         if (userId) {
             try {
                 await this.prisma.searchLog.create({
-                    data: { userId, keyword: dto.query }
+                    data: { userId, keyword: dto.query },
                 });
                 this.logger.log(`✅ Search history saved for user ${userId}: "${dto.query}"`);
             }
             catch (err) {
-                this.logger.error(`❌ Failed to save search log for user ${userId}: ${err.message}`);
+                const message = err instanceof Error ? err.message : String(err);
+                this.logger.error(`❌ Failed to save search log for user ${userId}: ${message}`);
             }
         }
         else {

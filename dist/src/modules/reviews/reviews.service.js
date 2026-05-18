@@ -111,16 +111,16 @@ let ReviewsService = class ReviewsService {
                 ? {
                     reviewDate: {
                         ...(dateFrom && { gte: new Date(dateFrom) }),
-                        ...(dateTo && { lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)) }),
+                        ...(dateTo && {
+                            lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)),
+                        }),
                     },
                 }
                 : {}),
             ...(nlpStatus === 'processed' && { cleanedText: { not: null } }),
             ...(nlpStatus === 'unprocessed' && { cleanedText: null }),
         };
-        const orderBy = sortBy === 'oldest'
-            ? { reviewDate: 'asc' }
-            : { reviewDate: 'desc' };
+        const orderBy = sortBy === 'oldest' ? { reviewDate: 'asc' } : { reviewDate: 'desc' };
         const [total, reviews] = await Promise.all([
             this.prisma.review.count({ where }),
             this.prisma.review.findMany({

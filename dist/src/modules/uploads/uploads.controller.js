@@ -54,8 +54,14 @@ __decorate([
             },
         },
     }),
-    (0, swagger_1.ApiResponse)({ status: 202, description: 'File uploaded and processing started' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'File is required or invalid format' }),
+    (0, swagger_1.ApiResponse)({
+        status: 202,
+        description: 'File uploaded and processing started',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'File is required or invalid format',
+    }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Destination not found' }),

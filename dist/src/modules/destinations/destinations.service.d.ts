@@ -1,14 +1,15 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateDestinationDto, UpdateDestinationDto, UpdateMapsUrlDto } from './dto';
+import type { Prisma } from '@prisma/client';
 export declare class DestinationsService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     create(dto: CreateDestinationDto): Promise<{
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -26,13 +27,20 @@ export declare class DestinationsService {
         recommendationScore: number | null;
         deletedAt: Date | null;
     }>;
-    findAll(page: number, limit: number, search?: string, topicId?: number): Promise<{
-        data: {
-            id: number;
+    findAll(page: number, limit: number, search?: string, topicId?: number, topicIds?: number[], city?: string): Promise<{
+        data: ({
+            images: {
+                createdAt: Date;
+                id: number;
+                destinationId: number;
+                imageUrl: string;
+            }[];
+        } & {
+            description: string | null;
             name: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
+            id: number;
             slug: string;
             city: string;
             province: string;
@@ -49,7 +57,7 @@ export declare class DestinationsService {
             positiveRatio: number | null;
             recommendationScore: number | null;
             deletedAt: Date | null;
-        }[];
+        })[];
         meta: {
             page: number;
             limit: number;
@@ -57,11 +65,12 @@ export declare class DestinationsService {
             total_pages: number;
         };
     }>;
+    getCities(): Promise<string[]>;
     findOneAdmin(id: number): Promise<{
         scrapingJobs: {
-            id: number;
             status: string;
             createdAt: Date;
+            id: number;
             destinationId: number;
             source: string;
             totalReviews: number | null;
@@ -71,8 +80,8 @@ export declare class DestinationsService {
             createdBy: number | null;
         }[];
         images: {
-            id: number;
             createdAt: Date;
+            id: number;
             destinationId: number;
             imageUrl: string;
         }[];
@@ -86,10 +95,10 @@ export declare class DestinationsService {
         }[];
         destinationTopics: ({
             topic: {
-                id: number;
                 createdAt: Date;
+                id: number;
                 topicName: string;
-                keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                keywords: Prisma.JsonValue | null;
             };
         } & {
             id: number;
@@ -98,11 +107,11 @@ export declare class DestinationsService {
             totalReviews: number;
         })[];
     } & {
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -121,11 +130,11 @@ export declare class DestinationsService {
         deletedAt: Date | null;
     }>;
     update(id: number, dto: UpdateDestinationDto): Promise<{
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -144,11 +153,11 @@ export declare class DestinationsService {
         deletedAt: Date | null;
     }>;
     softDelete(id: number): Promise<{
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -167,11 +176,11 @@ export declare class DestinationsService {
         deletedAt: Date | null;
     }>;
     updateMapsUrl(id: number, dto: UpdateMapsUrlDto): Promise<{
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -190,11 +199,11 @@ export declare class DestinationsService {
         deletedAt: Date | null;
     }>;
     uploadThumbnail(destinationId: number, filename: string): Promise<{
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -213,21 +222,21 @@ export declare class DestinationsService {
         deletedAt: Date | null;
     }>;
     uploadImage(destinationId: number, filename: string): Promise<{
-        id: number;
         createdAt: Date;
+        id: number;
         destinationId: number;
         imageUrl: string;
     }>;
     deleteImage(imageId: number): Promise<{
-        id: number;
         createdAt: Date;
+        id: number;
         destinationId: number;
         imageUrl: string;
     }>;
     findRecommendations(page: number, limit: number): Promise<{
         data: {
-            id: number;
             name: string;
+            id: number;
             slug: string;
             city: string;
             province: string;
@@ -249,23 +258,28 @@ export declare class DestinationsService {
         totalUserReviews: number;
         scrapedAverageRating: number | null;
         scrapedReviewCount: number;
+        topicSentimentBreakdown: Record<number, {
+            positive: number;
+            negative: number;
+            neutral: number;
+        }>;
         userReviews: ({
             user: {
-                id: number;
                 name: string;
                 profilePicture: string | null;
+                id: number;
             };
         } & {
-            id: number;
             createdAt: Date;
-            rating: number;
-            destinationId: number;
-            reviewText: string | null;
+            id: number;
             userId: number;
+            destinationId: number;
+            rating: number;
+            reviewText: string | null;
         })[];
         images: {
-            id: number;
             createdAt: Date;
+            id: number;
             destinationId: number;
             imageUrl: string;
         }[];
@@ -279,10 +293,10 @@ export declare class DestinationsService {
         }[];
         destinationTopics: ({
             topic: {
-                id: number;
                 createdAt: Date;
+                id: number;
                 topicName: string;
-                keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                keywords: Prisma.JsonValue | null;
             };
         } & {
             id: number;
@@ -290,11 +304,11 @@ export declare class DestinationsService {
             topicId: number;
             totalReviews: number;
         })[];
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -317,23 +331,28 @@ export declare class DestinationsService {
         totalUserReviews: number;
         scrapedAverageRating: number | null;
         scrapedReviewCount: number;
+        topicSentimentBreakdown: Record<number, {
+            positive: number;
+            negative: number;
+            neutral: number;
+        }>;
         userReviews: ({
             user: {
-                id: number;
                 name: string;
                 profilePicture: string | null;
+                id: number;
             };
         } & {
-            id: number;
             createdAt: Date;
-            rating: number;
-            destinationId: number;
-            reviewText: string | null;
+            id: number;
             userId: number;
+            destinationId: number;
+            rating: number;
+            reviewText: string | null;
         })[];
         images: {
-            id: number;
             createdAt: Date;
+            id: number;
             destinationId: number;
             imageUrl: string;
         }[];
@@ -347,10 +366,10 @@ export declare class DestinationsService {
         }[];
         destinationTopics: ({
             topic: {
-                id: number;
                 createdAt: Date;
+                id: number;
                 topicName: string;
-                keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                keywords: Prisma.JsonValue | null;
             };
         } & {
             id: number;
@@ -358,11 +377,11 @@ export declare class DestinationsService {
             topicId: number;
             totalReviews: number;
         })[];
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -381,8 +400,8 @@ export declare class DestinationsService {
         deletedAt: Date | null;
     }>;
     findRanking(sortBy: string, limit: number): Promise<{
-        id: number;
         name: string;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -392,4 +411,22 @@ export declare class DestinationsService {
         positiveRatio: number | null;
         recommendationScore: number | null;
     }[]>;
+    getReviewsByTopic(destinationId: number, topicId: number, page: number, limit: number): Promise<{
+        data: {
+            id: number;
+            rating: number | null;
+            reviewText: string | null;
+            sentiment: string | null;
+            reviewerName: string;
+            reviewDate: Date | null;
+            likesCount: number | null;
+        }[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    }>;
+    private buildTopicSentimentBreakdown;
 }

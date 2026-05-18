@@ -4,8 +4,8 @@ export const swaggerConfig = new DocumentBuilder()
   .setTitle('Wisata Recommendation API')
   .setDescription(
     'Backend API untuk sistem rekomendasi wisata berbasis AI. ' +
-    'Menyediakan endpoint untuk autentikasi, manajemen destinasi, ' +
-    'scraping ulasan, analisis sentimen, semantic search, dan analytics dashboard.',
+      'Menyediakan endpoint untuk autentikasi, manajemen destinasi, ' +
+      'scraping ulasan, analisis sentimen, semantic search, dan analytics dashboard.',
   )
   .setVersion('1.0')
   .addBearerAuth(

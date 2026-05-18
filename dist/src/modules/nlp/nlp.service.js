@@ -84,7 +84,7 @@ let NlpService = NlpService_1 = class NlpService {
             const response = await (0, rxjs_1.firstValueFrom)(this.httpService.get(`${this.nlpBaseUrl}/health`, { timeout: 5000 }));
             return response.status === 200;
         }
-        catch (error) {
+        catch {
             this.logger.warn('FastAPI health check failed');
             return false;
         }
@@ -104,6 +104,17 @@ let NlpService = NlpService_1 = class NlpService {
             this.logger.error(`FastAPI returned status ${status}: ${JSON.stringify(data)}`);
             if (status === 422) {
                 throw new nlp_processing_exception_1.NlpProcessingException('Invalid input format to NLP Service (422)');
+            }
+            if (status === 429) {
+                const headers = error.response.headers;
+                const retryAfterHeader = headers['retry-after'];
+                const retryAfter = Array.isArray(retryAfterHeader)
+                    ? retryAfterHeader[0]
+                    : retryAfterHeader;
+                const retryMsg = retryAfter
+                    ? ` (Coba lagi dalam ${retryAfter} detik)`
+                    : '';
+                throw new nlp_unavailable_exception_1.NlpServiceUnavailableException(`Terlalu banyak permintaan ke layanan AI (429)${retryMsg}`);
             }
             if (status >= 500) {
                 throw new nlp_processing_exception_1.NlpProcessingException('NLP Service internal error');

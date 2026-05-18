@@ -12,10 +12,11 @@ import {
   UpdateMapsUrlDto,
 } from './dto';
 import { generateUniqueSlug } from '../../common/utils/slug.util';
+import type { Prisma } from '@prisma/client';
 
 @Injectable()
 export class DestinationsService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateDestinationDto) {
     // 1. Generate slug
@@ -39,6 +40,8 @@ export class DestinationsService {
           googleMapsUrl: dto.googleMapsUrl,
           youtubeUrl: dto.youtubeUrl,
           thumbnailUrl: dto.thumbnailUrl,
+          googleRating: dto.googleRating,
+          googleReviewCount: dto.googleReviewCount,
         },
       });
     } catch (error: unknown) {
@@ -57,10 +60,21 @@ export class DestinationsService {
     }
   }
 
-  async findAll(page: number, limit: number, search?: string, topicId?: number) {
+  async findAll(
+    page: number,
+    limit: number,
+    search?: string,
+    topicId?: number,
+    topicIds?: number[],
+    city?: string,
+  ) {
     const skip = (page - 1) * limit;
 
-    const whereCondition: any = {
+    // Resolve topic filter: prefer topicIds (multi) over topicId (single)
+    const effectiveTopicIds =
+      topicIds && topicIds.length > 0 ? topicIds : topicId ? [topicId] : [];
+
+    const whereCondition: Prisma.DestinationWhereInput = {
       deletedAt: null, // Exclude soft-deleted
       ...(search && {
         OR: [
@@ -68,24 +82,29 @@ export class DestinationsService {
           { city: { contains: search, mode: 'insensitive' as const } },
         ],
       }),
-      ...(topicId && {
+      ...(effectiveTopicIds.length > 0 && {
         destinationTopics: {
           some: {
-            topicId: topicId,
+            topicId: { in: effectiveTopicIds },
           },
         },
       }),
+      ...(city && {
+        city: { equals: city, mode: 'insensitive' as const },
+      }),
     };
 
-    const [data, total] = await Promise.all([
-      this.prisma.destination.findMany({
-        where: whereCondition,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.destination.count({ where: whereCondition }),
-    ]);
+    const data = await this.prisma.destination.findMany({
+      where: whereCondition,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: { images: true },
+    });
+
+    const total = await this.prisma.destination.count({
+      where: whereCondition,
+    });
 
     return {
       data,
@@ -96,6 +115,16 @@ export class DestinationsService {
         total_pages: Math.ceil(total / limit),
       },
     };
+  }
+
+  async getCities(): Promise<string[]> {
+    const results = await this.prisma.destination.findMany({
+      where: { deletedAt: null },
+      select: { city: true },
+      distinct: ['city'],
+      orderBy: { city: 'asc' },
+    });
+    return results.map((r) => r.city).filter(Boolean);
   }
 
   async findOneAdmin(id: number) {
@@ -146,6 +175,12 @@ export class DestinationsService {
         googleMapsUrl: dto.googleMapsUrl,
         youtubeUrl: dto.youtubeUrl,
         thumbnailUrl: dto.thumbnailUrl,
+        ...(dto.googleRating !== undefined && {
+          googleRating: dto.googleRating,
+        }),
+        ...(dto.googleReviewCount !== undefined && {
+          googleReviewCount: dto.googleReviewCount,
+        }),
       },
     });
   }
@@ -183,7 +218,12 @@ export class DestinationsService {
       where: { id: destinationId },
     });
     if (!destination) {
-      const filepath = path.join(process.cwd(), 'uploads', 'destinations', filename);
+      const filepath = path.join(
+        process.cwd(),
+        'uploads',
+        'destinations',
+        filename,
+      );
       if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
@@ -191,7 +231,12 @@ export class DestinationsService {
     // Delete old thumbnail file if it was a local upload
     if (destination.thumbnailUrl?.startsWith('/uploads/')) {
       const oldFilename = path.basename(destination.thumbnailUrl);
-      const oldFilepath = path.join(process.cwd(), 'uploads', 'destinations', oldFilename);
+      const oldFilepath = path.join(
+        process.cwd(),
+        'uploads',
+        'destinations',
+        oldFilename,
+      );
       if (fs.existsSync(oldFilepath)) fs.unlinkSync(oldFilepath);
     }
 
@@ -259,27 +304,28 @@ export class DestinationsService {
     const skip = (page - 1) * limit;
     const whereCondition = { deletedAt: null };
 
-    const [data, total] = await Promise.all([
-      this.prisma.destination.findMany({
-        where: whereCondition,
-        skip,
-        take: limit,
-        orderBy: { recommendationScore: 'desc' },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          city: true,
-          province: true,
-          thumbnailUrl: true,
-          googleRating: true,
-          userRating: true,
-          positiveRatio: true,
-          recommendationScore: true,
-        },
-      }),
-      this.prisma.destination.count({ where: whereCondition }),
-    ]);
+    const data = await this.prisma.destination.findMany({
+      where: whereCondition,
+      skip,
+      take: limit,
+      orderBy: { recommendationScore: 'desc' },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        city: true,
+        province: true,
+        thumbnailUrl: true,
+        googleRating: true,
+        userRating: true,
+        positiveRatio: true,
+        recommendationScore: true,
+      },
+    });
+
+    const total = await this.prisma.destination.count({
+      where: whereCondition,
+    });
 
     return {
       data,
@@ -339,6 +385,9 @@ export class DestinationsService {
       _count: { rating: true },
     });
 
+    // Aggregate sentiment breakdown per topic
+    const topicSentimentBreakdown = await this.buildTopicSentimentBreakdown(id);
+
     return {
       ...destination,
       // Platform user reviews
@@ -349,6 +398,7 @@ export class DestinationsService {
         ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
         : destination.userRating,
       scrapedReviewCount: scrapedAgg._count.rating,
+      topicSentimentBreakdown,
     };
   }
 
@@ -399,6 +449,11 @@ export class DestinationsService {
       _count: { rating: true },
     });
 
+    // Aggregate sentiment breakdown per topic
+    const topicSentimentBreakdown = await this.buildTopicSentimentBreakdown(
+      destination.id,
+    );
+
     return {
       ...destination,
       // Platform user reviews
@@ -409,6 +464,7 @@ export class DestinationsService {
         ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
         : destination.userRating,
       scrapedReviewCount: scrapedAgg._count.rating,
+      topicSentimentBreakdown,
     };
   }
 
@@ -440,5 +496,98 @@ export class DestinationsService {
         recommendationScore: true,
       },
     });
+  }
+
+  /**
+   * Get scraped reviews filtered by topic for public destination detail.
+   */
+  async getReviewsByTopic(
+    destinationId: number,
+    topicId: number,
+    page: number,
+    limit: number,
+  ) {
+    const destination = await this.prisma.destination.findFirst({
+      where: { id: destinationId, deletedAt: null },
+      select: { id: true },
+    });
+
+    if (!destination) {
+      throw new NotFoundException('Destinasi tidak ditemukan');
+    }
+
+    const skip = (page - 1) * limit;
+
+    const total = await this.prisma.review.count({
+      where: { destinationId, topicId },
+    });
+
+    const reviews = await this.prisma.review.findMany({
+      where: { destinationId, topicId },
+      skip,
+      take: limit,
+      orderBy: { reviewDate: 'desc' },
+      select: {
+        id: true,
+        reviewerName: true,
+        reviewText: true,
+        rating: true,
+        reviewDate: true,
+        sentiment: true,
+        likesCount: true,
+      },
+    });
+
+    return {
+      data: reviews,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /**
+   * Build sentiment breakdown per topic for a destination.
+   * Returns: { [topicId]: { positive: N, negative: N, neutral: N } }
+   */
+  private async buildTopicSentimentBreakdown(
+    destinationId: number,
+  ): Promise<
+    Record<number, { positive: number; negative: number; neutral: number }>
+  > {
+    const grouped = await this.prisma.review.groupBy({
+      by: ['topicId', 'sentiment'],
+      where: {
+        destinationId,
+        topicId: { not: null },
+        sentiment: { not: null },
+      },
+      _count: { sentiment: true },
+    });
+
+    const breakdown: Record<
+      number,
+      { positive: number; negative: number; neutral: number }
+    > = {};
+
+    for (const row of grouped) {
+      if (row.topicId === null) continue;
+      if (!breakdown[row.topicId]) {
+        breakdown[row.topicId] = { positive: 0, negative: 0, neutral: 0 };
+      }
+      const sentiment = (row.sentiment || '').toLowerCase();
+      if (sentiment === 'positive' || sentiment === 'positif') {
+        breakdown[row.topicId].positive = row._count.sentiment;
+      } else if (sentiment === 'negative' || sentiment === 'negatif') {
+        breakdown[row.topicId].negative = row._count.sentiment;
+      } else {
+        breakdown[row.topicId].neutral = row._count.sentiment;
+      }
+    }
+
+    return breakdown;
   }
 }

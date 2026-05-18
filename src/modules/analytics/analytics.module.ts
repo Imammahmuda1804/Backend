@@ -4,8 +4,8 @@ import { AdminAnalyticsController } from './admin-analytics.controller';
 import { AnalyticsService } from './analytics.service';
 
 @Module({
-    controllers: [AnalyticsController, AdminAnalyticsController],
-    providers: [AnalyticsService],
-    exports: [AnalyticsService],
+  controllers: [AnalyticsController, AdminAnalyticsController],
+  providers: [AnalyticsService],
+  exports: [AnalyticsService],
 })
-export class AnalyticsModule { }
+export class AnalyticsModule {}

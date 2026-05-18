@@ -17,11 +17,22 @@ async function bootstrap() {
     const configService = app.get(config_1.ConfigService);
     app.setGlobalPrefix('api');
     app.use((0, helmet_1.default)({
-        crossOriginResourcePolicy: { policy: "cross-origin" }
+        crossOriginResourcePolicy: { policy: 'cross-origin' },
     }));
     const corsOrigins = configService.get('CORS_ORIGINS', '');
+    const allowedOrigins = corsOrigins
+        ? corsOrigins
+            .split(',')
+            .map((origin) => origin.trim())
+            .filter(Boolean)
+        : [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'http://127.0.0.1:3000',
+            'http://127.0.0.1:3001',
+        ];
     app.enableCors({
-        origin: corsOrigins ? corsOrigins.split(',') : '*',
+        origin: allowedOrigins,
         credentials: true,
         methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],

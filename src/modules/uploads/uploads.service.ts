@@ -9,6 +9,17 @@ import { Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 
+function stringifyField(value: unknown, fallback = ''): string {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'object') return JSON.stringify(value) ?? fallback;
+  return fallback;
+}
+
 @Injectable()
 export class UploadsService {
   private readonly logger = new Logger(UploadsService.name);
@@ -17,7 +28,7 @@ export class UploadsService {
     private readonly prisma: PrismaService,
     private readonly fileParser: FileParserService,
     @InjectQueue('nlp-queue') private readonly nlpQueue: Queue,
-  ) { }
+  ) {}
 
   async processUpload(
     destinationId: number,
@@ -58,58 +69,69 @@ export class UploadsService {
       },
     });
 
-    const firstRow = validData.length > 0 ? (validData[0] as Record<string, unknown>) : {};
+    const firstRow = validData.length > 0 ? validData[0] : {};
     const mapping = detectColumnMapping(firstRow, this.logger);
 
     // Debug: log raw keys and mapped sample values from first row
-    this.logger.log(`Raw column keys: ${JSON.stringify(Object.keys(firstRow))}`);
-    this.logger.log(`Sample mapped values from row[0]: reviewText=${JSON.stringify(mapping.reviewText ? firstRow[mapping.reviewText] : null)}, reviewDate=${JSON.stringify(mapping.reviewDate ? firstRow[mapping.reviewDate] : null)}, reviewerName=${JSON.stringify(mapping.reviewerName ? firstRow[mapping.reviewerName] : null)}`);
+    this.logger.log(
+      `Raw column keys: ${JSON.stringify(Object.keys(firstRow))}`,
+    );
+    this.logger.log(
+      `Sample mapped values from row[0]: reviewText=${JSON.stringify(mapping.reviewText ? firstRow[mapping.reviewText] : null)}, reviewDate=${JSON.stringify(mapping.reviewDate ? firstRow[mapping.reviewDate] : null)}, reviewerName=${JSON.stringify(mapping.reviewerName ? firstRow[mapping.reviewerName] : null)}`,
+    );
 
     // Save raw reviews
-    const reviewsToInsert = (validData as Record<string, unknown>[]).map(
-      (row) => {
-        const reviewText = mapping.reviewText ? row[mapping.reviewText] : null;
-        const rating = mapping.rating ? row[mapping.rating] : null;
-        const reviewerName = mapping.reviewerName ? row[mapping.reviewerName] : 'Anonymous';
-        const dateRaw = mapping.reviewDate ? row[mapping.reviewDate] : null;
-        const likesCount = mapping.likesCount ? row[mapping.likesCount] : null;
+    const reviewsToInsert = validData.map((row) => {
+      const reviewText = mapping.reviewText ? row[mapping.reviewText] : null;
+      const rating = mapping.rating ? row[mapping.rating] : null;
+      const reviewerName = mapping.reviewerName
+        ? row[mapping.reviewerName]
+        : 'Anonymous';
+      const dateRaw = mapping.reviewDate ? row[mapping.reviewDate] : null;
+      const likesCount = mapping.likesCount ? row[mapping.likesCount] : null;
 
-        let reviewDate = null;
-        try {
-          if (dateRaw) {
-            if (dateRaw instanceof Date) {
-              reviewDate = dateRaw;
-            } else if (typeof dateRaw === 'number') {
-              if (dateRaw < 100000) {
-                // Excel serial date to JS Date
-                reviewDate = new Date(Math.round((dateRaw - 25569) * 86400 * 1000));
-              } else {
-                // UNIX timestamp
-                reviewDate = new Date(dateRaw);
-              }
-            } else if (typeof dateRaw === 'string') {
-              const parsedDate = new Date(dateRaw);
-              if (!isNaN(parsedDate.getTime())) {
-                reviewDate = parsedDate;
-              }
+      let reviewDate = null;
+      try {
+        if (dateRaw) {
+          if (dateRaw instanceof Date) {
+            reviewDate = dateRaw;
+          } else if (typeof dateRaw === 'number') {
+            if (dateRaw < 100000) {
+              // Excel serial date to JS Date
+              reviewDate = new Date(
+                Math.round((dateRaw - 25569) * 86400 * 1000),
+              );
+            } else {
+              // UNIX timestamp
+              reviewDate = new Date(dateRaw);
+            }
+          } else if (typeof dateRaw === 'string') {
+            const parsedDate = new Date(dateRaw);
+            if (!isNaN(parsedDate.getTime())) {
+              reviewDate = parsedDate;
             }
           }
-        } catch (error) {
-          // Fallback if parsing fails
         }
+      } catch {
+        // Fallback if parsing fails
+      }
 
-        return {
-          destinationId,
-          scrapingJobId: job.id,
-          reviewerName: String(reviewerName || 'Anonymous').substring(0, 255),
-          reviewText: reviewText ? String(reviewText) : null,
-          rating: rating ? parseInt(String(rating), 10) : null,
-          reviewDate,
-          likesCount: likesCount ? parseInt(String(likesCount), 10) : 0,
-          source: 'upload',
-        };
-      },
-    );
+      const reviewerNameText = stringifyField(reviewerName, 'Anonymous');
+      const reviewTextText = reviewText ? stringifyField(reviewText) : null;
+      const ratingText = rating ? stringifyField(rating) : null;
+      const likesCountText = likesCount ? stringifyField(likesCount) : null;
+
+      return {
+        destinationId,
+        scrapingJobId: job.id,
+        reviewerName: reviewerNameText.substring(0, 255),
+        reviewText: reviewTextText,
+        rating: ratingText ? parseInt(ratingText, 10) : null,
+        reviewDate,
+        likesCount: likesCountText ? parseInt(likesCountText, 10) : 0,
+        source: 'upload',
+      };
+    });
 
     await this.prisma.review.createMany({
       data: reviewsToInsert,

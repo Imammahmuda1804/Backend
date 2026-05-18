@@ -66,7 +66,7 @@ let AnalyticsService = class AnalyticsService {
         };
     }
     async getAdminSummary() {
-        const [userCounts, activeDestCount, deletedDestCount, scrapedReviewCount, userReviewCount, scrapingJobCounts, sentimentCounts, topDestinations, latestScrapingJobs, topTopics,] = await Promise.all([
+        const [userCounts, activeDestCount, deletedDestCount, scrapedReviewCount, userReviewCount, scrapingJobCounts, sentimentCounts, topDestinations, latestScrapingJobs, topTopics, destinationsMissingThumbnail, destinationsMissingTrends, recentNegativeReviews, topicSentimentRows, destinationQualityRows,] = await Promise.all([
             this.prisma.user.groupBy({
                 by: ['status'],
                 _count: { status: true },
@@ -110,6 +110,56 @@ let AnalyticsService = class AnalyticsService {
                 orderBy: { _sum: { totalReviews: 'desc' } },
                 take: 5,
             }),
+            this.prisma.destination.count({
+                where: {
+                    deletedAt: null,
+                    OR: [{ thumbnailUrl: null }, { thumbnailUrl: '' }],
+                },
+            }),
+            this.prisma.destination.count({
+                where: {
+                    deletedAt: null,
+                    sentimentTrends: { none: {} },
+                },
+            }),
+            this.prisma.review.findMany({
+                where: { sentiment: { in: ['negative', 'negatif'] } },
+                orderBy: { createdAt: 'desc' },
+                take: 5,
+                select: {
+                    id: true,
+                    rating: true,
+                    reviewText: true,
+                    createdAt: true,
+                    destination: { select: { id: true, name: true, city: true } },
+                },
+            }),
+            this.prisma.review.groupBy({
+                by: ['topicId', 'sentiment'],
+                where: { topicId: { not: null }, sentiment: { not: null } },
+                _count: { _all: true },
+            }),
+            this.prisma.destination.findMany({
+                where: {
+                    deletedAt: null,
+                    OR: [
+                        { recommendationScore: { not: null } },
+                        { googleRating: { not: null } },
+                        { positiveRatio: { not: null } },
+                    ],
+                },
+                orderBy: [{ recommendationScore: 'desc' }, { googleRating: 'desc' }],
+                take: 24,
+                select: {
+                    id: true,
+                    name: true,
+                    city: true,
+                    googleRating: true,
+                    googleReviewCount: true,
+                    recommendationScore: true,
+                    positiveRatio: true,
+                },
+            }),
         ]);
         const topicIds = topTopics.map((t) => t.topicId);
         const topics = await this.prisma.topic.findMany({
@@ -117,6 +167,45 @@ let AnalyticsService = class AnalyticsService {
             select: { id: true, topicName: true },
         });
         const topicMap = new Map(topics.map((t) => [t.id, t.topicName]));
+        const topicRiskIds = [
+            ...new Set(topicSentimentRows
+                .map((row) => row.topicId)
+                .filter((id) => id !== null)),
+        ];
+        const riskTopics = await this.prisma.topic.findMany({
+            where: { id: { in: topicRiskIds } },
+            select: { id: true, topicName: true },
+        });
+        const riskTopicMap = new Map(riskTopics.map((topic) => [topic.id, topic.topicName]));
+        const topicRiskMap = new Map();
+        for (const row of topicSentimentRows) {
+            if (row.topicId === null)
+                continue;
+            const existing = topicRiskMap.get(row.topicId) ?? {
+                topic_name: riskTopicMap.get(row.topicId) ?? 'Unknown',
+                positive: 0,
+                neutral: 0,
+                negative: 0,
+                total: 0,
+                risk_ratio: 0,
+            };
+            const count = row._count._all;
+            const sentiment = (row.sentiment || '').toLowerCase();
+            if (sentiment === 'positive' || sentiment === 'positif')
+                existing.positive += count;
+            else if (sentiment === 'negative' || sentiment === 'negatif')
+                existing.negative += count;
+            else
+                existing.neutral += count;
+            existing.total += count;
+            existing.risk_ratio =
+                existing.total > 0 ? existing.negative / existing.total : 0;
+            topicRiskMap.set(row.topicId, existing);
+        }
+        const hasStatus = (status, expected) => (status ?? '').toLowerCase() === expected;
+        const latestCompletedJob = latestScrapingJobs.find((job) => hasStatus(job.status, 'completed')) ??
+            null;
+        const latestFailedJob = latestScrapingJobs.find((job) => hasStatus(job.status, 'failed')) ?? null;
         const userBreakdown = {};
         for (const u of userCounts) {
             userBreakdown[u.status] = u._count.status;
@@ -146,6 +235,31 @@ let AnalyticsService = class AnalyticsService {
             top_topics: topTopics.map((t) => ({
                 topic_name: topicMap.get(t.topicId) ?? 'Unknown',
                 count: t._sum.totalReviews ?? 0,
+            })),
+            data_freshness: {
+                latest_completed_job: latestCompletedJob,
+                latest_failed_job: latestFailedJob,
+                destinations_without_thumbnail: destinationsMissingThumbnail,
+                destinations_without_trends: destinationsMissingTrends,
+            },
+            action_queue: {
+                failed_jobs: jobBreakdown.FAILED ?? jobBreakdown.failed ?? 0,
+                pending_jobs: jobBreakdown.PENDING ?? jobBreakdown.pending ?? 0,
+                destinations_without_thumbnail: destinationsMissingThumbnail,
+                destinations_without_trends: destinationsMissingTrends,
+                recent_negative_reviews: recentNegativeReviews,
+            },
+            topic_risk_matrix: Array.from(topicRiskMap.values())
+                .sort((a, b) => b.risk_ratio - a.risk_ratio || b.total - a.total)
+                .slice(0, 8),
+            destination_quality_matrix: destinationQualityRows.map((destination) => ({
+                id: destination.id,
+                name: destination.name,
+                city: destination.city,
+                google_rating: destination.googleRating,
+                google_review_count: destination.googleReviewCount,
+                recommendation_score: destination.recommendationScore,
+                positive_ratio: destination.positiveRatio,
             })),
         };
     }
@@ -412,7 +526,11 @@ let AnalyticsService = class AnalyticsService {
                 ? ''
                 : v instanceof Date
                     ? v.toISOString()
-                    : String(v);
+                    : typeof v === 'string' ||
+                        typeof v === 'number' ||
+                        typeof v === 'boolean'
+                        ? String(v)
+                        : JSON.stringify(v);
             return `"${s.replace(/"/g, '""')}"`;
         };
         for (const r of reviews) {
@@ -525,7 +643,9 @@ let AnalyticsService = class AnalyticsService {
                 },
             });
         }
-        const totalReviews = await this.prisma.review.count({ where: { destinationId } });
+        const totalReviews = await this.prisma.review.count({
+            where: { destinationId },
+        });
         return {
             message: 'Analytics recalculated',
             destination_id: destinationId,

@@ -95,6 +95,14 @@ let FavoritesService = class FavoritesService {
         });
         return { message: 'Destination removed from favorites' };
     }
+    async checkFavorite(userId, destinationId) {
+        const favorite = await this.prisma.favorite.findUnique({
+            where: {
+                userId_destinationId: { userId, destinationId },
+            },
+        });
+        return { isFavorite: !!favorite };
+    }
 };
 exports.FavoritesService = FavoritesService;
 exports.FavoritesService = FavoritesService = __decorate([

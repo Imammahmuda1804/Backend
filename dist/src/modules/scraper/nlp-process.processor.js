@@ -45,7 +45,7 @@ let NlpProcessProcessor = NlpProcessProcessor_1 = class NlpProcessProcessor exte
                 index,
                 'Teks Ulasan': r.reviewText || '',
                 'Nama Pengulas': r.reviewerName || '',
-                'Rating': r.rating || 0,
+                Rating: r.rating || 0,
                 'Tanggal Ulasan': r.reviewDate ? r.reviewDate.toISOString() : '',
                 'Jumlah Suka': r.likesCount || 0,
             }));
@@ -64,8 +64,8 @@ let NlpProcessProcessor = NlpProcessProcessor_1 = class NlpProcessProcessor exte
                     throw new Error(`NLP processing failed and fallback is disabled in production: ${errorMessage}`);
                 }
                 this.logger.warn('Using dummy data fallback (development only).');
-                const positiveCount = reviews.filter(r => r.rating && r.rating >= 4).length;
-                const negativeCount = reviews.filter(r => r.rating && r.rating <= 2).length;
+                const positiveCount = reviews.filter((r) => r.rating && r.rating >= 4).length;
+                const negativeCount = reviews.filter((r) => r.rating && r.rating <= 2).length;
                 const neutralCount = reviews.length - positiveCount - negativeCount;
                 nlpResult = {
                     summary: {

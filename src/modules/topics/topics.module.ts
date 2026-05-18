@@ -4,8 +4,8 @@ import { TopicsService } from './topics.service';
 import { NlpModule } from '../nlp/nlp.module';
 
 @Module({
-    imports: [NlpModule],
-    controllers: [TopicsController],
-    providers: [TopicsService],
+  imports: [NlpModule],
+  controllers: [TopicsController],
+  providers: [TopicsService],
 })
-export class TopicsModule { }
+export class TopicsModule {}

@@ -36,13 +36,14 @@ interface RequestWithUser extends Request {
 @Roles('ADMIN')
 @Controller('admin/destinations')
 export class UploadsController {
-  constructor(private readonly uploadsService: UploadsService) { }
+  constructor(private readonly uploadsService: UploadsService) {}
 
   @Post(':id/upload-reviews')
   @HttpCode(HttpStatus.ACCEPTED)
   @ApiOperation({
     summary: 'Upload file review (CSV/XLSX) untuk destinasi tertentu',
-    description: 'Upload CSV atau Excel file berisi review data. File maksimal 10MB. Format yang didukung: .csv, .xlsx, .xls',
+    description:
+      'Upload CSV atau Excel file berisi review data. File maksimal 10MB. Format yang didukung: .csv, .xlsx, .xls',
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -59,8 +60,14 @@ export class UploadsController {
       },
     },
   })
-  @ApiResponse({ status: 202, description: 'File uploaded and processing started' })
-  @ApiResponse({ status: 400, description: 'File is required or invalid format' })
+  @ApiResponse({
+    status: 202,
+    description: 'File uploaded and processing started',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'File is required or invalid format',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
   @ApiResponse({ status: 404, description: 'Destination not found' })

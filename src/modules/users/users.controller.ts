@@ -1,4 +1,13 @@
-import { Controller, Get, Put, Post, Body, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Put,
+  Post,
+  Body,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerProfileImageOptions } from '../../config/multer.config';
 import {
@@ -58,7 +67,7 @@ export class UsersController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    
+
     const profilePicture = `/uploads/profiles/${file.filename}`;
     return this.usersService.updateProfile(user.id, { profilePicture });
   }

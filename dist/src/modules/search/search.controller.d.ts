@@ -1,15 +1,23 @@
 import { SearchService } from './search.service';
 import { SearchQueryDto } from './dto';
+interface AuthUser {
+    id: number;
+    email: string;
+    role: string;
+}
+interface SearchRequest {
+    user?: AuthUser;
+}
 export declare class SearchController {
     private readonly searchService;
     private readonly logger;
     constructor(searchService: SearchService);
-    search(dto: SearchQueryDto, req?: any): Promise<import("../vector/interfaces/similar-destination.interface").SimilarDestination[]>;
+    search(dto: SearchQueryDto, req?: SearchRequest): Promise<import("../vector/interfaces/similar-destination.interface").SimilarDestination[]>;
     getHistory(userId: number, page?: string, limit?: string): Promise<{
         data: {
             id: number;
-            createdAt: Date;
             keyword: string;
+            createdAt: Date;
         }[];
         meta: {
             page: number;
@@ -26,3 +34,4 @@ export declare class SearchController {
         message: string;
     }>;
 }
+export {};

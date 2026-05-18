@@ -19,7 +19,7 @@ let OptionalJwtAuthGuard = class OptionalJwtAuthGuard extends (0, passport_1.Aut
         }
     }
     handleRequest(_err, user) {
-        return user || undefined;
+        return (user || undefined);
     }
 };
 exports.OptionalJwtAuthGuard = OptionalJwtAuthGuard;

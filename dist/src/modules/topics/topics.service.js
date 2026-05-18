@@ -131,7 +131,9 @@ let TopicsService = TopicsService_1 = class TopicsService {
         };
     }
     async renameTopic(topicId, newName) {
-        const topic = await this.prisma.topic.findUnique({ where: { id: topicId } });
+        const topic = await this.prisma.topic.findUnique({
+            where: { id: topicId },
+        });
         if (!topic)
             throw new common_1.NotFoundException('Topic tidak ditemukan');
         const updated = await this.prisma.topic.update({
@@ -143,12 +145,17 @@ let TopicsService = TopicsService_1 = class TopicsService {
         return updated;
     }
     async deleteTopic(topicId) {
-        const topic = await this.prisma.topic.findUnique({ where: { id: topicId } });
+        const topic = await this.prisma.topic.findUnique({
+            where: { id: topicId },
+        });
         if (!topic)
             throw new common_1.NotFoundException('Topic tidak ditemukan');
         await this.prisma.$transaction([
             this.prisma.destinationTopic.deleteMany({ where: { topicId } }),
-            this.prisma.review.updateMany({ where: { topicId }, data: { topicId: null } }),
+            this.prisma.review.updateMany({
+                where: { topicId },
+                data: { topicId: null },
+            }),
             this.prisma.topic.delete({ where: { id: topicId } }),
         ]);
         this.logger.log(`Topic ${topicId} ("${topic.topicName}") deleted`);

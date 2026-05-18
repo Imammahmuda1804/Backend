@@ -9,4 +9,6 @@ export declare class CreateDestinationDto {
     youtubeUrl?: string;
     googlePlaceId?: string;
     thumbnailUrl?: string;
+    googleRating?: number;
+    googleReviewCount?: number;
 }

@@ -52,7 +52,10 @@ __decorate([
     (0, common_1.Delete)('destination/:id/bulk'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Menghapus review secara masal (Bulk Delete)' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Review berhasil dihapus secara masal' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Review berhasil dihapus secara masal',
+    }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),

@@ -24,12 +24,12 @@ export declare class ReviewsService {
                 topicName: string;
             } | null;
         } & {
-            id: number;
             createdAt: Date;
-            rating: number | null;
-            sentiment: string | null;
+            id: number;
             destinationId: number;
+            rating: number | null;
             reviewText: string | null;
+            sentiment: string | null;
             reviewerName: string;
             cleanedText: string | null;
             reviewDate: Date | null;

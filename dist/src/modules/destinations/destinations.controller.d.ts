@@ -4,13 +4,21 @@ import { DestinationQueryDto } from './dto/destination-query.dto';
 export declare class DestinationsController {
     private readonly destinationsService;
     constructor(destinationsService: DestinationsService);
+    getCities(): Promise<string[]>;
     findAll(query: DestinationQueryDto): Promise<{
-        data: {
-            id: number;
+        data: ({
+            images: {
+                createdAt: Date;
+                id: number;
+                destinationId: number;
+                imageUrl: string;
+            }[];
+        } & {
+            description: string | null;
             name: string;
             createdAt: Date;
             updatedAt: Date;
-            description: string | null;
+            id: number;
             slug: string;
             city: string;
             province: string;
@@ -27,7 +35,7 @@ export declare class DestinationsController {
             positiveRatio: number | null;
             recommendationScore: number | null;
             deletedAt: Date | null;
-        }[];
+        })[];
         meta: {
             page: number;
             limit: number;
@@ -37,8 +45,8 @@ export declare class DestinationsController {
     }>;
     getRecommendations(query: PaginationQueryDto): Promise<{
         data: {
-            id: number;
             name: string;
+            id: number;
             slug: string;
             city: string;
             province: string;
@@ -56,8 +64,8 @@ export declare class DestinationsController {
         };
     }>;
     getRanking(sortBy: string, limit: string): Promise<{
-        id: number;
         name: string;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -72,23 +80,28 @@ export declare class DestinationsController {
         totalUserReviews: number;
         scrapedAverageRating: number | null;
         scrapedReviewCount: number;
+        topicSentimentBreakdown: Record<number, {
+            positive: number;
+            negative: number;
+            neutral: number;
+        }>;
         userReviews: ({
             user: {
-                id: number;
                 name: string;
                 profilePicture: string | null;
+                id: number;
             };
         } & {
-            id: number;
             createdAt: Date;
-            rating: number;
-            destinationId: number;
-            reviewText: string | null;
+            id: number;
             userId: number;
+            destinationId: number;
+            rating: number;
+            reviewText: string | null;
         })[];
         images: {
-            id: number;
             createdAt: Date;
+            id: number;
             destinationId: number;
             imageUrl: string;
         }[];
@@ -102,8 +115,8 @@ export declare class DestinationsController {
         }[];
         destinationTopics: ({
             topic: {
-                id: number;
                 createdAt: Date;
+                id: number;
                 topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
             };
@@ -113,11 +126,11 @@ export declare class DestinationsController {
             topicId: number;
             totalReviews: number;
         })[];
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;
@@ -135,28 +148,50 @@ export declare class DestinationsController {
         recommendationScore: number | null;
         deletedAt: Date | null;
     }>;
+    getReviewsByTopic(id: number, topicIdStr: string, pageStr: string, limitStr: string): Promise<{
+        data: {
+            id: number;
+            rating: number | null;
+            reviewText: string | null;
+            sentiment: string | null;
+            reviewerName: string;
+            reviewDate: Date | null;
+            likesCount: number | null;
+        }[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    }>;
     getDetail(id: number): Promise<{
         averageUserRating: number | null;
         totalUserReviews: number;
         scrapedAverageRating: number | null;
         scrapedReviewCount: number;
+        topicSentimentBreakdown: Record<number, {
+            positive: number;
+            negative: number;
+            neutral: number;
+        }>;
         userReviews: ({
             user: {
-                id: number;
                 name: string;
                 profilePicture: string | null;
+                id: number;
             };
         } & {
-            id: number;
             createdAt: Date;
-            rating: number;
-            destinationId: number;
-            reviewText: string | null;
+            id: number;
             userId: number;
+            destinationId: number;
+            rating: number;
+            reviewText: string | null;
         })[];
         images: {
-            id: number;
             createdAt: Date;
+            id: number;
             destinationId: number;
             imageUrl: string;
         }[];
@@ -170,8 +205,8 @@ export declare class DestinationsController {
         }[];
         destinationTopics: ({
             topic: {
-                id: number;
                 createdAt: Date;
+                id: number;
                 topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
             };
@@ -181,11 +216,11 @@ export declare class DestinationsController {
             topicId: number;
             totalReviews: number;
         })[];
-        id: number;
+        description: string | null;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        description: string | null;
+        id: number;
         slug: string;
         city: string;
         province: string;

@@ -49,9 +49,15 @@ export class NlpService {
           ),
       );
 
-      this.logger.log(`✅ FastAPI response received. Keys: ${Object.keys(response.data).join(', ')}`);
-      this.logger.log(`📊 Results count: ${response.data.results?.length || 'undefined'}`);
-      this.logger.log(`📊 Topics count: ${response.data.topics?.length || 'undefined'}`);
+      this.logger.log(
+        `✅ FastAPI response received. Keys: ${Object.keys(response.data).join(', ')}`,
+      );
+      this.logger.log(
+        `📊 Results count: ${response.data.results?.length || 'undefined'}`,
+      );
+      this.logger.log(
+        `📊 Topics count: ${response.data.topics?.length || 'undefined'}`,
+      );
 
       return response.data;
     } catch (error: unknown) {
@@ -106,7 +112,7 @@ export class NlpService {
         this.httpService.get(`${this.nlpBaseUrl}/health`, { timeout: 5000 }),
       );
       return response.status === 200;
-    } catch (error) {
+    } catch {
       this.logger.warn('FastAPI health check failed');
       return false;
     }
@@ -135,6 +141,22 @@ export class NlpService {
       if (status === 422) {
         throw new NlpProcessingException(
           'Invalid input format to NLP Service (422)',
+        );
+      }
+      if (status === 429) {
+        const headers = error.response.headers as Record<
+          string,
+          string | string[] | undefined
+        >;
+        const retryAfterHeader = headers['retry-after'];
+        const retryAfter = Array.isArray(retryAfterHeader)
+          ? retryAfterHeader[0]
+          : retryAfterHeader;
+        const retryMsg = retryAfter
+          ? ` (Coba lagi dalam ${retryAfter} detik)`
+          : '';
+        throw new NlpServiceUnavailableException(
+          `Terlalu banyak permintaan ke layanan AI (429)${retryMsg}`,
         );
       }
       if (status >= 500) {

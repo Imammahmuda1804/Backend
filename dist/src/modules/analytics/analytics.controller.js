@@ -63,7 +63,10 @@ __decorate([
     (0, common_1.Get)('destination/:id/topics'),
     (0, swagger_1.ApiOperation)({ summary: 'Topic distribution untuk satu destinasi' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Topic distribution berhasil diambil' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Topic distribution berhasil diambil',
+    }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Destinasi tidak ditemukan' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),
@@ -92,7 +95,10 @@ __decorate([
     (0, common_1.Get)('compare'),
     (0, swagger_1.ApiOperation)({ summary: 'Perbandingan dua destinasi' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Perbandingan berhasil' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Salah satu destinasi tidak ditemukan' }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Salah satu destinasi tidak ditemukan',
+    }),
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [dto_1.CompareQueryDto]),

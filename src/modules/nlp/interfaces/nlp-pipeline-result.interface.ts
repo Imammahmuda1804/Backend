@@ -6,6 +6,7 @@ export interface NlpPipelineResult {
     neutral: number;
   };
   results: Array<{
+    review_id?: number;
     text: string;
     cleaned_text: string;
     sentiment: string; // "positif", "negatif", "netral"

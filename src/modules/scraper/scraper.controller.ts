@@ -20,8 +20,21 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { ScraperService } from './scraper.service';
-import { SearchQueryDto, StartScrapingDto, JobQueryDto, HistoryQueryDto } from './dto';
+import {
+  SearchQueryDto,
+  StartScrapingDto,
+  JobQueryDto,
+  HistoryQueryDto,
+} from './dto';
 import { Roles } from '../../common/decorators/roles.decorator';
+
+type AuthenticatedRequest = Request & {
+  user?: {
+    id: number;
+    email: string;
+    role: string;
+  };
+};
 
 @ApiTags('Admin - Scraper')
 @ApiBearerAuth()
@@ -48,8 +61,14 @@ export class ScraperController {
     description: 'Nama tempat atau URL Google Maps',
     example: 'Pantai Kuta Bali',
   })
-  @ApiResponse({ status: 200, description: 'Daftar hasil pencarian dari Google Maps' })
-  @ApiResponse({ status: 400, description: 'Query kosong atau pencarian gagal' })
+  @ApiResponse({
+    status: 200,
+    description: 'Daftar hasil pencarian dari Google Maps',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Query kosong atau pencarian gagal',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
   async searchMaps(@Query() query: SearchQueryDto) {
@@ -79,14 +98,22 @@ export class ScraperController {
       'Sistem akan mencari ulasan berteks hingga mencapai jumlah yang diminta. ' +
       'Hasil berupa file Excel yang dapat diunduh setelah selesai.',
   })
-  @ApiResponse({ status: 202, description: 'Scraping job berhasil dimulai dan masuk antrian' })
-  @ApiResponse({ status: 400, description: 'Destinasi tidak memiliki URL Google Maps' })
+  @ApiResponse({
+    status: 202,
+    description: 'Scraping job berhasil dimulai dan masuk antrian',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Destinasi tidak memiliki URL Google Maps',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
   @ApiResponse({ status: 404, description: 'Destinasi tidak ditemukan' })
-  async startScraping(@Body() dto: StartScrapingDto, @Req() req: Request) {
-    const user = req.user as any;
-    const adminId = user?.id;
+  async startScraping(
+    @Body() dto: StartScrapingDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    const adminId = req.user?.id;
     return this.scraperService.startScraping(dto, adminId);
   }
 
@@ -131,7 +158,9 @@ export class ScraperController {
    * - Penamaan file informatif
    */
   @Get('download/:jobId')
-  @ApiOperation({ summary: 'Download hasil scraping sebagai file Excel (.xlsx)' })
+  @ApiOperation({
+    summary: 'Download hasil scraping sebagai file Excel (.xlsx)',
+  })
   @ApiResponse({ status: 200, description: 'File Excel berhasil diunduh' })
   @ApiResponse({ status: 400, description: 'Job belum selesai' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })

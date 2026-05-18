@@ -7,6 +7,12 @@ import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 
+interface AuthenticatedUser {
+  id: number;
+  email: string;
+  role: string;
+}
+
 /**
  * JWT Authentication Guard
  * Otomatis melindungi semua endpoint kecuali yang ditandai @Public()
@@ -31,7 +37,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err: any, user: any, info: any) {
+  handleRequest<TUser = AuthenticatedUser>(
+    err: Error | null,
+    user: TUser | false | null,
+  ): TUser {
     if (err || !user) {
       throw (
         err ||

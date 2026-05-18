@@ -5,11 +5,15 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UpdateProfileDto, AdminUpdateUserDto, AdminCreateUserDto } from './dto';
+import {
+  UpdateProfileDto,
+  AdminUpdateUserDto,
+  AdminCreateUserDto,
+} from './dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: number) {
     const user = await this.prisma.user.findUnique({
@@ -63,7 +67,9 @@ export class UsersService {
         ...(dto.name && { name: dto.name }),
         ...(dto.email && { email: dto.email }),
         ...(hashedPassword && { password: hashedPassword }),
-        ...(dto.profilePicture !== undefined && { profilePicture: dto.profilePicture }),
+        ...(dto.profilePicture !== undefined && {
+          profilePicture: dto.profilePicture,
+        }),
       },
       select: {
         id: true,
@@ -83,11 +89,11 @@ export class UsersService {
 
     const whereCondition = search
       ? {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' as const } },
-          { email: { contains: search, mode: 'insensitive' as const } },
-        ],
-      }
+          OR: [
+            { name: { contains: search, mode: 'insensitive' as const } },
+            { email: { contains: search, mode: 'insensitive' as const } },
+          ],
+        }
       : {};
 
     const [data, total] = await Promise.all([

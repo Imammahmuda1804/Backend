@@ -7,6 +7,33 @@ import * as ExcelJS from 'exceljs';
 import * as fs from 'fs';
 import * as path from 'path';
 
+interface ScrapingJobData {
+  jobId: number;
+  destinationId: number;
+  url: string;
+  maxReviews?: number;
+  destinationName?: string;
+}
+
+interface ScrapingJobResult {
+  status: 'success';
+  savedCount: number;
+  filePath: string;
+}
+
+interface ScrapedReviewItem {
+  text?: string;
+  reviewText?: string;
+  stars?: number;
+  rating?: number;
+  name?: string;
+  reviewerName?: string;
+  publishedAtDate?: string;
+  date?: string;
+  likesCount?: number;
+  responseFromOwnerText?: string;
+}
+
 @Processor('scraping-queue')
 export class ScraperProcessor extends WorkerHost {
   private readonly logger = new Logger(ScraperProcessor.name);
@@ -18,7 +45,9 @@ export class ScraperProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<any, any, string>): Promise<any> {
+  async process(
+    job: Job<ScrapingJobData, ScrapingJobResult, string>,
+  ): Promise<ScrapingJobResult> {
     const { jobId, destinationId, url, maxReviews, destinationName } = job.data;
 
     this.logger.log(
@@ -55,7 +84,9 @@ export class ScraperProcessor extends WorkerHost {
       }
 
       this.logger.log(`Fetching results from dataset ${datasetId}...`);
-      const results = await this.apifyService.getRunResults(datasetId);
+      const results = (await this.apifyService.getRunResults(
+        datasetId,
+      )) as ScrapedReviewItem[];
 
       this.logger.log(
         `Got ${results.length} raw results. Filtering text-only reviews...`,
@@ -63,8 +94,8 @@ export class ScraperProcessor extends WorkerHost {
 
       // Filter: hanya review yang punya teks dan rating
       const textReviews = results.filter((item) => {
-        const reviewText = (item.text || item.reviewText) as string | null;
-        const rating = (item.stars || item.rating) as number | null;
+        const reviewText = item.text || item.reviewText || null;
+        const rating = item.stars || item.rating || null;
         return reviewText && reviewText.trim().length > 0 && rating;
       });
 
@@ -181,7 +212,7 @@ export class ScraperProcessor extends WorkerHost {
    * File tidak disimpan ke database Review.
    */
   private async generateExcel(
-    reviews: any[],
+    reviews: ScrapedReviewItem[],
     jobId: number,
     destinationId: number,
     destinationName: string,
@@ -235,14 +266,10 @@ export class ScraperProcessor extends WorkerHost {
 
     // ── Data rows ────────────────────────────────────────────────────────
     reviews.forEach((item, index) => {
-      const reviewText = (item.text || item.reviewText || '') as string;
-      const rating = (item.stars || item.rating || 0) as number;
-      const reviewerName = (item.name ||
-        item.reviewerName ||
-        'Anonymous') as string;
-      const reviewDateStr = (item.publishedAtDate || item.date) as
-        | string
-        | null;
+      const reviewText = item.text || item.reviewText || '';
+      const rating = item.stars || item.rating || 0;
+      const reviewerName = item.name || item.reviewerName || 'Anonymous';
+      const reviewDateStr = item.publishedAtDate || item.date || null;
       const reviewDate = reviewDateStr
         ? new Date(reviewDateStr).toLocaleDateString('id-ID', {
             day: 'numeric',
@@ -250,8 +277,8 @@ export class ScraperProcessor extends WorkerHost {
             year: 'numeric',
           })
         : '-';
-      const likesCount = (item.likesCount as number) || 0;
-      const ownerReply = (item.responseFromOwnerText as string) || '-';
+      const likesCount = item.likesCount || 0;
+      const ownerReply = item.responseFromOwnerText || '-';
 
       const row = sheet.addRow({
         no: index + 1,
@@ -334,11 +361,13 @@ export class ScraperProcessor extends WorkerHost {
       .replace(/[^a-zA-Z0-9\s]/g, '')
       .replace(/\s+/g, '_')
       .substring(0, 40);
-    const dateStr = new Date().toLocaleDateString('en-GB', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    }).replace(/ /g, '-');
+    const dateStr = new Date()
+      .toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
+      .replace(/ /g, '-');
 
     const filename = `[RanahInsight]_Scrape_${safeName}_${reviews.length}_Reviews_${dateStr}.xlsx`;
     const filePath = path.join(uploadDir, filename);

@@ -93,7 +93,9 @@ let UsersService = class UsersService {
                 ...(dto.name && { name: dto.name }),
                 ...(dto.email && { email: dto.email }),
                 ...(hashedPassword && { password: hashedPassword }),
-                ...(dto.profilePicture !== undefined && { profilePicture: dto.profilePicture }),
+                ...(dto.profilePicture !== undefined && {
+                    profilePicture: dto.profilePicture,
+                }),
             },
             select: {
                 id: true,

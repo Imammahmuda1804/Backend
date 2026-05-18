@@ -39,7 +39,10 @@ __decorate([
     __metadata("design:type", Number)
 ], ReviewsQueryDto.prototype, "limit", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: 'Filter by sentiment', enum: ['positive', 'negative', 'neutral'] }),
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter by sentiment',
+        enum: ['positive', 'negative', 'neutral'],
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     (0, class_validator_1.IsEnum)(['positive', 'negative', 'neutral']),
@@ -53,13 +56,19 @@ __decorate([
     __metadata("design:type", Number)
 ], ReviewsQueryDto.prototype, "topic_id", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: 'Filter reviews from this date (ISO 8601)', example: '2024-01-01' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter reviews from this date (ISO 8601)',
+        example: '2024-01-01',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], ReviewsQueryDto.prototype, "date_from", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: 'Filter reviews until this date (ISO 8601)', example: '2024-12-31' }),
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter reviews until this date (ISO 8601)',
+        example: '2024-12-31',
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)

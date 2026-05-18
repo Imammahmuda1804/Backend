@@ -27,8 +27,7 @@ let ScraperController = class ScraperController {
         return this.scraperService.searchMaps(query.q);
     }
     async startScraping(dto, req) {
-        const user = req.user;
-        const adminId = user?.id;
+        const adminId = req.user?.id;
         return this.scraperService.startScraping(dto, adminId);
     }
     async getJobStatus(jobId) {
@@ -64,8 +63,14 @@ __decorate([
         description: 'Nama tempat atau URL Google Maps',
         example: 'Pantai Kuta Bali',
     }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Daftar hasil pencarian dari Google Maps' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Query kosong atau pencarian gagal' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Daftar hasil pencarian dari Google Maps',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Query kosong atau pencarian gagal',
+    }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
     __param(0, (0, common_1.Query)()),
@@ -82,8 +87,14 @@ __decorate([
             'Sistem akan mencari ulasan berteks hingga mencapai jumlah yang diminta. ' +
             'Hasil berupa file Excel yang dapat diunduh setelah selesai.',
     }),
-    (0, swagger_1.ApiResponse)({ status: 202, description: 'Scraping job berhasil dimulai dan masuk antrian' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'Destinasi tidak memiliki URL Google Maps' }),
+    (0, swagger_1.ApiResponse)({
+        status: 202,
+        description: 'Scraping job berhasil dimulai dan masuk antrian',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Destinasi tidak memiliki URL Google Maps',
+    }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Destinasi tidak ditemukan' }),
@@ -129,7 +140,9 @@ __decorate([
 ], ScraperController.prototype, "getHistory", null);
 __decorate([
     (0, common_1.Get)('download/:jobId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Download hasil scraping sebagai file Excel (.xlsx)' }),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Download hasil scraping sebagai file Excel (.xlsx)',
+    }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'File Excel berhasil diunduh' }),
     (0, swagger_1.ApiResponse)({ status: 400, description: 'Job belum selesai' }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),

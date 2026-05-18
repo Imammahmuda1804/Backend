@@ -16,11 +16,13 @@ const class_transformer_1 = require("class-transformer");
 const pagination_dto_1 = require("../../../common/dto/pagination.dto");
 class DestinationQueryDto extends pagination_dto_1.PaginationQueryDto {
     topic_id;
+    topic_ids;
+    city;
 }
 exports.DestinationQueryDto = DestinationQueryDto;
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
-        description: 'Filter berdasarkan ID topik',
+        description: 'Filter berdasarkan ID topik (single)',
         example: 1,
     }),
     (0, class_validator_1.IsOptional)(),
@@ -28,4 +30,22 @@ __decorate([
     (0, class_validator_1.IsInt)(),
     __metadata("design:type", Number)
 ], DestinationQueryDto.prototype, "topic_id", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter berdasarkan beberapa ID topik (comma-separated)',
+        example: '1,2,3',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], DestinationQueryDto.prototype, "topic_ids", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter berdasarkan kota',
+        example: 'Bukittinggi',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], DestinationQueryDto.prototype, "city", void 0);
 //# sourceMappingURL=destination-query.dto.js.map

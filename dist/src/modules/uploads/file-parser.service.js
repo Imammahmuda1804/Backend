@@ -46,37 +46,68 @@ const common_1 = require("@nestjs/common");
 const xlsx = __importStar(require("xlsx"));
 exports.FIELD_MAPPING = {
     reviewText: [
-        'teks_ulasan', 'review_text', 'reviewtext', 'text', 'content', 'komentar', 'review', 'ulasan'
+        'teks_ulasan',
+        'review_text',
+        'reviewtext',
+        'text',
+        'content',
+        'komentar',
+        'review',
+        'ulasan',
     ],
     reviewDate: [
-        'tanggal_ulasan', 'review_date', 'reviewdate', 'published_at', 'publishedatdate', 'date', 'tanggal', 'time', 'waktu'
+        'tanggal_ulasan',
+        'review_date',
+        'reviewdate',
+        'published_at',
+        'publishedatdate',
+        'date',
+        'tanggal',
+        'time',
+        'waktu',
     ],
     reviewerName: [
-        'nama_pengulas', 'reviewer_name', 'reviewername', 'name', 'author', 'user', 'nama', 'penulis'
+        'nama_pengulas',
+        'reviewer_name',
+        'reviewername',
+        'name',
+        'author',
+        'user',
+        'nama',
+        'penulis',
     ],
-    rating: [
-        'rating', 'stars', 'star', 'score', 'bintang', 'nilai'
-    ],
+    rating: ['rating', 'stars', 'star', 'score', 'bintang', 'nilai'],
     likesCount: [
-        'jumlah_suka', 'likes_count', 'likescount', 'likes', 'like', 'helpful', 'suka', 'berguna'
+        'jumlah_suka',
+        'likes_count',
+        'likescount',
+        'likes',
+        'like',
+        'helpful',
+        'suka',
+        'berguna',
     ],
     ownerReply: [
-        'balasan_pemilik', 'owner_reply', 'responsefromownertext', 'response', 'balasan'
-    ]
+        'balasan_pemilik',
+        'owner_reply',
+        'responsefromownertext',
+        'response',
+        'balasan',
+    ],
 };
 function normalizeKey(key) {
-    return key.toLowerCase().trim().replace(/[\s\-]/g, '_');
+    return key.toLowerCase().trim().replace(/[\s-]/g, '_');
 }
 function detectColumnMapping(row, logger) {
     const mapping = {};
     const usedKeys = new Set();
-    const normalizedKeys = Object.keys(row).map(k => ({
+    const normalizedKeys = Object.keys(row).map((k) => ({
         original: k,
-        normalized: normalizeKey(k)
+        normalized: normalizeKey(k),
     }));
     const findMatch = (canonicalNames) => {
         for (const name of canonicalNames) {
-            const match = normalizedKeys.find(k => k.normalized === name && !usedKeys.has(k.original));
+            const match = normalizedKeys.find((k) => k.normalized === name && !usedKeys.has(k.original));
             if (match) {
                 usedKeys.add(match.original);
                 return match.original;

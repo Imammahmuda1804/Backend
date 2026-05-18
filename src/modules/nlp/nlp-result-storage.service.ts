@@ -10,7 +10,7 @@ export class NlpResultStorageService {
     private readonly prisma: PrismaService,
     private readonly vectorService: VectorService,
     private readonly aiNamingService: AiNamingService,
-  ) { }
+  ) {}
 
   async saveNlpResults(
     destinationId: number,
@@ -50,9 +50,9 @@ export class NlpResultStorageService {
     // Helper function untuk map sentiment Indonesia ke English
     const mapSentiment = (sentiment: string): string => {
       const sentimentMap: Record<string, string> = {
-        'positif': 'positive',
-        'negatif': 'negative',
-        'netral': 'neutral',
+        positif: 'positive',
+        negatif: 'negative',
+        netral: 'neutral',
       };
       return sentimentMap[sentiment.toLowerCase()] || sentiment;
     };
@@ -71,7 +71,7 @@ export class NlpResultStorageService {
 
         // Cek apakah topik sudah ada di DB
         const existingTopic = await this.prisma.topic.findUnique({
-          where: { id: topicId }
+          where: { id: topicId },
         });
 
         let topicName = existingTopic?.topicName;
@@ -79,7 +79,10 @@ export class NlpResultStorageService {
         if (!existingTopic) {
           // Jika topik baru, gunakan AI untuk generate nama
           console.log(`🤖 Generating AI name for new topic ${topicId}...`);
-          topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords);
+          topicName = await this.aiNamingService.generateTopicName(
+            topicId,
+            topic.keywords,
+          );
         } else {
           // Fallback kalau nama topik kosong di db
           topicName =
@@ -96,7 +99,7 @@ export class NlpResultStorageService {
           },
           update: {
             // Kita tidak mengupdate topicName jika sudah ada, agar nama dari AI tetap tersimpan
-            keywords: topic.keywords
+            keywords: topic.keywords,
           },
         });
         savedTopicIds.add(topicId);
@@ -107,7 +110,7 @@ export class NlpResultStorageService {
     if (nlpResult.results && Array.isArray(nlpResult.results)) {
       for (let index = 0; index < nlpResult.results.length; index++) {
         const review = nlpResult.results[index];
-        const realReviewId = (review as any).review_id || reviewIds[index];
+        const realReviewId = review.review_id ?? reviewIds[index];
 
         // Map sentiment dari Indonesia ke English
         const mappedSentiment = mapSentiment(review.sentiment);
@@ -115,8 +118,8 @@ export class NlpResultStorageService {
         // Nullify topic_id if the topic wasn't persisted (prevents FK violation)
         const safeTopicId =
           review.topic_id != null && savedTopicIds.has(review.topic_id)
-          ? review.topic_id
-          : null;
+            ? review.topic_id
+            : null;
 
         await this.prisma.review.update({
           where: { id: realReviewId },
@@ -133,7 +136,7 @@ export class NlpResultStorageService {
     const embeddingsToInsert = (nlpResult.results || [])
       .filter((r) => r.embedding && r.embedding.length > 0)
       .map((r, index) => ({
-        reviewId: (r as any).review_id || reviewIds[index],
+        reviewId: r.review_id ?? reviewIds[index],
         embedding: r.embedding,
       }));
     if (embeddingsToInsert.length > 0) {
@@ -142,18 +145,28 @@ export class NlpResultStorageService {
 
     // 4. Calculate and Save Destination Embedding (average of all review embeddings)
     if (nlpResult.results && nlpResult.results.length > 0) {
-      const validEmbeddings = nlpResult.results
-        .filter((r) => r.embedding && r.embedding.length > 0)
-        .map((r) => r.embedding);
+      const validEmbeddings = nlpResult.results.reduce<number[][]>(
+        (acc, result) => {
+          if (result.embedding.length > 0) {
+            acc.push(result.embedding);
+          }
+          return acc;
+        },
+        [],
+      );
 
       if (validEmbeddings.length > 0) {
         const embeddingDim = validEmbeddings[0].length;
-        const destinationEmbedding = new Array(embeddingDim).fill(0);
+        const destinationEmbedding: number[] = Array.from(
+          { length: embeddingDim },
+          () => 0,
+        );
 
         // Calculate average
         for (const embedding of validEmbeddings) {
           for (let i = 0; i < embeddingDim; i++) {
-            destinationEmbedding[i] += embedding[i];
+            destinationEmbedding[i] =
+              (destinationEmbedding[i] ?? 0) + (embedding[i] ?? 0);
           }
         }
 

@@ -15,12 +15,7 @@ import { CsvService } from './csv.service';
     HttpModule,
   ],
   controllers: [ScraperController],
-  providers: [
-    ScraperService,
-    ApifyService,
-    ScraperProcessor,
-    CsvService,
-  ],
+  providers: [ScraperService, ApifyService, ScraperProcessor, CsvService],
   exports: [ScraperService],
 })
 export class ScraperModule {}

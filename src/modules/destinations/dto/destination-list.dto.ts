@@ -13,21 +13,44 @@ export class DestinationListDto {
   @ApiProperty({ description: 'Kota lokasi destinasi', example: 'Bukittinggi' })
   city: string;
 
-  @ApiProperty({ description: 'Provinsi lokasi destinasi', example: 'Sumatera Barat' })
+  @ApiProperty({
+    description: 'Provinsi lokasi destinasi',
+    example: 'Sumatera Barat',
+  })
   province: string;
 
-  @ApiProperty({ description: 'URL thumbnail image', nullable: true, example: 'https://example.com/image.jpg' })
+  @ApiProperty({
+    description: 'URL thumbnail image',
+    nullable: true,
+    example: 'https://example.com/image.jpg',
+  })
   thumbnailUrl: string | null;
 
-  @ApiProperty({ description: 'Rating dari Google Maps (1-5)', nullable: true, example: 4.5 })
+  @ApiProperty({
+    description: 'Rating dari Google Maps (1-5)',
+    nullable: true,
+    example: 4.5,
+  })
   googleRating: number | null;
 
-  @ApiProperty({ description: 'Rating dari user aplikasi (1-5)', nullable: true, example: 4.2 })
+  @ApiProperty({
+    description: 'Rating dari user aplikasi (1-5)',
+    nullable: true,
+    example: 4.2,
+  })
   userRating: number | null;
 
-  @ApiProperty({ description: 'Rasio review positif (0-1)', nullable: true, example: 0.85 })
+  @ApiProperty({
+    description: 'Rasio review positif (0-1)',
+    nullable: true,
+    example: 0.85,
+  })
   positiveRatio: number | null;
 
-  @ApiProperty({ description: 'Skor rekomendasi (0-100)', nullable: true, example: 87.5 })
+  @ApiProperty({
+    description: 'Skor rekomendasi (0-100)',
+    nullable: true,
+    example: 87.5,
+  })
   recommendationScore: number | null;
 }

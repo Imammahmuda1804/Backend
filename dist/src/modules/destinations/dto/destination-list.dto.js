@@ -41,27 +41,50 @@ __decorate([
     __metadata("design:type", String)
 ], DestinationListDto.prototype, "city", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Provinsi lokasi destinasi', example: 'Sumatera Barat' }),
+    (0, swagger_1.ApiProperty)({
+        description: 'Provinsi lokasi destinasi',
+        example: 'Sumatera Barat',
+    }),
     __metadata("design:type", String)
 ], DestinationListDto.prototype, "province", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'URL thumbnail image', nullable: true, example: 'https://example.com/image.jpg' }),
+    (0, swagger_1.ApiProperty)({
+        description: 'URL thumbnail image',
+        nullable: true,
+        example: 'https://example.com/image.jpg',
+    }),
     __metadata("design:type", Object)
 ], DestinationListDto.prototype, "thumbnailUrl", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Rating dari Google Maps (1-5)', nullable: true, example: 4.5 }),
+    (0, swagger_1.ApiProperty)({
+        description: 'Rating dari Google Maps (1-5)',
+        nullable: true,
+        example: 4.5,
+    }),
     __metadata("design:type", Object)
 ], DestinationListDto.prototype, "googleRating", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Rating dari user aplikasi (1-5)', nullable: true, example: 4.2 }),
+    (0, swagger_1.ApiProperty)({
+        description: 'Rating dari user aplikasi (1-5)',
+        nullable: true,
+        example: 4.2,
+    }),
     __metadata("design:type", Object)
 ], DestinationListDto.prototype, "userRating", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Rasio review positif (0-1)', nullable: true, example: 0.85 }),
+    (0, swagger_1.ApiProperty)({
+        description: 'Rasio review positif (0-1)',
+        nullable: true,
+        example: 0.85,
+    }),
     __metadata("design:type", Object)
 ], DestinationListDto.prototype, "positiveRatio", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Skor rekomendasi (0-100)', nullable: true, example: 87.5 }),
+    (0, swagger_1.ApiProperty)({
+        description: 'Skor rekomendasi (0-100)',
+        nullable: true,
+        example: 87.5,
+    }),
     __metadata("design:type", Object)
 ], DestinationListDto.prototype, "recommendationScore", void 0);
 //# sourceMappingURL=destination-list.dto.js.map

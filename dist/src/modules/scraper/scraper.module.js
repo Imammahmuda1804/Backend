@@ -27,12 +27,7 @@ exports.ScraperModule = ScraperModule = __decorate([
             axios_1.HttpModule,
         ],
         controllers: [scraper_controller_1.ScraperController],
-        providers: [
-            scraper_service_1.ScraperService,
-            apify_service_1.ApifyService,
-            scraper_processor_1.ScraperProcessor,
-            csv_service_1.CsvService,
-        ],
+        providers: [scraper_service_1.ScraperService, apify_service_1.ApifyService, scraper_processor_1.ScraperProcessor, csv_service_1.CsvService],
         exports: [scraper_service_1.ScraperService],
     })
 ], ScraperModule);

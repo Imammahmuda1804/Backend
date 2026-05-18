@@ -32,8 +32,14 @@ export class AdminCreateUserDto {
   @IsEnum(Role, { message: 'Role harus ADMIN atau USER' })
   role: Role;
 
-  @ApiProperty({ description: 'Status user', enum: ['active', 'suspended'], example: 'active' })
+  @ApiProperty({
+    description: 'Status user',
+    enum: ['active', 'suspended'],
+    example: 'active',
+  })
   @IsNotEmpty({ message: 'Status tidak boleh kosong' })
-  @IsIn(['active', 'suspended'], { message: 'Status harus active atau suspended' })
+  @IsIn(['active', 'suspended'], {
+    message: 'Status harus active atau suspended',
+  })
   status: string;
 }

@@ -48,7 +48,7 @@ interface RequestWithUser extends Request {
 
 export class ScrapeDestinationDto extends OmitType(StartScrapingDto, [
   'destination_id',
-] as const) { }
+] as const) {}
 
 @ApiTags('Admin - Destinations')
 @ApiBearerAuth()
@@ -58,7 +58,7 @@ export class AdminDestinationsController {
   constructor(
     private readonly destinationsService: DestinationsService,
     private readonly scraperService: ScraperService,
-  ) { }
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Membuat destinasi baru' })
@@ -90,7 +90,10 @@ export class AdminDestinationsController {
   @ApiOperation({
     summary: 'Mendapatkan detail destinasi (dengan relasi analitik)',
   })
-  @ApiResponse({ status: 200, description: 'Destination detail with analytics' })
+  @ApiResponse({
+    status: 200,
+    description: 'Destination detail with analytics',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
   @ApiResponse({ status: 404, description: 'Destination not found' })
@@ -114,7 +117,10 @@ export class AdminDestinationsController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Soft delete destinasi' })
-  @ApiResponse({ status: 200, description: 'Destination soft deleted successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Destination soft deleted successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
   @ApiResponse({ status: 404, description: 'Destination not found' })
@@ -151,7 +157,10 @@ export class AdminDestinationsController {
     },
   })
   @ApiResponse({ status: 201, description: 'Thumbnail uploaded successfully' })
-  @ApiResponse({ status: 400, description: 'File is required or invalid format' })
+  @ApiResponse({
+    status: 400,
+    description: 'File is required or invalid format',
+  })
   @ApiResponse({ status: 404, description: 'Destination not found' })
   @UseInterceptors(FileInterceptor('file', multerImageOptions))
   async uploadThumbnail(
@@ -179,7 +188,10 @@ export class AdminDestinationsController {
     },
   })
   @ApiResponse({ status: 201, description: 'Image uploaded successfully' })
-  @ApiResponse({ status: 400, description: 'File is required or invalid format' })
+  @ApiResponse({
+    status: 400,
+    description: 'File is required or invalid format',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
   @ApiResponse({ status: 404, description: 'Destination not found' })

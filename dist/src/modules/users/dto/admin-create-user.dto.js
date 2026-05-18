@@ -48,9 +48,15 @@ __decorate([
     __metadata("design:type", String)
 ], AdminCreateUserDto.prototype, "role", void 0);
 __decorate([
-    (0, swagger_1.ApiProperty)({ description: 'Status user', enum: ['active', 'suspended'], example: 'active' }),
+    (0, swagger_1.ApiProperty)({
+        description: 'Status user',
+        enum: ['active', 'suspended'],
+        example: 'active',
+    }),
     (0, class_validator_1.IsNotEmpty)({ message: 'Status tidak boleh kosong' }),
-    (0, class_validator_1.IsIn)(['active', 'suspended'], { message: 'Status harus active atau suspended' }),
+    (0, class_validator_1.IsIn)(['active', 'suspended'], {
+        message: 'Status harus active atau suspended',
+    }),
     __metadata("design:type", String)
 ], AdminCreateUserDto.prototype, "status", void 0);
 //# sourceMappingURL=admin-create-user.dto.js.map

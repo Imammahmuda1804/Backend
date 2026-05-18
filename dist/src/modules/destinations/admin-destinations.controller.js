@@ -106,7 +106,10 @@ __decorate([
     (0, swagger_1.ApiOperation)({
         summary: 'Mendapatkan detail destinasi (dengan relasi analitik)',
     }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Destination detail with analytics' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Destination detail with analytics',
+    }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Destination not found' }),
@@ -132,7 +135,10 @@ __decorate([
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Soft delete destinasi' }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Destination soft deleted successfully' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Destination soft deleted successfully',
+    }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Destination not found' }),
@@ -171,7 +177,10 @@ __decorate([
         },
     }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Thumbnail uploaded successfully' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'File is required or invalid format' }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'File is required or invalid format',
+    }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Destination not found' }),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', multer_config_1.multerImageOptions)),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -196,7 +205,10 @@ __decorate([
         },
     }),
     (0, swagger_1.ApiResponse)({ status: 201, description: 'Image uploaded successfully' }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: 'File is required or invalid format' }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'File is required or invalid format',
+    }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Destination not found' }),

@@ -12,4 +12,4 @@ import { AnalyticsModule } from '../analytics/analytics.module';
   imports: [UsersModule, ReviewsModule, AnalyticsModule],
   controllers: [AdminUsersController, AdminModerationController],
 })
-export class AdminModule { }
+export class AdminModule {}

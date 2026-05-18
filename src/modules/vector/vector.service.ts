@@ -73,8 +73,26 @@ export class VectorService {
   async hybridSearch(
     queryEmbedding: number[],
     limit: number = 10,
+    sortType: 'relevance' | 'hybrid' = 'hybrid',
   ): Promise<SimilarDestination[]> {
     const vectorStr = `[${queryEmbedding.join(',')}]`;
+
+    if (sortType === 'relevance') {
+      return this.prisma.$queryRaw<SimilarDestination[]>`
+        SELECT
+          id, name, slug, city, province,
+          thumbnail_url, google_rating, user_rating,
+          positive_ratio, recommendation_score,
+          1 - (embedding <=> ${vectorStr}::vector) AS similarity
+        FROM destinations
+        WHERE embedding IS NOT NULL
+          AND deleted_at IS NULL
+        ORDER BY similarity DESC
+        LIMIT ${limit}
+      `;
+    }
+
+    // Default: hybrid
     return this.prisma.$queryRaw<SimilarDestination[]>`
       SELECT
         id, name, slug, city, province,

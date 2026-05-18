@@ -33,6 +33,10 @@ interface AuthUser {
   role: string;
 }
 
+interface SearchRequest {
+  user?: AuthUser;
+}
+
 @ApiTags('Search')
 @Controller('search')
 export class SearchController {
@@ -63,7 +67,7 @@ export class SearchController {
     description: 'Query tidak valid (min 3 karakter)',
   })
   @ApiResponse({ status: 503, description: 'NLP service tidak tersedia' })
-  async search(@Body() dto: SearchQueryDto, @Request() req?: any) {
+  async search(@Body() dto: SearchQueryDto, @Request() req?: SearchRequest) {
     // Extract userId dari req.user (jika ada)
     const userId = req?.user?.id;
 

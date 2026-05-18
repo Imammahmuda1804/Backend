@@ -186,7 +186,9 @@ export class ScraperService {
    * Download file Excel hasil scraping.
    * File disimpan oleh ScraperProcessor di uploads/scraped_data/job_{jobId}.xlsx
    */
-  async downloadExcel(jobId: number): Promise<{ filePath: string; filename: string }> {
+  async downloadExcel(
+    jobId: number,
+  ): Promise<{ filePath: string; filename: string }> {
     const job = await this.prisma.scrapingJob.findUnique({
       where: { id: jobId },
       include: {

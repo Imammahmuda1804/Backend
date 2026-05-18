@@ -61,8 +61,22 @@ let VectorService = class VectorService {
       LIMIT ${limit}
     `;
     }
-    async hybridSearch(queryEmbedding, limit = 10) {
+    async hybridSearch(queryEmbedding, limit = 10, sortType = 'hybrid') {
         const vectorStr = `[${queryEmbedding.join(',')}]`;
+        if (sortType === 'relevance') {
+            return this.prisma.$queryRaw `
+        SELECT
+          id, name, slug, city, province,
+          thumbnail_url, google_rating, user_rating,
+          positive_ratio, recommendation_score,
+          1 - (embedding <=> ${vectorStr}::vector) AS similarity
+        FROM destinations
+        WHERE embedding IS NOT NULL
+          AND deleted_at IS NULL
+        ORDER BY similarity DESC
+        LIMIT ${limit}
+      `;
+        }
         return this.prisma.$queryRaw `
       SELECT
         id, name, slug, city, province,

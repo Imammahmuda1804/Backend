@@ -21,8 +21,8 @@ export declare class AdminAnalyticsController {
         scraping_jobs_breakdown: Record<string, number>;
         sentiment_distribution: Record<string, number>;
         top_destinations: {
-            id: number;
             name: string;
+            id: number;
             city: string;
             googleRating: number | null;
             positiveRatio: number | null;
@@ -34,9 +34,9 @@ export declare class AdminAnalyticsController {
                 city: string;
             };
         } & {
-            id: number;
             status: string;
             createdAt: Date;
+            id: number;
             destinationId: number;
             source: string;
             totalReviews: number | null;
@@ -49,6 +49,78 @@ export declare class AdminAnalyticsController {
             topic_name: string;
             count: number;
         }[];
+        data_freshness: {
+            latest_completed_job: ({
+                destination: {
+                    name: string;
+                    city: string;
+                };
+            } & {
+                status: string;
+                createdAt: Date;
+                id: number;
+                destinationId: number;
+                source: string;
+                totalReviews: number | null;
+                startedAt: Date | null;
+                finishedAt: Date | null;
+                errorMessage: string | null;
+                createdBy: number | null;
+            }) | null;
+            latest_failed_job: ({
+                destination: {
+                    name: string;
+                    city: string;
+                };
+            } & {
+                status: string;
+                createdAt: Date;
+                id: number;
+                destinationId: number;
+                source: string;
+                totalReviews: number | null;
+                startedAt: Date | null;
+                finishedAt: Date | null;
+                errorMessage: string | null;
+                createdBy: number | null;
+            }) | null;
+            destinations_without_thumbnail: number;
+            destinations_without_trends: number;
+        };
+        action_queue: {
+            failed_jobs: number;
+            pending_jobs: number;
+            destinations_without_thumbnail: number;
+            destinations_without_trends: number;
+            recent_negative_reviews: {
+                destination: {
+                    name: string;
+                    id: number;
+                    city: string;
+                };
+                createdAt: Date;
+                id: number;
+                rating: number | null;
+                reviewText: string | null;
+            }[];
+        };
+        topic_risk_matrix: {
+            topic_name: string;
+            positive: number;
+            neutral: number;
+            negative: number;
+            total: number;
+            risk_ratio: number;
+        }[];
+        destination_quality_matrix: {
+            id: number;
+            name: string;
+            city: string;
+            google_rating: number | null;
+            google_review_count: number | null;
+            recommendation_score: number | null;
+            positive_ratio: number | null;
+        }[];
     }>;
     getAdminActivity(): Promise<{
         recent_scraping_jobs: ({
@@ -56,9 +128,9 @@ export declare class AdminAnalyticsController {
                 name: string;
             };
         } & {
-            id: number;
             status: string;
             createdAt: Date;
+            id: number;
             destinationId: number;
             source: string;
             totalReviews: number | null;
@@ -68,34 +140,34 @@ export declare class AdminAnalyticsController {
             createdBy: number | null;
         })[];
         recent_scraped_reviews: {
-            id: number;
-            createdAt: Date;
             destination: {
                 name: string;
             };
+            createdAt: Date;
+            id: number;
             rating: number | null;
             sentiment: string | null;
             reviewerName: string;
         }[];
         recent_user_reviews: {
-            id: number;
-            createdAt: Date;
             user: {
                 name: string;
             };
             destination: {
                 name: string;
             };
+            createdAt: Date;
+            id: number;
             rating: number;
             reviewText: string | null;
         }[];
         recent_registrations: {
-            id: number;
-            email: string;
-            name: string;
-            role: import("@prisma/client").$Enums.Role;
             status: string;
+            name: string;
+            email: string;
+            role: import("@prisma/client").$Enums.Role;
             createdAt: Date;
+            id: number;
         }[];
     }>;
     getAdminTrends(query: TrendsQueryDto): Promise<{

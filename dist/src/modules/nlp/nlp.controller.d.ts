@@ -21,12 +21,5 @@ export declare class NlpController {
             neutral: number;
         };
     }>;
-    private parseUploadedFile;
-    private parseExcel;
-    private parseCsv;
-    private buildColumnMap;
-    private getCellString;
-    private getCellNumber;
-    private parseCsvLine;
-    private parseIndonesianDate;
+    private cleanupInsertedReviews;
 }

@@ -4,6 +4,8 @@ import {
   IsString,
   IsNumber,
   IsUrl,
+  Min,
+  Max,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -66,4 +68,23 @@ export class CreateDestinationDto {
   @IsOptional()
   @IsUrl()
   thumbnailUrl?: string;
+
+  @ApiPropertyOptional({
+    description: 'Rating Google Maps (1.0 - 5.0)',
+    example: 4.5,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(5)
+  googleRating?: number;
+
+  @ApiPropertyOptional({
+    description: 'Jumlah ulasan di Google Maps',
+    example: 1200,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  googleReviewCount?: number;
 }

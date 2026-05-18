@@ -80,11 +80,11 @@ let ScraperProcessor = ScraperProcessor_1 = class ScraperProcessor extends bullm
                 throw new Error(`Apify run failed with status: ${runStatus}`);
             }
             this.logger.log(`Fetching results from dataset ${datasetId}...`);
-            const results = await this.apifyService.getRunResults(datasetId);
+            const results = (await this.apifyService.getRunResults(datasetId));
             this.logger.log(`Got ${results.length} raw results. Filtering text-only reviews...`);
             const textReviews = results.filter((item) => {
-                const reviewText = (item.text || item.reviewText);
-                const rating = (item.stars || item.rating);
+                const reviewText = item.text || item.reviewText || null;
+                const rating = item.stars || item.rating || null;
                 return reviewText && reviewText.trim().length > 0 && rating;
             });
             const finalReviews = maxReviews
@@ -197,12 +197,10 @@ let ScraperProcessor = ScraperProcessor_1 = class ScraperProcessor extends bullm
             };
         });
         reviews.forEach((item, index) => {
-            const reviewText = (item.text || item.reviewText || '');
-            const rating = (item.stars || item.rating || 0);
-            const reviewerName = (item.name ||
-                item.reviewerName ||
-                'Anonymous');
-            const reviewDateStr = (item.publishedAtDate || item.date);
+            const reviewText = item.text || item.reviewText || '';
+            const rating = item.stars || item.rating || 0;
+            const reviewerName = item.name || item.reviewerName || 'Anonymous';
+            const reviewDateStr = item.publishedAtDate || item.date || null;
             const reviewDate = reviewDateStr
                 ? new Date(reviewDateStr).toLocaleDateString('id-ID', {
                     day: 'numeric',
@@ -278,11 +276,13 @@ let ScraperProcessor = ScraperProcessor_1 = class ScraperProcessor extends bullm
             .replace(/[^a-zA-Z0-9\s]/g, '')
             .replace(/\s+/g, '_')
             .substring(0, 40);
-        const dateStr = new Date().toLocaleDateString('en-GB', {
+        const dateStr = new Date()
+            .toLocaleDateString('en-GB', {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
-        }).replace(/ /g, '-');
+        })
+            .replace(/ /g, '-');
         const filename = `[RanahInsight]_Scrape_${safeName}_${reviews.length}_Reviews_${dateStr}.xlsx`;
         const filePath = path.join(uploadDir, filename);
         await workbook.xlsx.writeFile(filePath);

@@ -20,6 +20,20 @@ const file_parser_service_1 = require("./file-parser.service");
 const common_2 = require("@nestjs/common");
 const bullmq_1 = require("@nestjs/bullmq");
 const bullmq_2 = require("bullmq");
+function stringifyField(value, fallback = '') {
+    if (value === null || value === undefined)
+        return fallback;
+    if (typeof value === 'string')
+        return value;
+    if (typeof value === 'number' || typeof value === 'boolean') {
+        return String(value);
+    }
+    if (value instanceof Date)
+        return value.toISOString();
+    if (typeof value === 'object')
+        return JSON.stringify(value) ?? fallback;
+    return fallback;
+}
 let UploadsService = UploadsService_1 = class UploadsService {
     prisma;
     fileParser;
@@ -63,7 +77,9 @@ let UploadsService = UploadsService_1 = class UploadsService {
         const reviewsToInsert = validData.map((row) => {
             const reviewText = mapping.reviewText ? row[mapping.reviewText] : null;
             const rating = mapping.rating ? row[mapping.rating] : null;
-            const reviewerName = mapping.reviewerName ? row[mapping.reviewerName] : 'Anonymous';
+            const reviewerName = mapping.reviewerName
+                ? row[mapping.reviewerName]
+                : 'Anonymous';
             const dateRaw = mapping.reviewDate ? row[mapping.reviewDate] : null;
             const likesCount = mapping.likesCount ? row[mapping.likesCount] : null;
             let reviewDate = null;
@@ -88,16 +104,20 @@ let UploadsService = UploadsService_1 = class UploadsService {
                     }
                 }
             }
-            catch (error) {
+            catch {
             }
+            const reviewerNameText = stringifyField(reviewerName, 'Anonymous');
+            const reviewTextText = reviewText ? stringifyField(reviewText) : null;
+            const ratingText = rating ? stringifyField(rating) : null;
+            const likesCountText = likesCount ? stringifyField(likesCount) : null;
             return {
                 destinationId,
                 scrapingJobId: job.id,
-                reviewerName: String(reviewerName || 'Anonymous').substring(0, 255),
-                reviewText: reviewText ? String(reviewText) : null,
-                rating: rating ? parseInt(String(rating), 10) : null,
+                reviewerName: reviewerNameText.substring(0, 255),
+                reviewText: reviewTextText,
+                rating: ratingText ? parseInt(ratingText, 10) : null,
                 reviewDate,
-                likesCount: likesCount ? parseInt(String(likesCount), 10) : 0,
+                likesCount: likesCountText ? parseInt(likesCountText, 10) : 0,
                 source: 'upload',
             };
         });

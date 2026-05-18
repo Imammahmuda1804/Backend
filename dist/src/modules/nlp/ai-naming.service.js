@@ -25,6 +25,21 @@ const DELAY_BETWEEN_REQUESTS_MS = 4000;
 const MAX_RETRIES = 1;
 const RETRY_DELAY_MS = 15000;
 const DAILY_QUOTA_COOLDOWN_MS = 60 * 60 * 1000;
+function getErrorMessage(error) {
+    return error instanceof Error ? error.message : String(error);
+}
+function getProviderError(error) {
+    if (typeof error === 'object' && error !== null) {
+        const message = 'message' in error && typeof error.message === 'string'
+            ? error.message
+            : undefined;
+        const status = 'status' in error && typeof error.status === 'number'
+            ? error.status
+            : undefined;
+        return { message, status };
+    }
+    return { message: String(error) };
+}
 let AiNamingService = AiNamingService_1 = class AiNamingService {
     logger = new common_1.Logger(AiNamingService_1.name);
     genAI = null;
@@ -53,7 +68,7 @@ let AiNamingService = AiNamingService_1 = class AiNamingService {
         return true;
     }
     isDailyQuotaExhausted(error) {
-        const msg = error?.message || String(error);
+        const msg = getErrorMessage(error);
         return msg.includes('PerDay') || msg.includes('limit: 0');
     }
     async throttle() {
@@ -72,11 +87,14 @@ let AiNamingService = AiNamingService_1 = class AiNamingService {
         if (!this.genAI) {
             return `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
         }
-        const prompt = `Anda adalah asisten AI untuk analisis data pariwisata.
-Tugas Anda adalah membuat NAMA TOPIK yang singkat, jelas, dan informatif (maksimal 5 kata),buat agar nama topiknya bisa digunakan sebagai filter kategori berdasarkan daftar kata kunci berikut.
-Kata kunci: ${keywords.join(', ')}
+        const prompt = `Tugas Anda adalah memberi LABEL KATEGORI untuk filter ulasan pariwisata berdasarkan kumpulan kata kunci berikut:
+[ ${keywords.join(', ')} ]
 
-Hanya kembalikan nama topiknya saja, tanpa penjelasan apapun, tanpa tanda kutip. Contoh output: Keluhan Harga Tiket, Fasilitas Kamar Mandi, Pemandangan Alam Indah.`;
+Aturan ketat:
+1. Harus SANGAT SINGKAT (Maksimal 1-4 kata saja).
+2. Harus cocok dijadikan teks tombol filter di aplikasi yang mencerminkan topik utama dari kata kunci tersebut (contoh: "Fasilitas buruk", "Harga Tiket mahal", "Akses Jalan buruk/bagus", "Pelayanan Staf buruk/bagus", "Pemandangan indah/buruk").
+3. JANGAN gunakan kata awalan seperti "Tentang", "Keluhan", "Masalah", atau "Kondisi". Langsung ke inti objeknya (contoh: gunakan "Harga mahal/murah" bukan "Keluhan Harga").
+4. Hanya outputkan nama labelnya saja, tanpa tanda kutip, tanpa titik, tanpa penjelasan apapun.`;
         const availableModels = this.getAvailableModels();
         if (availableModels.length === 0) {
             this.logger.error(`❌ Semua ${GEMINI_MODELS.length} model Gemini sedang dalam cooldown. ` +
@@ -89,15 +107,16 @@ Hanya kembalikan nama topiknya saja, tanpa penjelasan apapun, tanpa tanda kutip.
                     await this.throttle();
                     const model = this.genAI.getGenerativeModel({ model: modelName });
                     const result = await model.generateContent(prompt);
-                    const response = await result.response;
+                    const response = result.response;
                     let text = response.text().trim();
                     text = text.replace(/^["']|["']$/g, '');
                     this.logger.log(`✅ Topic ${topicId} named by ${modelName}: "${text}"`);
                     return text;
                 }
                 catch (error) {
-                    const isRateLimit = error?.status === 429 ||
-                        (error?.message && error.message.includes('429'));
+                    const providerError = getProviderError(error);
+                    const errorMessage = getErrorMessage(error);
+                    const isRateLimit = providerError.status === 429 || errorMessage.includes('429');
                     if (isRateLimit) {
                         if (this.isDailyQuotaExhausted(error)) {
                             this.exhaustedModels.set(modelName, Date.now());
@@ -115,7 +134,7 @@ Hanya kembalikan nama topiknya saja, tanpa penjelasan apapun, tanpa tanda kutip.
                         this.logger.warn(`⚠️ ${modelName} retry habis untuk topic ${topicId}. Pindah ke model berikutnya.`);
                         break;
                     }
-                    this.logger.warn(`⚠️ ${modelName} failed for topic ${topicId}: ${error.message || error}`);
+                    this.logger.warn(`⚠️ ${modelName} failed for topic ${topicId}: ${errorMessage}`);
                     break;
                 }
             }

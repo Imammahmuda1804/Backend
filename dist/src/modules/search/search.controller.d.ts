@@ -16,8 +16,8 @@ export declare class SearchController {
     getHistory(userId: number, page?: string, limit?: string): Promise<{
         data: {
             id: number;
-            keyword: string;
             createdAt: Date;
+            keyword: string;
         }[];
         meta: {
             page: number;

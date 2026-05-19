@@ -1,5 +1,11 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import { SimilarDestination } from './interfaces/similar-destination.interface';
+interface HybridSearchFilters {
+    city?: string;
+    topicIds?: number[];
+    minRating?: number;
+    sentiment?: 'positive' | 'negative' | 'neutral';
+}
 export declare class VectorService {
     private readonly prisma;
     constructor(prisma: PrismaService);
@@ -11,5 +17,6 @@ export declare class VectorService {
         embedding: number[];
     }>): Promise<void>;
     searchSimilarDestinations(queryEmbedding: number[], limit?: number): Promise<SimilarDestination[]>;
-    hybridSearch(queryEmbedding: number[], limit?: number, sortType?: 'relevance' | 'hybrid'): Promise<SimilarDestination[]>;
+    hybridSearch(queryEmbedding: number[], limit?: number, sortType?: 'relevance' | 'hybrid', filters?: HybridSearchFilters): Promise<SimilarDestination[]>;
 }
+export {};

@@ -5,13 +5,13 @@ export declare class AdminUsersController {
     constructor(usersService: UsersService);
     getUsers(query: AdminUserQueryDto): Promise<{
         data: {
-            status: string;
-            name: string;
-            email: string;
-            profilePicture: string | null;
-            role: import("@prisma/client").$Enums.Role;
-            createdAt: Date;
             id: number;
+            email: string;
+            name: string;
+            role: import("@prisma/client").$Enums.Role;
+            status: string;
+            profilePicture: string | null;
+            createdAt: Date;
         }[];
         meta: {
             page: number;
@@ -21,68 +21,68 @@ export declare class AdminUsersController {
         };
     }>;
     getUserDetail(id: number): Promise<{
-        status: string;
-        name: string;
+        id: number;
         email: string;
-        profilePicture: string | null;
+        name: string;
         role: import("@prisma/client").$Enums.Role;
+        status: string;
+        profilePicture: string | null;
         createdAt: Date;
         favorites: ({
             destination: {
-                name: string;
                 id: number;
+                name: string;
                 city: string;
                 province: string;
                 thumbnailUrl: string | null;
             };
         } & {
-            createdAt: Date;
             id: number;
-            userId: number;
+            createdAt: Date;
             destinationId: number;
+            userId: number;
         })[];
         searchLogs: {
-            createdAt: Date;
             id: number;
+            createdAt: Date;
             userId: number | null;
             keyword: string;
         }[];
         userReviews: ({
             destination: {
-                name: string;
                 id: number;
+                name: string;
                 city: string;
             };
         } & {
-            createdAt: Date;
             id: number;
-            userId: number;
-            destinationId: number;
+            createdAt: Date;
             rating: number;
+            destinationId: number;
             reviewText: string | null;
+            userId: number;
         })[];
-        id: number;
     }>;
     createUser(dto: AdminCreateUserDto): Promise<{
-        status: string;
-        name: string;
-        email: string;
-        profilePicture: string | null;
-        role: import("@prisma/client").$Enums.Role;
-        createdAt: Date;
         id: number;
+        email: string;
+        name: string;
+        role: import("@prisma/client").$Enums.Role;
+        status: string;
+        profilePicture: string | null;
+        createdAt: Date;
     }>;
     updateUser(id: number, dto: AdminUpdateUserDto): Promise<{
-        status: string;
-        name: string;
-        email: string;
-        profilePicture: string | null;
-        role: import("@prisma/client").$Enums.Role;
-        createdAt: Date;
         id: number;
+        email: string;
+        name: string;
+        role: import("@prisma/client").$Enums.Role;
+        status: string;
+        profilePicture: string | null;
+        createdAt: Date;
     }>;
     suspendUser(id: number): Promise<{
-        status: string;
         id: number;
+        status: string;
     }>;
 }

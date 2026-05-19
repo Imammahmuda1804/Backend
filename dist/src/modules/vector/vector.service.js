@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.VectorService = void 0;
 const common_1 = require("@nestjs/common");
+const client_1 = require("@prisma/client");
 const prisma_service_1 = require("../../prisma/prisma.service");
 let VectorService = class VectorService {
     prisma;
@@ -61,34 +62,57 @@ let VectorService = class VectorService {
       LIMIT ${limit}
     `;
     }
-    async hybridSearch(queryEmbedding, limit = 10, sortType = 'hybrid') {
+    async hybridSearch(queryEmbedding, limit = 10, sortType = 'hybrid', filters = {}) {
         const vectorStr = `[${queryEmbedding.join(',')}]`;
+        const whereClauses = [
+            client_1.Prisma.sql `d.embedding IS NOT NULL`,
+            client_1.Prisma.sql `d.deleted_at IS NULL`,
+        ];
+        if (filters.city) {
+            whereClauses.push(client_1.Prisma.sql `LOWER(d.city) = LOWER(${filters.city})`);
+        }
+        if (filters.minRating != null) {
+            whereClauses.push(client_1.Prisma.sql `COALESCE(d.user_rating, d.google_rating, 0) >= ${filters.minRating}`);
+        }
+        if (filters.topicIds && filters.topicIds.length > 0) {
+            whereClauses.push(client_1.Prisma.sql `EXISTS (
+        SELECT 1 FROM destination_topics dt
+        WHERE dt.destination_id = d.id
+          AND dt.topic_id IN (${client_1.Prisma.join(filters.topicIds)})
+      )`);
+        }
+        if (filters.sentiment) {
+            whereClauses.push(client_1.Prisma.sql `EXISTS (
+        SELECT 1 FROM reviews r
+        WHERE r.destination_id = d.id
+          AND r.sentiment = ${filters.sentiment}
+      )`);
+        }
+        const whereSql = client_1.Prisma.join(whereClauses, ' AND ');
         if (sortType === 'relevance') {
             return this.prisma.$queryRaw `
         SELECT
-          id, name, slug, city, province,
-          thumbnail_url, google_rating, user_rating,
-          positive_ratio, recommendation_score,
-          1 - (embedding <=> ${vectorStr}::vector) AS similarity
-        FROM destinations
-        WHERE embedding IS NOT NULL
-          AND deleted_at IS NULL
+          d.id, d.name, d.slug, d.city, d.province,
+          d.thumbnail_url, d.google_rating, d.user_rating,
+          d.positive_ratio, d.recommendation_score,
+          1 - (d.embedding <=> ${vectorStr}::vector) AS similarity
+        FROM destinations d
+        WHERE ${whereSql}
         ORDER BY similarity DESC
         LIMIT ${limit}
       `;
         }
         return this.prisma.$queryRaw `
       SELECT
-        id, name, slug, city, province,
-        thumbnail_url, google_rating, user_rating,
-        positive_ratio, recommendation_score,
-        (1 - (embedding <=> ${vectorStr}::vector)) * 0.4
-        + COALESCE(positive_ratio, 0) * 0.4
-        + COALESCE(user_rating, 0) / 5.0 * 0.2
+        d.id, d.name, d.slug, d.city, d.province,
+        d.thumbnail_url, d.google_rating, d.user_rating,
+        d.positive_ratio, d.recommendation_score,
+        (1 - (d.embedding <=> ${vectorStr}::vector)) * 0.4
+        + COALESCE(d.positive_ratio, 0) * 0.4
+        + COALESCE(d.user_rating, d.google_rating, 0) / 5.0 * 0.2
         AS hybrid_score
-      FROM destinations
-      WHERE embedding IS NOT NULL
-        AND deleted_at IS NULL
+      FROM destinations d
+      WHERE ${whereSql}
       ORDER BY hybrid_score DESC
       LIMIT ${limit}
     `;

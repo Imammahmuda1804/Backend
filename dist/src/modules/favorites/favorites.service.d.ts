@@ -7,9 +7,11 @@ export declare class FavoritesService {
     }>;
     getFavorites(userId: number, page: number, limit: number): Promise<{
         data: {
+            id: number;
+            createdAt: Date;
             destination: {
-                name: string;
                 id: number;
+                name: string;
                 slug: string;
                 city: string;
                 province: string;
@@ -18,8 +20,6 @@ export declare class FavoritesService {
                 positiveRatio: number | null;
                 recommendationScore: number | null;
             };
-            createdAt: Date;
-            id: number;
         }[];
         meta: {
             page: number;

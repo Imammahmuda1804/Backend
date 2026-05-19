@@ -11,19 +11,20 @@ export declare class AdminReviewsController {
             } | null;
         } & {
             id: number;
-            destinationId: number;
-            reviewerName: string;
-            reviewText: string | null;
-            cleanedText: string | null;
+            createdAt: Date;
             rating: number | null;
+            sentiment: string | null;
+            destinationId: number;
+            reviewText: string | null;
+            reviewerName: string;
+            cleanedText: string | null;
             reviewDate: Date | null;
             source: string | null;
             likesCount: number | null;
             ownerReply: string | null;
-            sentiment: string | null;
+            sentimentConfidence: number | null;
             topicId: number | null;
             scrapingJobId: number | null;
-            createdAt: Date;
         })[];
         meta: {
             total: number;

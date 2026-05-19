@@ -83,18 +83,26 @@ let AiNamingService = AiNamingService_1 = class AiNamingService {
     getAvailableModels() {
         return GEMINI_MODELS.filter((m) => !this.isModelExhausted(m));
     }
-    async generateTopicName(topicId, keywords) {
+    async generateTopicName(topicId, keywords, representativeDocs = []) {
         if (!this.genAI) {
             return `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
         }
-        const prompt = `Tugas Anda adalah memberi LABEL KATEGORI untuk filter ulasan pariwisata berdasarkan kumpulan kata kunci berikut:
+        const exampleReviews = representativeDocs.length
+            ? `\nContoh ulasan:\n${representativeDocs
+                .slice(0, 3)
+                .map((doc) => `- ${doc}`)
+                .join('\n')}\n`
+            : '';
+        const prompt = `Tugas Anda adalah memberi LABEL KATEGORI untuk filter ulasan pariwisata berdasarkan kumpulan kata kunci dan contoh ulasan berikut:
 [ ${keywords.join(', ')} ]
+${exampleReviews}
 
 Aturan ketat:
-1. Harus SANGAT SINGKAT (Maksimal 1-4 kata saja).
-2. Harus cocok dijadikan teks tombol filter di aplikasi yang mencerminkan topik utama dari kata kunci tersebut (contoh: "Fasilitas buruk", "Harga Tiket mahal", "Akses Jalan buruk/bagus", "Pelayanan Staf buruk/bagus", "Pemandangan indah/buruk").
-3. JANGAN gunakan kata awalan seperti "Tentang", "Keluhan", "Masalah", atau "Kondisi". Langsung ke inti objeknya (contoh: gunakan "Harga mahal/murah" bukan "Keluhan Harga").
-4. Hanya outputkan nama labelnya saja, tanpa tanda kutip, tanpa titik, tanpa penjelasan apapun.`;
+1. Bahasa Indonesia, ramah untuk user, dan cocok sebagai label UI.
+2. Maksimal 3 kata.
+3. Gunakan contoh ulasan untuk memahami konteks, jangan hanya menyalin keyword mentah.
+4. JANGAN gunakan awalan seperti "Tentang", "Keluhan", "Masalah", atau "Kondisi".
+5. Outputkan nama label saja, tanpa tanda kutip, titik, atau penjelasan.`;
         const availableModels = this.getAvailableModels();
         if (availableModels.length === 0) {
             this.logger.error(`❌ Semua ${GEMINI_MODELS.length} model Gemini sedang dalam cooldown. ` +

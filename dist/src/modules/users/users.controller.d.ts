@@ -10,8 +10,8 @@ export declare class UsersController {
     }): Promise<{
         id: number;
         email: string;
-        role: import("@prisma/client").$Enums.Role;
         name: string;
+        role: import("@prisma/client").$Enums.Role;
         status: string;
         profilePicture: string | null;
         createdAt: Date;
@@ -23,8 +23,8 @@ export declare class UsersController {
     }, dto: UpdateProfileDto): Promise<{
         id: number;
         email: string;
-        role: import("@prisma/client").$Enums.Role;
         name: string;
+        role: import("@prisma/client").$Enums.Role;
         profilePicture: string | null;
         createdAt: Date;
     }>;
@@ -35,8 +35,8 @@ export declare class UsersController {
     }, file: Express.Multer.File): Promise<{
         id: number;
         email: string;
-        role: import("@prisma/client").$Enums.Role;
         name: string;
+        role: import("@prisma/client").$Enums.Role;
         profilePicture: string | null;
         createdAt: Date;
     }>;

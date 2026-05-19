@@ -19,6 +19,11 @@ export declare class NlpController {
             positive: number;
             negative: number;
             neutral: number;
+        } | {
+            total: number;
+            positive: number;
+            negative: number;
+            neutral: number;
         };
     }>;
     private cleanupInsertedReviews;

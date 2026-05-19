@@ -21,8 +21,8 @@ export declare class AdminAnalyticsController {
         scraping_jobs_breakdown: Record<string, number>;
         sentiment_distribution: Record<string, number>;
         top_destinations: {
-            name: string;
             id: number;
+            name: string;
             city: string;
             googleRating: number | null;
             positiveRatio: number | null;
@@ -34,9 +34,9 @@ export declare class AdminAnalyticsController {
                 city: string;
             };
         } & {
+            id: number;
             status: string;
             createdAt: Date;
-            id: number;
             destinationId: number;
             source: string;
             totalReviews: number | null;
@@ -56,9 +56,9 @@ export declare class AdminAnalyticsController {
                     city: string;
                 };
             } & {
+                id: number;
                 status: string;
                 createdAt: Date;
-                id: number;
                 destinationId: number;
                 source: string;
                 totalReviews: number | null;
@@ -73,9 +73,9 @@ export declare class AdminAnalyticsController {
                     city: string;
                 };
             } & {
+                id: number;
                 status: string;
                 createdAt: Date;
-                id: number;
                 destinationId: number;
                 source: string;
                 totalReviews: number | null;
@@ -93,13 +93,13 @@ export declare class AdminAnalyticsController {
             destinations_without_thumbnail: number;
             destinations_without_trends: number;
             recent_negative_reviews: {
+                id: number;
+                createdAt: Date;
                 destination: {
-                    name: string;
                     id: number;
+                    name: string;
                     city: string;
                 };
-                createdAt: Date;
-                id: number;
                 rating: number | null;
                 reviewText: string | null;
             }[];
@@ -128,9 +128,9 @@ export declare class AdminAnalyticsController {
                 name: string;
             };
         } & {
+            id: number;
             status: string;
             createdAt: Date;
-            id: number;
             destinationId: number;
             source: string;
             totalReviews: number | null;
@@ -140,34 +140,34 @@ export declare class AdminAnalyticsController {
             createdBy: number | null;
         })[];
         recent_scraped_reviews: {
+            id: number;
+            createdAt: Date;
             destination: {
                 name: string;
             };
-            createdAt: Date;
-            id: number;
             rating: number | null;
             sentiment: string | null;
             reviewerName: string;
         }[];
         recent_user_reviews: {
+            id: number;
+            createdAt: Date;
             user: {
                 name: string;
             };
             destination: {
                 name: string;
             };
-            createdAt: Date;
-            id: number;
             rating: number;
             reviewText: string | null;
         }[];
         recent_registrations: {
-            status: string;
-            name: string;
-            email: string;
-            role: import("@prisma/client").$Enums.Role;
-            createdAt: Date;
             id: number;
+            email: string;
+            name: string;
+            role: import("@prisma/client").$Enums.Role;
+            status: string;
+            createdAt: Date;
         }[];
     }>;
     getAdminTrends(query: TrendsQueryDto): Promise<{

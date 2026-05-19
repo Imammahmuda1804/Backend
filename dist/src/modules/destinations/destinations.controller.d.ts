@@ -8,17 +8,17 @@ export declare class DestinationsController {
     findAll(query: DestinationQueryDto): Promise<{
         data: ({
             images: {
-                createdAt: Date;
                 id: number;
+                createdAt: Date;
                 destinationId: number;
                 imageUrl: string;
             }[];
         } & {
-            description: string | null;
+            id: number;
             name: string;
             createdAt: Date;
             updatedAt: Date;
-            id: number;
+            description: string | null;
             slug: string;
             city: string;
             province: string;
@@ -45,8 +45,8 @@ export declare class DestinationsController {
     }>;
     getRecommendations(query: PaginationQueryDto): Promise<{
         data: {
-            name: string;
             id: number;
+            name: string;
             slug: string;
             city: string;
             province: string;
@@ -64,8 +64,8 @@ export declare class DestinationsController {
         };
     }>;
     getRanking(sortBy: string, limit: string): Promise<{
-        name: string;
         id: number;
+        name: string;
         slug: string;
         city: string;
         province: string;
@@ -87,21 +87,21 @@ export declare class DestinationsController {
         }>;
         userReviews: ({
             user: {
+                id: number;
                 name: string;
                 profilePicture: string | null;
-                id: number;
             };
         } & {
-            createdAt: Date;
             id: number;
-            userId: number;
-            destinationId: number;
+            createdAt: Date;
             rating: number;
+            destinationId: number;
             reviewText: string | null;
+            userId: number;
         })[];
         images: {
-            createdAt: Date;
             id: number;
+            createdAt: Date;
             destinationId: number;
             imageUrl: string;
         }[];
@@ -115,8 +115,8 @@ export declare class DestinationsController {
         }[];
         destinationTopics: ({
             topic: {
-                createdAt: Date;
                 id: number;
+                createdAt: Date;
                 topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
             };
@@ -126,11 +126,11 @@ export declare class DestinationsController {
             topicId: number;
             totalReviews: number;
         })[];
-        description: string | null;
+        id: number;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        id: number;
+        description: string | null;
         slug: string;
         city: string;
         province: string;
@@ -152,8 +152,8 @@ export declare class DestinationsController {
         data: {
             id: number;
             rating: number | null;
-            reviewText: string | null;
             sentiment: string | null;
+            reviewText: string | null;
             reviewerName: string;
             reviewDate: Date | null;
             likesCount: number | null;
@@ -177,21 +177,21 @@ export declare class DestinationsController {
         }>;
         userReviews: ({
             user: {
+                id: number;
                 name: string;
                 profilePicture: string | null;
-                id: number;
             };
         } & {
-            createdAt: Date;
             id: number;
-            userId: number;
-            destinationId: number;
+            createdAt: Date;
             rating: number;
+            destinationId: number;
             reviewText: string | null;
+            userId: number;
         })[];
         images: {
-            createdAt: Date;
             id: number;
+            createdAt: Date;
             destinationId: number;
             imageUrl: string;
         }[];
@@ -205,8 +205,8 @@ export declare class DestinationsController {
         }[];
         destinationTopics: ({
             topic: {
-                createdAt: Date;
                 id: number;
+                createdAt: Date;
                 topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
             };
@@ -216,11 +216,11 @@ export declare class DestinationsController {
             topicId: number;
             totalReviews: number;
         })[];
-        description: string | null;
+        id: number;
         name: string;
         createdAt: Date;
         updatedAt: Date;
-        id: number;
+        description: string | null;
         slug: string;
         city: string;
         province: string;

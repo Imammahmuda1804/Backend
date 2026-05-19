@@ -47,6 +47,13 @@ export class NlpResultStorageService {
       console.warn('⚠️ Pipeline Warning:', nlpResult.warning);
     }
 
+    if (nlpResult.metadata) {
+      console.log(
+        'NLP Model Metadata:',
+        JSON.stringify(nlpResult.metadata, null, 2),
+      );
+    }
+
     // Helper function untuk map sentiment Indonesia ke English
     const mapSentiment = (sentiment: string): string => {
       const sentimentMap: Record<string, string> = {
@@ -82,6 +89,7 @@ export class NlpResultStorageService {
           topicName = await this.aiNamingService.generateTopicName(
             topicId,
             topic.keywords,
+            topic.representative_docs ?? [],
           );
         } else {
           // Fallback kalau nama topik kosong di db
@@ -126,6 +134,7 @@ export class NlpResultStorageService {
           data: {
             cleanedText: review.cleaned_text,
             sentiment: mappedSentiment,
+            sentimentConfidence: review.sentiment_confidence,
             topicId: safeTopicId,
           },
         });
@@ -172,6 +181,15 @@ export class NlpResultStorageService {
 
         for (let i = 0; i < embeddingDim; i++) {
           destinationEmbedding[i] /= validEmbeddings.length;
+        }
+
+        const norm = Math.sqrt(
+          destinationEmbedding.reduce((sum, value) => sum + value * value, 0),
+        );
+        if (norm > 0) {
+          for (let i = 0; i < embeddingDim; i++) {
+            destinationEmbedding[i] /= norm;
+          }
         }
 
         await this.vectorService.upsertDestinationEmbedding(

@@ -24,18 +24,19 @@ export declare class ReviewsService {
                 topicName: string;
             } | null;
         } & {
-            createdAt: Date;
             id: number;
-            destinationId: number;
+            createdAt: Date;
             rating: number | null;
-            reviewText: string | null;
             sentiment: string | null;
+            destinationId: number;
+            reviewText: string | null;
             reviewerName: string;
             cleanedText: string | null;
             reviewDate: Date | null;
             source: string | null;
             likesCount: number | null;
             ownerReply: string | null;
+            sentimentConfidence: number | null;
             topicId: number | null;
             scrapingJobId: number | null;
         })[];

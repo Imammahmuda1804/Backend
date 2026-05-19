@@ -8,5 +8,5 @@ export declare class AiNamingService {
     private isDailyQuotaExhausted;
     private throttle;
     private getAvailableModels;
-    generateTopicName(topicId: number, keywords: string[]): Promise<string>;
+    generateTopicName(topicId: number, keywords: string[], representativeDocs?: string[]): Promise<string>;
 }

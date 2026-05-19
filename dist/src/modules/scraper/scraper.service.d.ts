@@ -33,10 +33,10 @@ export declare class ScraperService {
         };
     } & {
         id: number;
+        status: string;
+        createdAt: Date;
         destinationId: number;
         source: string;
-        createdAt: Date;
-        status: string;
         totalReviews: number | null;
         startedAt: Date | null;
         finishedAt: Date | null;
@@ -51,10 +51,10 @@ export declare class ScraperService {
             };
         } & {
             id: number;
+            status: string;
+            createdAt: Date;
             destinationId: number;
             source: string;
-            createdAt: Date;
-            status: string;
             totalReviews: number | null;
             startedAt: Date | null;
             finishedAt: Date | null;
@@ -75,10 +75,10 @@ export declare class ScraperService {
             };
             job: {
                 id: number;
+                status: string;
+                createdAt: Date;
                 destinationId: number;
                 source: string;
-                createdAt: Date;
-                status: string;
                 totalReviews: number | null;
                 startedAt: Date | null;
                 finishedAt: Date | null;
@@ -87,13 +87,13 @@ export declare class ScraperService {
             };
         } & {
             id: number;
-            destinationId: number;
             createdAt: Date;
+            sort: string | null;
+            destinationId: number;
             totalReviews: number | null;
             jobId: number;
             starsFilter: import("@prisma/client/runtime/client").JsonValue | null;
             hasText: boolean | null;
-            sort: string | null;
         })[];
         meta: {
             page: number;

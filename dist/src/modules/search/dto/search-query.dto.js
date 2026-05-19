@@ -13,10 +13,31 @@ exports.SearchQueryDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+function parseNumberArray(value) {
+    if (value == null || value === '')
+        return undefined;
+    const rawValues = Array.isArray(value) ||
+        typeof value === 'string' ||
+        typeof value === 'number'
+        ? Array.isArray(value)
+            ? value
+            : String(value).split(',')
+        : [];
+    const parsed = rawValues
+        .map((item) => Number(item))
+        .filter((item) => Number.isInteger(item) && item > 0);
+    return parsed.length > 0 ? parsed : undefined;
+}
 class SearchQueryDto {
     query;
     limit = 10;
     sort = 'hybrid';
+    city;
+    topic_ids;
+    topicIds;
+    min_rating;
+    minRating;
+    sentiment;
 }
 exports.SearchQueryDto = SearchQueryDto;
 __decorate([
@@ -55,4 +76,73 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], SearchQueryDto.prototype, "sort", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter kota destinasi',
+        example: 'Bukittinggi',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SearchQueryDto.prototype, "city", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter ID topik, bisa array atau comma-separated',
+        example: '1,2,3',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => parseNumberArray(value)),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsInt)({ each: true }),
+    __metadata("design:type", Array)
+], SearchQueryDto.prototype, "topic_ids", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Alias camelCase untuk topic_ids',
+        example: [1, 2, 3],
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => parseNumberArray(value)),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsInt)({ each: true }),
+    __metadata("design:type", Array)
+], SearchQueryDto.prototype, "topicIds", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Rating minimal destinasi',
+        example: 4,
+        minimum: 0,
+        maximum: 5,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(5),
+    __metadata("design:type", Number)
+], SearchQueryDto.prototype, "min_rating", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Alias camelCase untuk min_rating',
+        example: 4,
+        minimum: 0,
+        maximum: 5,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => Number),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    (0, class_validator_1.Max)(5),
+    __metadata("design:type", Number)
+], SearchQueryDto.prototype, "minRating", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter sentimen dominan/review',
+        enum: ['positive', 'negative', 'neutral'],
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsIn)(['positive', 'negative', 'neutral']),
+    __metadata("design:type", String)
+], SearchQueryDto.prototype, "sentiment", void 0);
 //# sourceMappingURL=search-query.dto.js.map

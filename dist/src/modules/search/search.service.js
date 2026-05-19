@@ -39,7 +39,14 @@ let SearchService = SearchService_1 = class SearchService {
             }
             throw error;
         }
-        const results = await this.vectorService.hybridSearch(embedding, limit, dto.sort);
+        const topicIds = dto.topicIds ?? dto.topic_ids;
+        const minRating = dto.minRating ?? dto.min_rating;
+        const results = await this.vectorService.hybridSearch(embedding, limit, dto.sort, {
+            city: dto.city,
+            topicIds,
+            minRating,
+            sentiment: dto.sentiment,
+        });
         if (userId) {
             try {
                 await this.prisma.searchLog.create({

@@ -49,10 +49,18 @@ export class SearchService {
     }
 
     // 2. Hybrid / Semantic search di pgvector
+    const topicIds = dto.topicIds ?? dto.topic_ids;
+    const minRating = dto.minRating ?? dto.min_rating;
     const results = await this.vectorService.hybridSearch(
       embedding,
       limit,
       dto.sort,
+      {
+        city: dto.city,
+        topicIds,
+        minRating,
+        sentiment: dto.sentiment,
+      },
     );
 
     // 3. Simpan search log jika user login

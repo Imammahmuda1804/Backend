@@ -129,6 +129,7 @@ model Review {
   likesCount    Int?      @map("likes_count")
   ownerReply    String?   @map("owner_reply")
   sentiment     String?
+  sentimentConfidence Float? @map("sentiment_confidence")
   topicId       Int?      @map("topic_id")
   scrapingJobId Int?      @map("scraping_job_id")
   createdAt     DateTime  @default(now()) @map("created_at")

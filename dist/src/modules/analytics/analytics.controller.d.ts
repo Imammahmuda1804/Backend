@@ -12,8 +12,8 @@ export declare class AnalyticsController {
             count: number;
         }[];
         top_recommendations: {
-            name: string;
             id: number;
+            name: string;
             slug: string;
             city: string;
             thumbnailUrl: string | null;

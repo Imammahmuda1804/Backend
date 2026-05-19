@@ -34,6 +34,9 @@ let NlpResultStorageService = class NlpResultStorageService {
         if (nlpResult.warning) {
             console.warn('⚠️ Pipeline Warning:', nlpResult.warning);
         }
+        if (nlpResult.metadata) {
+            console.log('NLP Model Metadata:', JSON.stringify(nlpResult.metadata, null, 2));
+        }
         const mapSentiment = (sentiment) => {
             const sentimentMap = {
                 positif: 'positive',
@@ -56,7 +59,7 @@ let NlpResultStorageService = class NlpResultStorageService {
                 let topicName = existingTopic?.topicName;
                 if (!existingTopic) {
                     console.log(`🤖 Generating AI name for new topic ${topicId}...`);
-                    topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords);
+                    topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords, topic.representative_docs ?? []);
                 }
                 else {
                     topicName =
@@ -90,6 +93,7 @@ let NlpResultStorageService = class NlpResultStorageService {
                     data: {
                         cleanedText: review.cleaned_text,
                         sentiment: mappedSentiment,
+                        sentimentConfidence: review.sentiment_confidence,
                         topicId: safeTopicId,
                     },
                 });
@@ -122,6 +126,12 @@ let NlpResultStorageService = class NlpResultStorageService {
                 }
                 for (let i = 0; i < embeddingDim; i++) {
                     destinationEmbedding[i] /= validEmbeddings.length;
+                }
+                const norm = Math.sqrt(destinationEmbedding.reduce((sum, value) => sum + value * value, 0));
+                if (norm > 0) {
+                    for (let i = 0; i < embeddingDim; i++) {
+                        destinationEmbedding[i] /= norm;
+                    }
                 }
                 await this.vectorService.upsertDestinationEmbedding(destinationId, destinationEmbedding);
             }

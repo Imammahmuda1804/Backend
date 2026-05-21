@@ -26,6 +26,7 @@ export declare class AdminDestinationsController {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -41,14 +42,32 @@ export declare class AdminDestinationsController {
         deletedAt: Date | null;
     }>;
     findAll(query: DestinationQueryDto): Promise<{
-        data: ({
+        data: {
+            topics: {
+                id: number;
+                name: string;
+                topic_name: string;
+                keywords: import("@prisma/client/runtime/client").JsonValue;
+                total_reviews: number;
+            }[];
             images: {
                 id: number;
                 createdAt: Date;
                 destinationId: number;
                 imageUrl: string;
             }[];
-        } & {
+            destinationTopics: ({
+                topic: {
+                    id: number;
+                    topicName: string;
+                    keywords: import("@prisma/client/runtime/client").JsonValue;
+                };
+            } & {
+                id: number;
+                destinationId: number;
+                topicId: number;
+                totalReviews: number;
+            })[];
             id: number;
             name: string;
             createdAt: Date;
@@ -57,6 +76,7 @@ export declare class AdminDestinationsController {
             slug: string;
             city: string;
             province: string;
+            category: string;
             latitude: number | null;
             longitude: number | null;
             googleMapsUrl: string | null;
@@ -70,7 +90,7 @@ export declare class AdminDestinationsController {
             positiveRatio: number | null;
             recommendationScore: number | null;
             deletedAt: Date | null;
-        })[];
+        }[];
         meta: {
             page: number;
             limit: number;
@@ -107,10 +127,24 @@ export declare class AdminDestinationsController {
         }[];
         destinationTopics: ({
             topic: {
+                group: {
+                    id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    description: string | null;
+                    keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                    groupName: string;
+                    displayOrder: number;
+                } | null;
+            } & {
                 id: number;
                 createdAt: Date;
                 topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                groupId: number | null;
+                labelType: string;
+                isSearchVisible: boolean;
+                isDetailVisible: boolean;
             };
         } & {
             id: number;
@@ -127,6 +161,7 @@ export declare class AdminDestinationsController {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -150,6 +185,7 @@ export declare class AdminDestinationsController {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -173,6 +209,7 @@ export declare class AdminDestinationsController {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -196,6 +233,7 @@ export declare class AdminDestinationsController {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -219,6 +257,7 @@ export declare class AdminDestinationsController {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;

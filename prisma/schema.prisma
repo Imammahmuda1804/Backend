@@ -55,6 +55,7 @@ model Destination {
 
   city     String
   province String
+  category String @default("alam")
 
   latitude  Float?
   longitude Float?
@@ -91,6 +92,7 @@ model Destination {
 
   @@index([slug])
   @@index([city])
+  @@index([category])
   @@index([province])
   @@index([recommendationScore])
   @@index([deletedAt])
@@ -166,15 +168,36 @@ model ReviewEmbedding {
 // ============================================
 
 model Topic {
-  id        Int      @id @default(autoincrement())
-  topicName String   @map("topic_name")
-  keywords  Json?
-  createdAt DateTime @default(now()) @map("created_at")
+  id              Int      @id @default(autoincrement())
+  topicName       String   @map("topic_name")
+  keywords        Json?
+  groupId         Int?     @map("group_id")
+  labelType       String   @default("fine") @map("label_type")
+  isSearchVisible Boolean  @default(true) @map("is_search_visible")
+  isDetailVisible Boolean  @default(true) @map("is_detail_visible")
+  createdAt       DateTime @default(now()) @map("created_at")
 
+  group             TopicGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
   reviews           Review[]
   destinationTopics DestinationTopic[]
 
+  @@index([groupId])
+  @@index([isSearchVisible])
   @@map("topics")
+}
+
+model TopicGroup {
+  id           Int      @id @default(autoincrement())
+  groupName    String   @map("group_name")
+  description  String?
+  keywords     Json?
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  topics Topic[]
+
+  @@map("topic_groups")
 }
 
 // ============================================

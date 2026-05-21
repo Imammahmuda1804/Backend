@@ -14,10 +14,15 @@ const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
 const pagination_dto_1 = require("../../../common/dto/pagination.dto");
+const destination_categories_1 = require("../destination-categories");
+function emptyStringToUndefined(value) {
+    return value === '' ? undefined : value;
+}
 class DestinationQueryDto extends pagination_dto_1.PaginationQueryDto {
     topic_id;
     topic_ids;
     city;
+    category;
 }
 exports.DestinationQueryDto = DestinationQueryDto;
 __decorate([
@@ -48,4 +53,16 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], DestinationQueryDto.prototype, "city", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter berdasarkan kategori destinasi',
+        enum: destination_categories_1.DESTINATION_CATEGORY_VALUES,
+        example: 'alam',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Type)(() => String),
+    (0, class_transformer_1.Transform)(({ value }) => emptyStringToUndefined(value)),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], DestinationQueryDto.prototype, "category", void 0);
 //# sourceMappingURL=destination-query.dto.js.map

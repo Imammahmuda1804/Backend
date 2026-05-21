@@ -18,6 +18,13 @@ export class DestinationsController {
     return this.destinationsService.getCities();
   }
 
+  @Get('categories')
+  @ApiOperation({ summary: 'Get fixed destination categories' })
+  @ApiResponse({ status: 200, description: 'List of destination categories' })
+  getCategories() {
+    return this.destinationsService.getCategories();
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get all destinations with filters' })
   @ApiResponse({ status: 200, description: 'Paginated list of destinations' })
@@ -40,6 +47,7 @@ export class DestinationsController {
       query.topic_id,
       topicIds,
       query.city,
+      query.category,
     );
   }
 
@@ -146,6 +154,39 @@ export class DestinationsController {
     const page = parseInt(pageStr, 10) || 1;
     const limit = parseInt(limitStr, 10) || 5;
     return this.destinationsService.getReviewsByTopic(id, topicId, page, limit);
+  }
+
+  @Get(':id/reviews-by-topic-group')
+  @ApiOperation({
+    summary: 'Get scraped reviews by broad topic group',
+  })
+  @ApiQuery({
+    name: 'groupId',
+    required: true,
+    type: Number,
+    description: 'Topic group ID to filter reviews',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of scraped reviews for the given topic group',
+  })
+  async getReviewsByTopicGroup(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('groupId') groupIdStr: string,
+    @Query('page') pageStr: string,
+    @Query('limit') limitStr: string,
+  ) {
+    const groupId = parseInt(groupIdStr, 10);
+    const page = parseInt(pageStr, 10) || 1;
+    const limit = parseInt(limitStr, 10) || 5;
+    return this.destinationsService.getReviewsByTopicGroup(
+      id,
+      groupId,
+      page,
+      limit,
+    );
   }
 
   @Get(':id')

@@ -26,11 +26,20 @@ let TopicsController = class TopicsController {
     async renameTopics() {
         return this.topicsService.renameUnnamedTopics();
     }
-    async findAll() {
-        return this.topicsService.findAll();
+    async findAll(scope) {
+        return this.topicsService.findAll(scope);
+    }
+    async findGroups() {
+        return this.topicsService.findGroups();
     }
     async renameTopic(id, topicName) {
         return this.topicsService.renameTopic(id, topicName);
+    }
+    async updateTopicSettings(id, body) {
+        return this.topicsService.updateTopicSettings(id, body);
+    }
+    async renameGroup(id, groupName) {
+        return this.topicsService.renameGroup(id, groupName);
     }
     async deleteTopic(id) {
         return this.topicsService.deleteTopic(id);
@@ -57,10 +66,20 @@ __decorate([
     (0, public_decorator_1.Public)(),
     (0, swagger_1.ApiOperation)({ summary: 'List semua topics dengan jumlah destinasi' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Topics berhasil diambil' }),
+    __param(0, (0, common_1.Query)('scope')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('groups'),
+    (0, public_decorator_1.Public)(),
+    (0, swagger_1.ApiOperation)({ summary: 'List semua topic group' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Topic groups berhasil diambil' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], TopicsController.prototype, "findAll", null);
+], TopicsController.prototype, "findGroups", null);
 __decorate([
     (0, common_1.Put)(':id/rename'),
     (0, swagger_1.ApiBearerAuth)(),
@@ -75,6 +94,30 @@ __decorate([
     __metadata("design:paramtypes", [Number, String]),
     __metadata("design:returntype", Promise)
 ], TopicsController.prototype, "renameTopic", null);
+__decorate([
+    (0, common_1.Put)(':id/settings'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update group dan visibilitas topic' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic ID' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "updateTopicSettings", null);
+__decorate([
+    (0, common_1.Put)('groups/:id/rename'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Rename topic group' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic group ID' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)('groupName')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "renameGroup", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiBearerAuth)(),

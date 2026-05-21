@@ -12,6 +12,11 @@ import {
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { DESTINATION_CATEGORY_VALUES } from '../../destinations/destination-categories';
+
+function emptyStringToUndefined(value: unknown): unknown {
+  return value === '' ? undefined : value;
+}
 
 function parseNumberArray(value: unknown): number[] | undefined {
   if (value == null || value === '') return undefined;
@@ -71,6 +76,17 @@ export class SearchQueryDto {
   @IsOptional()
   @IsString()
   city?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter kategori destinasi',
+    enum: DESTINATION_CATEGORY_VALUES,
+    example: 'alam',
+  })
+  @IsOptional()
+  @Transform(({ value }) => emptyStringToUndefined(value))
+  @IsString()
+  @IsIn(DESTINATION_CATEGORY_VALUES)
+  category?: string;
 
   @ApiPropertyOptional({
     description: 'Filter ID topik, bisa array atau comma-separated',

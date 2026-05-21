@@ -13,6 +13,10 @@ exports.SearchQueryDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+const destination_categories_1 = require("../../destinations/destination-categories");
+function emptyStringToUndefined(value) {
+    return value === '' ? undefined : value;
+}
 function parseNumberArray(value) {
     if (value == null || value === '')
         return undefined;
@@ -33,6 +37,7 @@ class SearchQueryDto {
     limit = 10;
     sort = 'hybrid';
     city;
+    category;
     topic_ids;
     topicIds;
     min_rating;
@@ -85,6 +90,18 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], SearchQueryDto.prototype, "city", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Filter kategori destinasi',
+        enum: destination_categories_1.DESTINATION_CATEGORY_VALUES,
+        example: 'alam',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_transformer_1.Transform)(({ value }) => emptyStringToUndefined(value)),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsIn)(destination_categories_1.DESTINATION_CATEGORY_VALUES),
+    __metadata("design:type", String)
+], SearchQueryDto.prototype, "category", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'Filter ID topik, bisa array atau comma-separated',

@@ -4,10 +4,12 @@ import {
   IsString,
   IsNumber,
   IsUrl,
+  IsIn,
   Min,
   Max,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { DESTINATION_CATEGORY_VALUES } from '../destination-categories';
 
 export class CreateDestinationDto {
   @ApiProperty({ description: 'Nama destinasi', example: 'Jam Gadang' })
@@ -29,6 +31,16 @@ export class CreateDestinationDto {
   @IsNotEmpty()
   @IsString()
   province: string;
+
+  @ApiPropertyOptional({
+    description: 'Kategori destinasi',
+    enum: DESTINATION_CATEGORY_VALUES,
+    example: 'alam',
+  })
+  @IsOptional()
+  @IsString()
+  @IsIn(DESTINATION_CATEGORY_VALUES)
+  category?: string;
 
   @ApiPropertyOptional({ description: 'Latitude', example: -0.305 })
   @IsOptional()

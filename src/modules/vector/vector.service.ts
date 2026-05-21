@@ -5,6 +5,7 @@ import { SimilarDestination } from './interfaces/similar-destination.interface';
 
 interface HybridSearchFilters {
   city?: string;
+  category?: string;
   topicIds?: number[];
   minRating?: number;
   sentiment?: 'positive' | 'negative' | 'neutral';
@@ -93,6 +94,11 @@ export class VectorService {
     if (filters.city) {
       whereClauses.push(Prisma.sql`LOWER(d.city) = LOWER(${filters.city})`);
     }
+    if (filters.category) {
+      whereClauses.push(
+        Prisma.sql`LOWER(d.category) = LOWER(${filters.category})`,
+      );
+    }
     if (filters.minRating != null) {
       whereClauses.push(
         Prisma.sql`COALESCE(d.user_rating, d.google_rating, 0) >= ${filters.minRating}`,
@@ -118,7 +124,7 @@ export class VectorService {
     if (sortType === 'relevance') {
       return this.prisma.$queryRaw<SimilarDestination[]>`
         SELECT
-          d.id, d.name, d.slug, d.city, d.province,
+          d.id, d.name, d.slug, d.city, d.province, d.category,
           d.thumbnail_url, d.google_rating, d.user_rating,
           d.positive_ratio, d.recommendation_score,
           1 - (d.embedding <=> ${vectorStr}::vector) AS similarity
@@ -132,7 +138,7 @@ export class VectorService {
     // Default: hybrid
     return this.prisma.$queryRaw<SimilarDestination[]>`
       SELECT
-        d.id, d.name, d.slug, d.city, d.province,
+        d.id, d.name, d.slug, d.city, d.province, d.category,
         d.thumbnail_url, d.google_rating, d.user_rating,
         d.positive_ratio, d.recommendation_score,
         (1 - (d.embedding <=> ${vectorStr}::vector)) * 0.4

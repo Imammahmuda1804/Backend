@@ -27,6 +27,9 @@ let DestinationsController = class DestinationsController {
     async getCities() {
         return this.destinationsService.getCities();
     }
+    getCategories() {
+        return this.destinationsService.getCategories();
+    }
     async findAll(query) {
         const page = Number(query.page) || 1;
         const limit = Number(query.limit) || 10;
@@ -36,7 +39,7 @@ let DestinationsController = class DestinationsController {
                 .map(Number)
                 .filter((n) => !isNaN(n))
             : undefined;
-        return this.destinationsService.findAll(page, limit, query.search, query.topic_id, topicIds, query.city);
+        return this.destinationsService.findAll(page, limit, query.search, query.topic_id, topicIds, query.city, query.category);
     }
     async getRecommendations(query) {
         const page = Number(query.page) || 1;
@@ -56,6 +59,12 @@ let DestinationsController = class DestinationsController {
         const limit = parseInt(limitStr, 10) || 5;
         return this.destinationsService.getReviewsByTopic(id, topicId, page, limit);
     }
+    async getReviewsByTopicGroup(id, groupIdStr, pageStr, limitStr) {
+        const groupId = parseInt(groupIdStr, 10);
+        const page = parseInt(pageStr, 10) || 1;
+        const limit = parseInt(limitStr, 10) || 5;
+        return this.destinationsService.getReviewsByTopicGroup(id, groupId, page, limit);
+    }
     async getDetail(id) {
         return this.destinationsService.findOnePublic(id);
     }
@@ -69,6 +78,14 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], DestinationsController.prototype, "getCities", null);
+__decorate([
+    (0, common_1.Get)('categories'),
+    (0, swagger_1.ApiOperation)({ summary: 'Get fixed destination categories' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'List of destination categories' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], DestinationsController.prototype, "getCategories", null);
 __decorate([
     (0, common_1.Get)(),
     (0, swagger_1.ApiOperation)({ summary: 'Get all destinations with filters' }),
@@ -180,6 +197,31 @@ __decorate([
     __metadata("design:paramtypes", [Number, String, String, String]),
     __metadata("design:returntype", Promise)
 ], DestinationsController.prototype, "getReviewsByTopic", null);
+__decorate([
+    (0, common_1.Get)(':id/reviews-by-topic-group'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get scraped reviews by broad topic group',
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'groupId',
+        required: true,
+        type: Number,
+        description: 'Topic group ID to filter reviews',
+    }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Paginated list of scraped reviews for the given topic group',
+    }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('groupId')),
+    __param(2, (0, common_1.Query)('page')),
+    __param(3, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String, String, String]),
+    __metadata("design:returntype", Promise)
+], DestinationsController.prototype, "getReviewsByTopicGroup", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Get public destination detail' }),

@@ -3,6 +3,7 @@ export declare class SearchQueryDto {
     limit?: number;
     sort?: 'relevance' | 'hybrid';
     city?: string;
+    category?: string;
     topic_ids?: number[];
     topicIds?: number[];
     min_rating?: number;

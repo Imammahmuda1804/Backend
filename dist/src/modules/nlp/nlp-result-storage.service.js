@@ -46,6 +46,17 @@ let NlpResultStorageService = class NlpResultStorageService {
             return sentimentMap[sentiment.toLowerCase()] || sentiment;
         };
         const savedTopicIds = new Set();
+        const topicGroups = await this.prisma.topicGroup.findMany({
+            orderBy: { displayOrder: 'asc' },
+            select: { id: true, groupName: true, keywords: true },
+        });
+        const groupCandidates = topicGroups.map((group) => ({
+            id: group.id,
+            groupName: group.groupName,
+            keywords: Array.isArray(group.keywords)
+                ? group.keywords
+                : [],
+        }));
         if (nlpResult.topics && Array.isArray(nlpResult.topics)) {
             for (const topic of nlpResult.topics) {
                 if (!topic.topic_id && topic.topic_id !== 0) {
@@ -57,24 +68,28 @@ let NlpResultStorageService = class NlpResultStorageService {
                     where: { id: topicId },
                 });
                 let topicName = existingTopic?.topicName;
+                const keywords = Array.isArray(topic.keywords) ? topic.keywords : [];
                 if (!existingTopic) {
                     console.log(`🤖 Generating AI name for new topic ${topicId}...`);
-                    topicName = await this.aiNamingService.generateTopicName(topicId, topic.keywords, topic.representative_docs ?? []);
+                    topicName = await this.aiNamingService.generateTopicName(topicId, keywords, topic.representative_docs ?? []);
                 }
                 else {
                     topicName =
-                        topicName ||
-                            `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
+                        topicName || `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
                 }
+                const groupId = existingTopic?.groupId ??
+                    this.aiNamingService.classifyTopicGroup(topicName, keywords, topic.representative_docs ?? [], groupCandidates);
                 await this.prisma.topic.upsert({
                     where: { id: topicId },
                     create: {
                         id: topicId,
                         topicName: topicName,
-                        keywords: topic.keywords,
+                        keywords,
+                        groupId,
                     },
                     update: {
-                        keywords: topic.keywords,
+                        keywords,
+                        ...(existingTopic?.groupId ? {} : { groupId }),
                     },
                 });
                 savedTopicIds.add(topicId);

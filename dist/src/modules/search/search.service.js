@@ -43,10 +43,12 @@ let SearchService = SearchService_1 = class SearchService {
         const minRating = dto.minRating ?? dto.min_rating;
         const results = await this.vectorService.hybridSearch(embedding, limit, dto.sort, {
             city: dto.city,
+            category: dto.category,
             topicIds,
             minRating,
             sentiment: dto.sentiment,
         });
+        const enrichedResults = await this.attachTopTopics(results);
         if (userId) {
             try {
                 await this.prisma.searchLog.create({
@@ -64,7 +66,43 @@ let SearchService = SearchService_1 = class SearchService {
         }
         this.logger.log(`Semantic search: "${dto.query}" → ${results.length} results` +
             (userId ? ` (user ${userId})` : ' (guest)'));
-        return results;
+        return enrichedResults;
+    }
+    async attachTopTopics(results) {
+        if (results.length === 0)
+            return results;
+        const destinations = await this.prisma.destination.findMany({
+            where: { id: { in: results.map((result) => result.id) } },
+            select: {
+                id: true,
+                destinationTopics: {
+                    orderBy: { totalReviews: 'desc' },
+                    take: 3,
+                    select: {
+                        totalReviews: true,
+                        topic: {
+                            select: {
+                                id: true,
+                                topicName: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+        const topicMap = new Map(destinations.map((destination) => [
+            destination.id,
+            destination.destinationTopics.map((item) => ({
+                id: item.topic.id,
+                name: item.topic.topicName,
+                topic_name: item.topic.topicName,
+                total_reviews: item.totalReviews,
+            })),
+        ]));
+        return results.map((result) => ({
+            ...result,
+            topics: topicMap.get(result.id) ?? [],
+        }));
     }
     async getHistory(userId, page, limit) {
         const skip = (page - 1) * limit;

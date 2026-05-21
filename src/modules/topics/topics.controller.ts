@@ -46,8 +46,16 @@ export class TopicsController {
   @Public()
   @ApiOperation({ summary: 'List semua topics dengan jumlah destinasi' })
   @ApiResponse({ status: 200, description: 'Topics berhasil diambil' })
-  async findAll() {
-    return this.topicsService.findAll();
+  async findAll(@Query('scope') scope?: 'search' | 'detail') {
+    return this.topicsService.findAll(scope);
+  }
+
+  @Get('groups')
+  @Public()
+  @ApiOperation({ summary: 'List semua topic group' })
+  @ApiResponse({ status: 200, description: 'Topic groups berhasil diambil' })
+  async findGroups() {
+    return this.topicsService.findGroups();
   }
 
   /**
@@ -66,6 +74,35 @@ export class TopicsController {
     @Body('topicName') topicName: string,
   ) {
     return this.topicsService.renameTopic(id, topicName);
+  }
+
+  @Put(':id/settings')
+  @ApiBearerAuth()
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Update group dan visibilitas topic' })
+  @ApiParam({ name: 'id', type: Number, description: 'Topic ID' })
+  async updateTopicSettings(
+    @Param('id', ParseIntPipe) id: number,
+    @Body()
+    body: {
+      groupId?: number | null;
+      isSearchVisible?: boolean;
+      isDetailVisible?: boolean;
+    },
+  ) {
+    return this.topicsService.updateTopicSettings(id, body);
+  }
+
+  @Put('groups/:id/rename')
+  @ApiBearerAuth()
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Rename topic group' })
+  @ApiParam({ name: 'id', type: Number, description: 'Topic group ID' })
+  async renameGroup(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('groupName') groupName: string,
+  ) {
+    return this.topicsService.renameGroup(id, groupName);
   }
 
   /**

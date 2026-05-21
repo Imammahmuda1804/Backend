@@ -57,11 +57,13 @@ export class SearchService {
       dto.sort,
       {
         city: dto.city,
+        category: dto.category,
         topicIds,
         minRating,
         sentiment: dto.sentiment,
       },
     );
+    const enrichedResults = await this.attachTopTopics(results);
 
     // 3. Simpan search log jika user login
     if (userId) {
@@ -87,7 +89,48 @@ export class SearchService {
         (userId ? ` (user ${userId})` : ' (guest)'),
     );
 
-    return results;
+    return enrichedResults;
+  }
+
+  private async attachTopTopics<T extends { id: number }>(results: T[]) {
+    if (results.length === 0) return results;
+
+    const destinations = await this.prisma.destination.findMany({
+      where: { id: { in: results.map((result) => result.id) } },
+      select: {
+        id: true,
+        destinationTopics: {
+          orderBy: { totalReviews: 'desc' },
+          take: 3,
+          select: {
+            totalReviews: true,
+            topic: {
+              select: {
+                id: true,
+                topicName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const topicMap = new Map(
+      destinations.map((destination) => [
+        destination.id,
+        destination.destinationTopics.map((item) => ({
+          id: item.topic.id,
+          name: item.topic.topicName,
+          topic_name: item.topic.topicName,
+          total_reviews: item.totalReviews,
+        })),
+      ]),
+    );
+
+    return results.map((result) => ({
+      ...result,
+      topics: topicMap.get(result.id) ?? [],
+    }));
   }
 
   /**

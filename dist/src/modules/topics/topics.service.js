@@ -56,13 +56,27 @@ let TopicsService = TopicsService_1 = class TopicsService {
         this.logger.log(`Rename complete: ${renamed} renamed, ${failed} failed, ${topics.length} total`);
         return { renamed, failed, total: topics.length };
     }
-    async findAll() {
+    async findAll(scope) {
+        if (scope === 'detail') {
+            return this.findGroups();
+        }
         const topics = await this.prisma.topic.findMany({
+            where: scope === 'search' ? { isSearchVisible: true } : undefined,
             orderBy: { id: 'asc' },
             select: {
                 id: true,
                 topicName: true,
                 keywords: true,
+                labelType: true,
+                isSearchVisible: true,
+                isDetailVisible: true,
+                groupId: true,
+                group: {
+                    select: {
+                        id: true,
+                        groupName: true,
+                    },
+                },
                 _count: {
                     select: { destinationTopics: true },
                 },
@@ -72,7 +86,59 @@ let TopicsService = TopicsService_1 = class TopicsService {
             id: t.id,
             topic_name: t.topicName,
             keywords: t.keywords,
+            label_type: t.labelType,
+            is_search_visible: t.isSearchVisible,
+            is_detail_visible: t.isDetailVisible,
+            group_id: t.groupId,
+            group_name: t.group?.groupName ?? null,
+            group: t.group
+                ? {
+                    id: t.group.id,
+                    group_name: t.group.groupName,
+                }
+                : null,
             total_destinations: t._count.destinationTopics,
+        }));
+    }
+    async findGroups() {
+        const groups = await this.prisma.topicGroup.findMany({
+            orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }],
+            select: {
+                id: true,
+                groupName: true,
+                description: true,
+                keywords: true,
+                displayOrder: true,
+                topics: {
+                    where: { isDetailVisible: true },
+                    select: {
+                        id: true,
+                        topicName: true,
+                        keywords: true,
+                        isSearchVisible: true,
+                        isDetailVisible: true,
+                        _count: {
+                            select: { destinationTopics: true },
+                        },
+                    },
+                    orderBy: { id: 'asc' },
+                },
+            },
+        });
+        return groups.map((group) => ({
+            id: group.id,
+            group_name: group.groupName,
+            description: group.description,
+            keywords: group.keywords,
+            display_order: group.displayOrder,
+            topics: group.topics.map((topic) => ({
+                id: topic.id,
+                topic_name: topic.topicName,
+                keywords: topic.keywords,
+                is_search_visible: topic.isSearchVisible,
+                is_detail_visible: topic.isDetailVisible,
+                total_destinations: topic._count.destinationTopics,
+            })),
         }));
     }
     async findDestinationsByTopic(topicId, page, limit) {
@@ -143,6 +209,60 @@ let TopicsService = TopicsService_1 = class TopicsService {
         });
         this.logger.log(`Topic ${topicId} renamed to "${newName}"`);
         return updated;
+    }
+    async updateTopicSettings(topicId, data) {
+        const topic = await this.prisma.topic.findUnique({
+            where: { id: topicId },
+        });
+        if (!topic)
+            throw new common_1.NotFoundException('Topic tidak ditemukan');
+        if (data.groupId) {
+            const group = await this.prisma.topicGroup.findUnique({
+                where: { id: data.groupId },
+                select: { id: true },
+            });
+            if (!group)
+                throw new common_1.NotFoundException('Topic group tidak ditemukan');
+        }
+        const updated = await this.prisma.topic.update({
+            where: { id: topicId },
+            data: {
+                ...(data.groupId !== undefined ? { groupId: data.groupId } : {}),
+                ...(data.isSearchVisible !== undefined
+                    ? { isSearchVisible: data.isSearchVisible }
+                    : {}),
+                ...(data.isDetailVisible !== undefined
+                    ? { isDetailVisible: data.isDetailVisible }
+                    : {}),
+            },
+            select: {
+                id: true,
+                topicName: true,
+                groupId: true,
+                isSearchVisible: true,
+                isDetailVisible: true,
+            },
+        });
+        return {
+            id: updated.id,
+            topic_name: updated.topicName,
+            group_id: updated.groupId,
+            is_search_visible: updated.isSearchVisible,
+            is_detail_visible: updated.isDetailVisible,
+        };
+    }
+    async renameGroup(groupId, groupName) {
+        const group = await this.prisma.topicGroup.findUnique({
+            where: { id: groupId },
+        });
+        if (!group)
+            throw new common_1.NotFoundException('Topic group tidak ditemukan');
+        const updated = await this.prisma.topicGroup.update({
+            where: { id: groupId },
+            data: { groupName },
+            select: { id: true, groupName: true },
+        });
+        return { id: updated.id, group_name: updated.groupName };
     }
     async deleteTopic(topicId) {
         const topic = await this.prisma.topic.findUnique({

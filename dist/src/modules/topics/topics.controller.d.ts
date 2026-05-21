@@ -7,15 +7,68 @@ export declare class TopicsController {
         failed: number;
         total: number;
     }>;
-    findAll(): Promise<{
+    findAll(scope?: 'search' | 'detail'): Promise<{
+        id: number;
+        group_name: string;
+        description: string | null;
+        keywords: import("@prisma/client/runtime/client").JsonValue;
+        display_order: number;
+        topics: {
+            id: number;
+            topic_name: string;
+            keywords: import("@prisma/client/runtime/client").JsonValue;
+            is_search_visible: boolean;
+            is_detail_visible: boolean;
+            total_destinations: number;
+        }[];
+    }[] | {
         id: number;
         topic_name: string;
         keywords: import("@prisma/client/runtime/client").JsonValue;
+        label_type: string;
+        is_search_visible: boolean;
+        is_detail_visible: boolean;
+        group_id: number | null;
+        group_name: string | null;
+        group: {
+            id: number;
+            group_name: string;
+        } | null;
         total_destinations: number;
+    }[]>;
+    findGroups(): Promise<{
+        id: number;
+        group_name: string;
+        description: string | null;
+        keywords: import("@prisma/client/runtime/client").JsonValue;
+        display_order: number;
+        topics: {
+            id: number;
+            topic_name: string;
+            keywords: import("@prisma/client/runtime/client").JsonValue;
+            is_search_visible: boolean;
+            is_detail_visible: boolean;
+            total_destinations: number;
+        }[];
     }[]>;
     renameTopic(id: number, topicName: string): Promise<{
         id: number;
         topicName: string;
+    }>;
+    updateTopicSettings(id: number, body: {
+        groupId?: number | null;
+        isSearchVisible?: boolean;
+        isDetailVisible?: boolean;
+    }): Promise<{
+        id: number;
+        topic_name: string;
+        group_id: number | null;
+        is_search_visible: boolean;
+        is_detail_visible: boolean;
+    }>;
+    renameGroup(id: number, groupName: string): Promise<{
+        id: number;
+        group_name: string;
     }>;
     deleteTopic(id: number): Promise<{
         deleted: boolean;

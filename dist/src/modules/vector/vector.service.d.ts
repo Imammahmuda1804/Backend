@@ -2,6 +2,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { SimilarDestination } from './interfaces/similar-destination.interface';
 interface HybridSearchFilters {
     city?: string;
+    category?: string;
     topicIds?: number[];
     minRating?: number;
     sentiment?: 'positive' | 'negative' | 'neutral';

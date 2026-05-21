@@ -71,6 +71,9 @@ let VectorService = class VectorService {
         if (filters.city) {
             whereClauses.push(client_1.Prisma.sql `LOWER(d.city) = LOWER(${filters.city})`);
         }
+        if (filters.category) {
+            whereClauses.push(client_1.Prisma.sql `LOWER(d.category) = LOWER(${filters.category})`);
+        }
         if (filters.minRating != null) {
             whereClauses.push(client_1.Prisma.sql `COALESCE(d.user_rating, d.google_rating, 0) >= ${filters.minRating}`);
         }
@@ -92,7 +95,7 @@ let VectorService = class VectorService {
         if (sortType === 'relevance') {
             return this.prisma.$queryRaw `
         SELECT
-          d.id, d.name, d.slug, d.city, d.province,
+          d.id, d.name, d.slug, d.city, d.province, d.category,
           d.thumbnail_url, d.google_rating, d.user_rating,
           d.positive_ratio, d.recommendation_score,
           1 - (d.embedding <=> ${vectorStr}::vector) AS similarity
@@ -104,7 +107,7 @@ let VectorService = class VectorService {
         }
         return this.prisma.$queryRaw `
       SELECT
-        d.id, d.name, d.slug, d.city, d.province,
+        d.id, d.name, d.slug, d.city, d.province, d.category,
         d.thumbnail_url, d.google_rating, d.user_rating,
         d.positive_ratio, d.recommendation_score,
         (1 - (d.embedding <=> ${vectorStr}::vector)) * 0.4

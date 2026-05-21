@@ -66,6 +66,18 @@ export class NlpResultStorageService {
 
     // 1. Save/Update Topics — track which IDs were actually persisted
     const savedTopicIds = new Set<number>();
+    const topicGroups = await this.prisma.topicGroup.findMany({
+      orderBy: { displayOrder: 'asc' },
+      select: { id: true, groupName: true, keywords: true },
+    });
+    const groupCandidates = topicGroups.map((group) => ({
+      id: group.id,
+      groupName: group.groupName,
+      keywords: Array.isArray(group.keywords)
+        ? (group.keywords as string[])
+        : [],
+    }));
+
     if (nlpResult.topics && Array.isArray(nlpResult.topics)) {
       for (const topic of nlpResult.topics) {
         // Skip jika topic tidak memiliki topic_id yang valid (0 is falsy)
@@ -82,32 +94,43 @@ export class NlpResultStorageService {
         });
 
         let topicName = existingTopic?.topicName;
+        const keywords = Array.isArray(topic.keywords) ? topic.keywords : [];
 
         if (!existingTopic) {
           // Jika topik baru, gunakan AI untuk generate nama
           console.log(`🤖 Generating AI name for new topic ${topicId}...`);
           topicName = await this.aiNamingService.generateTopicName(
             topicId,
-            topic.keywords,
+            keywords,
             topic.representative_docs ?? [],
           );
         } else {
           // Fallback kalau nama topik kosong di db
           topicName =
-            topicName ||
-            `Topic ${topicId}: ${topic.keywords.slice(0, 3).join(', ')}`;
+            topicName || `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
         }
+
+        const groupId =
+          existingTopic?.groupId ??
+          this.aiNamingService.classifyTopicGroup(
+            topicName,
+            keywords,
+            topic.representative_docs ?? [],
+            groupCandidates,
+          );
 
         await this.prisma.topic.upsert({
           where: { id: topicId },
           create: {
             id: topicId,
             topicName: topicName,
-            keywords: topic.keywords,
+            keywords,
+            groupId,
           },
           update: {
             // Kita tidak mengupdate topicName jika sudah ada, agar nama dari AI tetap tersimpan
-            keywords: topic.keywords,
+            keywords,
+            ...(existingTopic?.groupId ? {} : { groupId }),
           },
         });
         savedTopicIds.add(topicId);

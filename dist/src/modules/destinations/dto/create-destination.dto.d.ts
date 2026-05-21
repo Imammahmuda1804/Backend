@@ -3,6 +3,7 @@ export declare class CreateDestinationDto {
     description?: string;
     city: string;
     province: string;
+    category?: string;
     latitude?: number;
     longitude?: number;
     googleMapsUrl?: string;

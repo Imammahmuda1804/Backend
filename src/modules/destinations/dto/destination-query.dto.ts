@@ -1,7 +1,12 @@
 import { IsOptional, IsInt, IsString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { PaginationQueryDto } from '../../../common/dto/pagination.dto';
+import { DESTINATION_CATEGORY_VALUES } from '../destination-categories';
+
+function emptyStringToUndefined(value: unknown): unknown {
+  return value === '' ? undefined : value;
+}
 
 export class DestinationQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({
@@ -28,4 +33,15 @@ export class DestinationQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsString()
   city?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filter berdasarkan kategori destinasi',
+    enum: DESTINATION_CATEGORY_VALUES,
+    example: 'alam',
+  })
+  @IsOptional()
+  @Type(() => String)
+  @Transform(({ value }) => emptyStringToUndefined(value))
+  @IsString()
+  category?: string;
 }

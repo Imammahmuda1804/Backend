@@ -12,11 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreateDestinationDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
+const destination_categories_1 = require("../destination-categories");
 class CreateDestinationDto {
     name;
     description;
     city;
     province;
+    category;
     latitude;
     longitude;
     googleMapsUrl;
@@ -51,6 +53,17 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateDestinationDto.prototype, "province", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Kategori destinasi',
+        enum: destination_categories_1.DESTINATION_CATEGORY_VALUES,
+        example: 'alam',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsIn)(destination_categories_1.DESTINATION_CATEGORY_VALUES),
+    __metadata("design:type", String)
+], CreateDestinationDto.prototype, "category", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({ description: 'Latitude', example: -0.305 }),
     (0, class_validator_1.IsOptional)(),

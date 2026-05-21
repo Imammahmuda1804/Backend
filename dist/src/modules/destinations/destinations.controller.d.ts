@@ -5,15 +5,64 @@ export declare class DestinationsController {
     private readonly destinationsService;
     constructor(destinationsService: DestinationsService);
     getCities(): Promise<string[]>;
+    getCategories(): readonly [{
+        readonly value: "alam";
+        readonly label: "Alam";
+    }, {
+        readonly value: "pantai";
+        readonly label: "Pantai";
+    }, {
+        readonly value: "budaya";
+        readonly label: "Budaya";
+    }, {
+        readonly value: "sejarah";
+        readonly label: "Sejarah";
+    }, {
+        readonly value: "kuliner";
+        readonly label: "Kuliner";
+    }, {
+        readonly value: "religi";
+        readonly label: "Religi";
+    }, {
+        readonly value: "keluarga";
+        readonly label: "Keluarga";
+    }, {
+        readonly value: "petualangan";
+        readonly label: "Petualangan";
+    }, {
+        readonly value: "edukasi";
+        readonly label: "Edukasi";
+    }, {
+        readonly value: "belanja";
+        readonly label: "Belanja";
+    }];
     findAll(query: DestinationQueryDto): Promise<{
-        data: ({
+        data: {
+            topics: {
+                id: number;
+                name: string;
+                topic_name: string;
+                keywords: import("@prisma/client/runtime/client").JsonValue;
+                total_reviews: number;
+            }[];
             images: {
                 id: number;
                 createdAt: Date;
                 destinationId: number;
                 imageUrl: string;
             }[];
-        } & {
+            destinationTopics: ({
+                topic: {
+                    id: number;
+                    topicName: string;
+                    keywords: import("@prisma/client/runtime/client").JsonValue;
+                };
+            } & {
+                id: number;
+                destinationId: number;
+                topicId: number;
+                totalReviews: number;
+            })[];
             id: number;
             name: string;
             createdAt: Date;
@@ -22,6 +71,7 @@ export declare class DestinationsController {
             slug: string;
             city: string;
             province: string;
+            category: string;
             latitude: number | null;
             longitude: number | null;
             googleMapsUrl: string | null;
@@ -35,7 +85,7 @@ export declare class DestinationsController {
             positiveRatio: number | null;
             recommendationScore: number | null;
             deletedAt: Date | null;
-        })[];
+        }[];
         meta: {
             page: number;
             limit: number;
@@ -85,6 +135,21 @@ export declare class DestinationsController {
             negative: number;
             neutral: number;
         }>;
+        topicGroups: {
+            groupId: number;
+            groupName: string;
+            totalReviews: number;
+            sentimentBreakdown: {
+                positive: number;
+                negative: number;
+                neutral: number;
+            };
+            topics: {
+                id: number;
+                topicName: string;
+                totalReviews: number;
+            }[];
+        }[];
         userReviews: ({
             user: {
                 id: number;
@@ -115,10 +180,24 @@ export declare class DestinationsController {
         }[];
         destinationTopics: ({
             topic: {
+                group: {
+                    id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    description: string | null;
+                    keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                    groupName: string;
+                    displayOrder: number;
+                } | null;
+            } & {
                 id: number;
                 createdAt: Date;
                 topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                groupId: number | null;
+                labelType: string;
+                isSearchVisible: boolean;
+                isDetailVisible: boolean;
             };
         } & {
             id: number;
@@ -134,6 +213,7 @@ export declare class DestinationsController {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -165,6 +245,28 @@ export declare class DestinationsController {
             totalPages: number;
         };
     }>;
+    getReviewsByTopicGroup(id: number, groupIdStr: string, pageStr: string, limitStr: string): Promise<{
+        data: {
+            id: number;
+            topic: {
+                id: number;
+                topicName: string;
+            } | null;
+            rating: number | null;
+            sentiment: string | null;
+            reviewText: string | null;
+            reviewerName: string;
+            reviewDate: Date | null;
+            likesCount: number | null;
+            topicId: number | null;
+        }[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    }>;
     getDetail(id: number): Promise<{
         averageUserRating: number | null;
         totalUserReviews: number;
@@ -175,6 +277,21 @@ export declare class DestinationsController {
             negative: number;
             neutral: number;
         }>;
+        topicGroups: {
+            groupId: number;
+            groupName: string;
+            totalReviews: number;
+            sentimentBreakdown: {
+                positive: number;
+                negative: number;
+                neutral: number;
+            };
+            topics: {
+                id: number;
+                topicName: string;
+                totalReviews: number;
+            }[];
+        }[];
         userReviews: ({
             user: {
                 id: number;
@@ -209,6 +326,10 @@ export declare class DestinationsController {
                 createdAt: Date;
                 topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                groupId: number | null;
+                labelType: string;
+                isSearchVisible: boolean;
+                isDetailVisible: boolean;
             };
         } & {
             id: number;
@@ -224,6 +345,7 @@ export declare class DestinationsController {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;

@@ -13,6 +13,7 @@ export declare class DestinationsService {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -27,15 +28,33 @@ export declare class DestinationsService {
         recommendationScore: number | null;
         deletedAt: Date | null;
     }>;
-    findAll(page: number, limit: number, search?: string, topicId?: number, topicIds?: number[], city?: string): Promise<{
-        data: ({
+    findAll(page: number, limit: number, search?: string, topicId?: number, topicIds?: number[], city?: string, category?: string): Promise<{
+        data: {
+            topics: {
+                id: number;
+                name: string;
+                topic_name: string;
+                keywords: Prisma.JsonValue;
+                total_reviews: number;
+            }[];
             images: {
                 id: number;
                 createdAt: Date;
                 destinationId: number;
                 imageUrl: string;
             }[];
-        } & {
+            destinationTopics: ({
+                topic: {
+                    id: number;
+                    topicName: string;
+                    keywords: Prisma.JsonValue;
+                };
+            } & {
+                id: number;
+                destinationId: number;
+                topicId: number;
+                totalReviews: number;
+            })[];
             id: number;
             name: string;
             createdAt: Date;
@@ -44,6 +63,7 @@ export declare class DestinationsService {
             slug: string;
             city: string;
             province: string;
+            category: string;
             latitude: number | null;
             longitude: number | null;
             googleMapsUrl: string | null;
@@ -57,7 +77,7 @@ export declare class DestinationsService {
             positiveRatio: number | null;
             recommendationScore: number | null;
             deletedAt: Date | null;
-        })[];
+        }[];
         meta: {
             page: number;
             limit: number;
@@ -65,6 +85,37 @@ export declare class DestinationsService {
             total_pages: number;
         };
     }>;
+    getCategories(): readonly [{
+        readonly value: "alam";
+        readonly label: "Alam";
+    }, {
+        readonly value: "pantai";
+        readonly label: "Pantai";
+    }, {
+        readonly value: "budaya";
+        readonly label: "Budaya";
+    }, {
+        readonly value: "sejarah";
+        readonly label: "Sejarah";
+    }, {
+        readonly value: "kuliner";
+        readonly label: "Kuliner";
+    }, {
+        readonly value: "religi";
+        readonly label: "Religi";
+    }, {
+        readonly value: "keluarga";
+        readonly label: "Keluarga";
+    }, {
+        readonly value: "petualangan";
+        readonly label: "Petualangan";
+    }, {
+        readonly value: "edukasi";
+        readonly label: "Edukasi";
+    }, {
+        readonly value: "belanja";
+        readonly label: "Belanja";
+    }];
     getCities(): Promise<string[]>;
     findOneAdmin(id: number): Promise<{
         scrapingJobs: {
@@ -95,10 +146,24 @@ export declare class DestinationsService {
         }[];
         destinationTopics: ({
             topic: {
+                group: {
+                    id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    description: string | null;
+                    keywords: Prisma.JsonValue | null;
+                    groupName: string;
+                    displayOrder: number;
+                } | null;
+            } & {
                 id: number;
                 createdAt: Date;
                 topicName: string;
                 keywords: Prisma.JsonValue | null;
+                groupId: number | null;
+                labelType: string;
+                isSearchVisible: boolean;
+                isDetailVisible: boolean;
             };
         } & {
             id: number;
@@ -115,6 +180,7 @@ export declare class DestinationsService {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -138,6 +204,7 @@ export declare class DestinationsService {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -161,6 +228,7 @@ export declare class DestinationsService {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -184,6 +252,7 @@ export declare class DestinationsService {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -207,6 +276,7 @@ export declare class DestinationsService {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -263,6 +333,21 @@ export declare class DestinationsService {
             negative: number;
             neutral: number;
         }>;
+        topicGroups: {
+            groupId: number;
+            groupName: string;
+            totalReviews: number;
+            sentimentBreakdown: {
+                positive: number;
+                negative: number;
+                neutral: number;
+            };
+            topics: {
+                id: number;
+                topicName: string;
+                totalReviews: number;
+            }[];
+        }[];
         userReviews: ({
             user: {
                 id: number;
@@ -297,6 +382,10 @@ export declare class DestinationsService {
                 createdAt: Date;
                 topicName: string;
                 keywords: Prisma.JsonValue | null;
+                groupId: number | null;
+                labelType: string;
+                isSearchVisible: boolean;
+                isDetailVisible: boolean;
             };
         } & {
             id: number;
@@ -312,6 +401,7 @@ export declare class DestinationsService {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -336,6 +426,21 @@ export declare class DestinationsService {
             negative: number;
             neutral: number;
         }>;
+        topicGroups: {
+            groupId: number;
+            groupName: string;
+            totalReviews: number;
+            sentimentBreakdown: {
+                positive: number;
+                negative: number;
+                neutral: number;
+            };
+            topics: {
+                id: number;
+                topicName: string;
+                totalReviews: number;
+            }[];
+        }[];
         userReviews: ({
             user: {
                 id: number;
@@ -366,10 +471,24 @@ export declare class DestinationsService {
         }[];
         destinationTopics: ({
             topic: {
+                group: {
+                    id: number;
+                    createdAt: Date;
+                    updatedAt: Date;
+                    description: string | null;
+                    keywords: Prisma.JsonValue | null;
+                    groupName: string;
+                    displayOrder: number;
+                } | null;
+            } & {
                 id: number;
                 createdAt: Date;
                 topicName: string;
                 keywords: Prisma.JsonValue | null;
+                groupId: number | null;
+                labelType: string;
+                isSearchVisible: boolean;
+                isDetailVisible: boolean;
             };
         } & {
             id: number;
@@ -385,6 +504,7 @@ export declare class DestinationsService {
         slug: string;
         city: string;
         province: string;
+        category: string;
         latitude: number | null;
         longitude: number | null;
         googleMapsUrl: string | null;
@@ -428,5 +548,28 @@ export declare class DestinationsService {
             totalPages: number;
         };
     }>;
+    getReviewsByTopicGroup(destinationId: number, groupId: number, page: number, limit: number): Promise<{
+        data: {
+            id: number;
+            topic: {
+                id: number;
+                topicName: string;
+            } | null;
+            rating: number | null;
+            sentiment: string | null;
+            reviewText: string | null;
+            reviewerName: string;
+            reviewDate: Date | null;
+            likesCount: number | null;
+            topicId: number | null;
+        }[];
+        meta: {
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
+    }>;
+    private buildTopicGroups;
     private buildTopicSentimentBreakdown;
 }

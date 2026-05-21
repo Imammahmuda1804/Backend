@@ -83,9 +83,78 @@ let AiNamingService = AiNamingService_1 = class AiNamingService {
     getAvailableModels() {
         return GEMINI_MODELS.filter((m) => !this.isModelExhausted(m));
     }
+    fallbackTopicName(topicId, keywords) {
+        const usableKeywords = keywords
+            .map((keyword) => keyword.trim())
+            .filter((keyword) => keyword.length > 0)
+            .slice(0, 2);
+        return usableKeywords.length > 0
+            ? usableKeywords
+                .map((keyword) => keyword.charAt(0).toUpperCase() + keyword.slice(1))
+                .join(' ')
+            : `Topic ${topicId}`;
+    }
+    sanitizeTopicName(value) {
+        return value
+            .replace(/^["'`]|["'`]$/g, '')
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
+            .replace(/^\d+[).\-\s]+/, '')
+            .replace(/\s+/g, ' ')
+            .replace(/[.,;:]+$/g, '')
+            .trim();
+    }
+    extractValidTopicName(value, keywords) {
+        const sanitized = this.sanitizeTopicName(value);
+        if (this.isValidTopicName(sanitized, keywords))
+            return sanitized;
+        const separatedCandidates = value
+            .split(/[\n\r,;|/]+/)
+            .map((candidate) => this.sanitizeTopicName(candidate))
+            .filter(Boolean);
+        for (const candidate of separatedCandidates) {
+            if (this.isValidTopicName(candidate, keywords))
+                return candidate;
+        }
+        const words = sanitized.split(/\s+/).filter(Boolean);
+        for (let size = 2; size <= 3; size++) {
+            for (let index = 0; index <= words.length - size; index++) {
+                const candidate = words.slice(index, index + size).join(' ');
+                if (this.isValidTopicName(candidate, keywords))
+                    return candidate;
+            }
+        }
+        return null;
+    }
+    isValidTopicName(value, keywords) {
+        const name = this.sanitizeTopicName(value);
+        if (!name || name.length > 28)
+            return false;
+        if (name.split(/\s+/).length > 3)
+            return false;
+        if (/topic\s*\d+/i.test(name))
+            return false;
+        if (/[|/\\]|\n|\r/.test(name))
+            return false;
+        if ((name.match(/dan/gi) || []).length > 1)
+            return false;
+        const normalizedName = name.toLowerCase();
+        const keywordSet = new Set(keywords.map((keyword) => keyword.toLowerCase()));
+        if (keywordSet.has(normalizedName) && keywords.length > 1)
+            return false;
+        const genericNames = new Set([
+            'wisata',
+            'tempat wisata',
+            'pengalaman wisata',
+            'destinasi',
+            'ulasan',
+            'perjalanan',
+        ]);
+        return !genericNames.has(normalizedName);
+    }
     async generateTopicName(topicId, keywords, representativeDocs = []) {
+        const fallback = this.fallbackTopicName(topicId, keywords);
         if (!this.genAI) {
-            return `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
+            return fallback;
         }
         const exampleReviews = representativeDocs.length
             ? `\nContoh ulasan:\n${representativeDocs
@@ -99,15 +168,17 @@ ${exampleReviews}
 
 Aturan ketat:
 1. Bahasa Indonesia, ramah untuk user, dan cocok sebagai label UI.
-2. Maksimal 3 kata.
-3. Gunakan contoh ulasan untuk memahami konteks, jangan hanya menyalin keyword mentah.
-4. JANGAN gunakan awalan seperti "Tentang", "Keluhan", "Masalah", atau "Kondisi".
-5. Outputkan nama label saja, tanpa tanda kutip, titik, atau penjelasan.`;
+2. Maksimal 3 kata dan maksimal 28 karakter.
+3. Label harus spesifik dan langsung, contoh: Tiket mahal, Akses susah, Toilet kotor, Spot foto bagus.
+4. Gunakan contoh ulasan untuk memahami konteks, jangan hanya menyalin keyword mentah.
+5. JANGAN gabungkan beberapa label menjadi satu.
+6. JANGAN gunakan awalan seperti "Tentang", "Keluhan", "Masalah", atau "Kondisi".
+7. Outputkan nama label saja, tanpa tanda kutip, titik, atau penjelasan.`;
         const availableModels = this.getAvailableModels();
         if (availableModels.length === 0) {
             this.logger.error(`❌ Semua ${GEMINI_MODELS.length} model Gemini sedang dalam cooldown. ` +
                 `Menggunakan nama keyword-based untuk topic ${topicId}.`);
-            return `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
+            return fallback;
         }
         for (const modelName of availableModels) {
             for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -116,8 +187,12 @@ Aturan ketat:
                     const model = this.genAI.getGenerativeModel({ model: modelName });
                     const result = await model.generateContent(prompt);
                     const response = result.response;
-                    let text = response.text().trim();
-                    text = text.replace(/^["']|["']$/g, '');
+                    const rawText = response.text();
+                    const text = this.extractValidTopicName(rawText, keywords);
+                    if (!text) {
+                        this.logger.warn(`Invalid AI topic name for topic ${topicId}: "${this.sanitizeTopicName(rawText)}". Trying fallback chain.`);
+                        break;
+                    }
                     this.logger.log(`✅ Topic ${topicId} named by ${modelName}: "${text}"`);
                     return text;
                 }
@@ -148,7 +223,30 @@ Aturan ketat:
             }
         }
         this.logger.error(`❌ All Gemini models failed for topic ${topicId}. Using keyword-based name.`);
-        return `Topic ${topicId}: ${keywords.slice(0, 3).join(', ')}`;
+        return fallback;
+    }
+    classifyTopicGroup(topicName, keywords, representativeDocs = [], groups) {
+        if (groups.length === 0)
+            return null;
+        const corpus = [topicName, ...keywords, ...representativeDocs]
+            .join(' ')
+            .toLowerCase();
+        let bestGroup = null;
+        let bestScore = -1;
+        for (const group of groups) {
+            const score = group.keywords.reduce((total, keyword) => {
+                const normalized = keyword.toLowerCase();
+                return corpus.includes(normalized) ? total + 1 : total;
+            }, 0);
+            if (score > bestScore) {
+                bestScore = score;
+                bestGroup = group;
+            }
+        }
+        if (bestGroup && bestScore > 0)
+            return bestGroup.id;
+        const fallback = groups.find((group) => group.groupName.toLowerCase().includes('lain'));
+        return fallback?.id ?? groups[groups.length - 1]?.id ?? null;
     }
 };
 exports.AiNamingService = AiNamingService;

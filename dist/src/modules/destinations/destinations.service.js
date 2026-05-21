@@ -48,6 +48,7 @@ const prisma_service_1 = require("../../prisma/prisma.service");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const slug_util_1 = require("../../common/utils/slug.util");
+const destination_categories_1 = require("./destination-categories");
 let DestinationsService = class DestinationsService {
     prisma;
     constructor(prisma) {
@@ -67,6 +68,7 @@ let DestinationsService = class DestinationsService {
                     description: dto.description,
                     city: dto.city,
                     province: dto.province,
+                    category: dto.category,
                     latitude: dto.latitude,
                     longitude: dto.longitude,
                     googleMapsUrl: dto.googleMapsUrl,
@@ -87,7 +89,7 @@ let DestinationsService = class DestinationsService {
             throw error;
         }
     }
-    async findAll(page, limit, search, topicId, topicIds, city) {
+    async findAll(page, limit, search, topicId, topicIds, city, category) {
         const skip = (page - 1) * limit;
         const effectiveTopicIds = topicIds && topicIds.length > 0 ? topicIds : topicId ? [topicId] : [];
         const whereCondition = {
@@ -108,19 +110,46 @@ let DestinationsService = class DestinationsService {
             ...(city && {
                 city: { equals: city, mode: 'insensitive' },
             }),
+            ...(category && {
+                category: { equals: category, mode: 'insensitive' },
+            }),
         };
         const data = await this.prisma.destination.findMany({
             where: whereCondition,
             skip,
             take: limit,
             orderBy: { createdAt: 'desc' },
-            include: { images: true },
+            include: {
+                images: true,
+                destinationTopics: {
+                    orderBy: { totalReviews: 'desc' },
+                    take: 3,
+                    include: {
+                        topic: {
+                            select: {
+                                id: true,
+                                topicName: true,
+                                keywords: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
         const total = await this.prisma.destination.count({
             where: whereCondition,
         });
         return {
-            data,
+            data: data.map((destination) => ({
+                ...destination,
+                topics: destination.destinationTopics.map((item) => ({
+                    id: item.topic.id,
+                    name: item.topic.topicName,
+                    topic_name: item.topic.topicName,
+                    keywords: item.topic.keywords,
+                    total_reviews: item.totalReviews,
+                })),
+            })),
             meta: {
                 page,
                 limit,
@@ -128,6 +157,9 @@ let DestinationsService = class DestinationsService {
                 total_pages: Math.ceil(total / limit),
             },
         };
+    }
+    getCategories() {
+        return destination_categories_1.DESTINATION_CATEGORIES;
     }
     async getCities() {
         const results = await this.prisma.destination.findMany({
@@ -153,7 +185,11 @@ let DestinationsService = class DestinationsService {
                 },
                 destinationTopics: {
                     include: {
-                        topic: true,
+                        topic: {
+                            include: {
+                                group: true,
+                            },
+                        },
                     },
                 },
             },
@@ -177,6 +213,7 @@ let DestinationsService = class DestinationsService {
                 description: dto.description,
                 city: dto.city,
                 province: dto.province,
+                category: dto.category,
                 latitude: dto.latitude,
                 longitude: dto.longitude,
                 googleMapsUrl: dto.googleMapsUrl,
@@ -348,6 +385,7 @@ let DestinationsService = class DestinationsService {
             _count: { rating: true },
         });
         const topicSentimentBreakdown = await this.buildTopicSentimentBreakdown(id);
+        const topicGroups = await this.buildTopicGroups(id);
         return {
             ...destination,
             averageUserRating: reviewAgg._avg.rating || null,
@@ -357,6 +395,7 @@ let DestinationsService = class DestinationsService {
                 : destination.userRating,
             scrapedReviewCount: scrapedAgg._count.rating,
             topicSentimentBreakdown,
+            topicGroups,
         };
     }
     async findOnePublicBySlug(slug) {
@@ -370,7 +409,11 @@ let DestinationsService = class DestinationsService {
                 },
                 destinationTopics: {
                     include: {
-                        topic: true,
+                        topic: {
+                            include: {
+                                group: true,
+                            },
+                        },
                     },
                 },
                 userReviews: {
@@ -401,6 +444,7 @@ let DestinationsService = class DestinationsService {
             _count: { rating: true },
         });
         const topicSentimentBreakdown = await this.buildTopicSentimentBreakdown(destination.id);
+        const topicGroups = await this.buildTopicGroups(destination.id);
         return {
             ...destination,
             averageUserRating: reviewAgg._avg.rating || null,
@@ -410,6 +454,7 @@ let DestinationsService = class DestinationsService {
                 : destination.userRating,
             scrapedReviewCount: scrapedAgg._count.rating,
             topicSentimentBreakdown,
+            topicGroups,
         };
     }
     async findRanking(sortBy, limit) {
@@ -476,6 +521,140 @@ let DestinationsService = class DestinationsService {
                 totalPages: Math.ceil(total / limit),
             },
         };
+    }
+    async getReviewsByTopicGroup(destinationId, groupId, page, limit) {
+        const destination = await this.prisma.destination.findFirst({
+            where: { id: destinationId, deletedAt: null },
+            select: { id: true },
+        });
+        if (!destination) {
+            throw new common_1.NotFoundException('Destinasi tidak ditemukan');
+        }
+        const topics = await this.prisma.topic.findMany({
+            where: { groupId },
+            select: { id: true },
+        });
+        const topicIds = topics.map((topic) => topic.id);
+        if (topicIds.length === 0) {
+            return {
+                data: [],
+                meta: { total: 0, page, limit, totalPages: 0 },
+            };
+        }
+        const skip = (page - 1) * limit;
+        const where = {
+            destinationId,
+            topicId: { in: topicIds },
+        };
+        const [total, reviews] = await Promise.all([
+            this.prisma.review.count({ where }),
+            this.prisma.review.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { reviewDate: 'desc' },
+                select: {
+                    id: true,
+                    reviewerName: true,
+                    reviewText: true,
+                    rating: true,
+                    reviewDate: true,
+                    sentiment: true,
+                    likesCount: true,
+                    topicId: true,
+                    topic: {
+                        select: {
+                            id: true,
+                            topicName: true,
+                        },
+                    },
+                },
+            }),
+        ]);
+        return {
+            data: reviews,
+            meta: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
+    }
+    async buildTopicGroups(destinationId) {
+        const grouped = await this.prisma.review.groupBy({
+            by: ['topicId', 'sentiment'],
+            where: {
+                destinationId,
+                topicId: { not: null },
+            },
+            _count: { sentiment: true },
+        });
+        const topicIds = Array.from(new Set(grouped
+            .map((row) => row.topicId)
+            .filter((topicId) => topicId !== null)));
+        if (topicIds.length === 0)
+            return [];
+        const topics = await this.prisma.topic.findMany({
+            where: {
+                id: { in: topicIds },
+                isDetailVisible: true,
+            },
+            include: {
+                group: true,
+            },
+        });
+        const fallbackGroup = await this.prisma.topicGroup.findFirst({
+            where: { groupName: { contains: 'Lain', mode: 'insensitive' } },
+            orderBy: { displayOrder: 'asc' },
+        });
+        const topicMap = new Map(topics.map((topic) => [topic.id, topic]));
+        const groups = new Map();
+        for (const row of grouped) {
+            if (row.topicId === null)
+                continue;
+            const topic = topicMap.get(row.topicId);
+            if (!topic)
+                continue;
+            const groupId = topic.groupId ?? fallbackGroup?.id ?? 0;
+            const groupName = topic.group?.groupName ?? fallbackGroup?.groupName ?? 'Lainnya';
+            const group = groups.get(groupId) ?? {
+                groupId,
+                groupName,
+                totalReviews: 0,
+                sentimentBreakdown: { positive: 0, negative: 0, neutral: 0 },
+                topics: new Map(),
+            };
+            const count = row._count.sentiment;
+            group.totalReviews += count;
+            const sentiment = (row.sentiment || '').toLowerCase();
+            if (sentiment === 'positive' || sentiment === 'positif') {
+                group.sentimentBreakdown.positive += count;
+            }
+            else if (sentiment === 'negative' || sentiment === 'negatif') {
+                group.sentimentBreakdown.negative += count;
+            }
+            else {
+                group.sentimentBreakdown.neutral += count;
+            }
+            const fineTopic = group.topics.get(topic.id) ?? {
+                id: topic.id,
+                topicName: topic.topicName,
+                totalReviews: 0,
+            };
+            fineTopic.totalReviews += count;
+            group.topics.set(topic.id, fineTopic);
+            groups.set(groupId, group);
+        }
+        return Array.from(groups.values())
+            .map((group) => ({
+            groupId: group.groupId,
+            groupName: group.groupName,
+            totalReviews: group.totalReviews,
+            sentimentBreakdown: group.sentimentBreakdown,
+            topics: Array.from(group.topics.values()).sort((a, b) => b.totalReviews - a.totalReviews),
+        }))
+            .sort((a, b) => b.totalReviews - a.totalReviews);
     }
     async buildTopicSentimentBreakdown(destinationId) {
         const grouped = await this.prisma.review.groupBy({

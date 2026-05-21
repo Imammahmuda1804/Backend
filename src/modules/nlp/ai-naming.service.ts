@@ -1,11 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-/**
- * Daftar SEMUA model Gemini gratis yang akan dicoba secara berurutan (fallback chain).
- * Jika model pertama gagal (quota habis / tidak tersedia), otomatis pindah ke model berikutnya.
- * Urutan: model terbaru & tercepat duluan, lalu fallback ke model lama.
- */
+// Urutan model Gemini untuk fallback penamaan topik.
 const GEMINI_MODELS = [
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
@@ -15,16 +11,16 @@ const GEMINI_MODELS = [
   'gemini-3.1-flash-lite',
 ];
 
-/** Delay antar request API (ms) — mencegah rate limit pada free tier */
+// Jeda antar request Gemini.
 const DELAY_BETWEEN_REQUESTS_MS = 4000; // 4 detik = maks 15 request/menit
 
-/** Jumlah retry jika kena rate limit per-menit (429) */
+// Jumlah retry saat rate limit.
 const MAX_RETRIES = 1;
 
-/** Delay sebelum retry saat kena rate limit per-menit */
+// Jeda retry saat rate limit.
 const RETRY_DELAY_MS = 15000; // 15 detik
 
-/** Durasi cooldown saat daily quota habis (1 jam) — model akan di-skip selama ini */
+// Durasi cooldown saat kuota harian habis.
 const DAILY_QUOTA_COOLDOWN_MS = 60 * 60 * 1000;
 
 interface AiProviderError {
@@ -38,10 +34,12 @@ export interface TopicGroupCandidate {
   keywords: string[];
 }
 
+// Mengambil pesan error aman dari error yang tipenya belum diketahui.
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+// Mengubah error provider AI menjadi informasi retry/cooldown.
 function getProviderError(error: unknown): AiProviderError {
   if (typeof error === 'object' && error !== null) {
     const message =
@@ -58,16 +56,13 @@ function getProviderError(error: unknown): AiProviderError {
 }
 
 @Injectable()
+// Menamai topic dengan Gemini dan memetakan topic ke topic group.
 export class AiNamingService {
   private readonly logger = new Logger(AiNamingService.name);
   private genAI: GoogleGenerativeAI | null = null;
   private lastRequestTime = 0;
 
-  /**
-   * Track model yang daily quota-nya sudah habis.
-   * Key = model name, Value = timestamp kapan di-block.
-   * Setelah DAILY_QUOTA_COOLDOWN_MS, model bisa dicoba lagi.
-   */
+  // Menyimpan model yang sedang cooldown.
   private exhaustedModels = new Map<string, number>();
 
   constructor() {
@@ -84,16 +79,13 @@ export class AiNamingService {
     }
   }
 
-  /**
-   * Cek apakah model masih dalam cooldown karena daily quota habis.
-   */
+  // Mengecek cooldown model Gemini.
   private isModelExhausted(modelName: string): boolean {
     const blockedAt = this.exhaustedModels.get(modelName);
     if (!blockedAt) return false;
 
     const elapsed = Date.now() - blockedAt;
     if (elapsed >= DAILY_QUOTA_COOLDOWN_MS) {
-      // Cooldown selesai, bisa dicoba lagi
       this.exhaustedModels.delete(modelName);
       this.logger.log(`♻️ ${modelName} cooldown selesai, bisa dicoba lagi.`);
       return false;
@@ -102,18 +94,13 @@ export class AiNamingService {
     return true;
   }
 
-  /**
-   * Deteksi apakah error 429 disebabkan oleh daily quota (bukan per-menit).
-   * Daily quota error biasanya mengandung kata "PerDay" atau "limit: 0".
-   */
+  // Mengecek apakah error berasal dari kuota harian.
   private isDailyQuotaExhausted(error: unknown): boolean {
     const msg = getErrorMessage(error);
     return msg.includes('PerDay') || msg.includes('limit: 0');
   }
 
-  /**
-   * Menunggu agar tidak mengirim request terlalu cepat (rate limiting).
-   */
+  // Membatasi laju request ke Gemini.
   private async throttle(): Promise<void> {
     const now = Date.now();
     const elapsed = now - this.lastRequestTime;
@@ -124,9 +111,7 @@ export class AiNamingService {
     this.lastRequestTime = Date.now();
   }
 
-  /**
-   * Mendapatkan daftar model yang masih available (belum exhausted).
-   */
+  // Mengambil model Gemini yang masih tersedia.
   private getAvailableModels(): string[] {
     return GEMINI_MODELS.filter((m) => !this.isModelExhausted(m));
   }
@@ -290,7 +275,7 @@ Aturan ketat:
             }
 
             if (attempt < MAX_RETRIES) {
-              // Per-minute rate limit — tunggu lalu retry
+              // Rate limit per menit, tunggu lalu coba ulang.
               this.logger.warn(
                 `⏳ Rate limited on ${modelName} for topic ${topicId}. ` +
                   `Retrying in ${RETRY_DELAY_MS / 1000}s (attempt ${attempt + 1}/${MAX_RETRIES})...`,

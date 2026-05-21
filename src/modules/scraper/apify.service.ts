@@ -16,12 +16,7 @@ export class ApifyService {
     });
   }
 
-  /**
-   * Mencari tempat di Google Maps.
-   * Mendukung dua mode input:
-   *  - Teks biasa   → searchStringsArray
-   *  - URL Maps     → startUrls (mirip alur Apify-Scrapper)
-   */
+  // Mencari tempat di Google Maps.
   async searchPlaces(query: string) {
     this.logger.log(`Searching Google Maps for: ${query}`);
 
@@ -64,14 +59,7 @@ export class ApifyService {
     }));
   }
 
-  /**
-   * Memulai scraping ulasan Google Maps dengan parameter yang dikunci:
-   *  - sort     : "newest"  (ulasan terbaru duluan)
-   *  - bintang  : semua     (tidak ada filter bintang)
-   *  - hasText  : true      (hanya ulasan yang mengandung teks)
-   *
-   * Satu-satunya variabel yang bisa dikontrol admin adalah maxReviews.
-   */
+  // Memulai scraping ulasan Google Maps.
   async startReviewScraping(url: string, maxReviews?: number) {
     this.logger.log(
       `Starting review scraping for: ${url} | maxReviews: ${maxReviews ?? 'ALL'}`,

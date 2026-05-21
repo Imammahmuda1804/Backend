@@ -22,10 +22,7 @@ export interface ColumnMap {
 export class ExcelParserUtil {
   private static readonly logger = new Logger(ExcelParserUtil.name);
 
-  /**
-   * Parse file Excel (.xlsx) atau CSV yang diupload.
-   * Mendukung format output dari ScraperProcessor.
-   */
+  // Membaca file Excel atau CSV hasil scraping.
   public static async parseUploadedFile(
     file: Express.Multer.File,
   ): Promise<ParsedReview[]> {

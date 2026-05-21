@@ -7,9 +7,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-/**
- * RegisterDto — Data untuk registrasi user baru
- */
+// Data yang dibutuhkan untuk registrasi.
 export class RegisterDto {
   @ApiProperty({ description: 'Nama lengkap user', example: 'John Doe' })
   @IsNotEmpty({ message: 'Nama tidak boleh kosong' })

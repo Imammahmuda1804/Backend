@@ -13,10 +13,7 @@ type AuthenticatedRequest = Request & {
   user?: AuthenticatedUser;
 };
 
-/**
- * Role-based Access Control Guard
- * Membatasi akses berdasarkan role user (ADMIN, USER)
- */
+// Guard untuk membatasi akses berdasarkan role.
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}

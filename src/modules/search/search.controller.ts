@@ -26,7 +26,7 @@ import { Public } from '../../common/decorators/public.decorator';
 import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
-/** Shape yang dikembalikan JwtStrategy.validate() → request.user */
+// Payload user yang tersedia dari JWT.
 interface AuthUser {
   id: number;
   email: string;
@@ -39,18 +39,12 @@ interface SearchRequest {
 
 @ApiTags('Search')
 @Controller('search')
+// Membuka endpoint pencarian semantik dan riwayat pencarian user.
 export class SearchController {
   private readonly logger = new Logger(SearchController.name);
 
   constructor(private readonly searchService: SearchService) {}
-
-  /**
-   * POST /api/search
-   *
-   * Semantic search — bisa diakses tanpa login (@Public bypass global JwtAuthGuard),
-   * tapi pakai OptionalJwtAuthGuard agar req.user tetap di-populate jika token valid.
-   * Dengan begitu, search history bisa disimpan untuk user yang login.
-   */
+  // Mencari destinasi dan menyimpan history jika token valid.
   @Public()
   @Post()
   @UseGuards(OptionalJwtAuthGuard)
@@ -68,10 +62,7 @@ export class SearchController {
   })
   @ApiResponse({ status: 503, description: 'NLP service tidak tersedia' })
   async search(@Body() dto: SearchQueryDto, @Request() req?: SearchRequest) {
-    // Extract userId dari req.user (jika ada)
     const userId = req?.user?.id;
-
-    // Debug logging
     this.logger.log(`🔍 Search endpoint called`);
     this.logger.log(`   Query: "${dto.query}"`);
     this.logger.log(`   req.user: ${JSON.stringify(req?.user)}`);
@@ -79,11 +70,7 @@ export class SearchController {
 
     return this.searchService.semanticSearch(dto, userId);
   }
-
-  /**
-   * GET /api/search/history
-   * Riwayat pencarian user — requires JWT
-   */
+  // Mengambil riwayat pencarian user login.
   @Get('history')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Riwayat pencarian user yang sedang login' })
@@ -103,11 +90,7 @@ export class SearchController {
     const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20;
     return this.searchService.getHistory(userId, parsedPage, parsedLimit);
   }
-
-  /**
-   * DELETE /api/search/history
-   * Hapus semua riwayat pencarian user — requires JWT
-   */
+  // Menghapus semua riwayat pencarian user.
   @Delete('history')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Hapus semua riwayat pencarian user' })
@@ -116,11 +99,7 @@ export class SearchController {
   async clearHistory(@CurrentUser('id') userId: number) {
     return this.searchService.clearHistory(userId);
   }
-
-  /**
-   * DELETE /api/search/history/:id
-   * Hapus satu entry riwayat — requires JWT, validasi ownership
-   */
+  // Menghapus satu riwayat setelah validasi kepemilikan.
   @Delete('history/:id')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Hapus satu entry riwayat pencarian' })

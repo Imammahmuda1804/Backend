@@ -29,6 +29,7 @@ import { ExcelParserUtil } from './utils/excel-parser.util';
 @ApiBearerAuth()
 @Roles('ADMIN')
 @Controller('admin/nlp')
+// Membuka endpoint admin untuk upload file ulasan dan proses NLP.
 export class NlpController {
   private readonly logger = new Logger(NlpController.name);
 
@@ -39,16 +40,7 @@ export class NlpController {
     private readonly csvService: CsvService,
   ) {}
 
-  /**
-   * Upload file Excel/CSV hasil scraping dan langsung proses NLP.
-   *
-   * Flow:
-   * 1. Parse file Excel/CSV
-   * 2. Insert ulasan ke tabel Review
-   * 3. Hitung rata-rata rating scraping dan simpan ke rating Google destination
-   * 4. Kirim data ke FastAPI untuk NLP processing
-   * 5. Simpan hasil NLP ke database
-   */
+  // Memproses file review dan menyimpan hasil NLP.
   @Post('upload')
   @HttpCode(202)
   @UseInterceptors(
@@ -103,6 +95,7 @@ export class NlpController {
     status: 400,
     description: 'File tidak valid atau destinasi tidak ditemukan',
   })
+  // Memproses file review, mengirim ke FastAPI, lalu menyimpan hasil NLP.
   async uploadAndProcess(
     @UploadedFile() file: Express.Multer.File,
     @Body('destination_id') destinationIdStr: string,
@@ -127,8 +120,6 @@ export class NlpController {
     this.logger.log(
       `Processing NLP upload for destination "${destination.name}" (${file.originalname})`,
     );
-
-    // 1. Parse file
     const reviews = await ExcelParserUtil.parseUploadedFile(file);
 
     if (reviews.length === 0) {
@@ -138,8 +129,6 @@ export class NlpController {
     }
 
     this.logger.log(`Parsed ${reviews.length} reviews from uploaded file`);
-
-    // 2. Insert reviews ke database
     const reviewIds: number[] = [];
     for (const review of reviews) {
       const created = await this.prisma.review.create({
@@ -158,8 +147,6 @@ export class NlpController {
     }
 
     this.logger.log(`Inserted ${reviewIds.length} reviews to database`);
-
-    // 3. Hitung rata-rata rating scraping dan update destination
     const ratingAgg = await this.prisma.review.aggregate({
       where: { destinationId },
       _avg: { rating: true },
@@ -179,8 +166,6 @@ export class NlpController {
     this.logger.log(
       `Updated scraped rating: ${ratingAgg._avg.rating?.toFixed(2)} (${ratingAgg._count.rating} reviews)`,
     );
-
-    // 4. Proses NLP — format CSV untuk FastAPI
     const nlpData = reviews.map((r, index) => ({
       review_id: reviewIds[index],
       'Teks Ulasan': r.reviewText || '',
@@ -246,8 +231,6 @@ export class NlpController {
         topics: [],
       };
     }
-
-    // 5. Simpan hasil NLP
     await this.nlpStorageService.saveNlpResults(
       destinationId,
       nlpResult,

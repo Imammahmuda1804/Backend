@@ -47,8 +47,8 @@ export declare class DestinationsController {
             }[];
             images: {
                 id: number;
-                createdAt: Date;
                 destinationId: number;
+                createdAt: Date;
                 imageUrl: string;
             }[];
             destinationTopics: ({
@@ -63,12 +63,12 @@ export declare class DestinationsController {
                 topicId: number;
                 totalReviews: number;
             })[];
+            deletedAt: Date | null;
             id: number;
-            name: string;
             createdAt: Date;
-            updatedAt: Date;
-            description: string | null;
+            name: string;
             slug: string;
+            description: string | null;
             city: string;
             province: string;
             category: string;
@@ -84,7 +84,7 @@ export declare class DestinationsController {
             thumbnailUrl: string | null;
             positiveRatio: number | null;
             recommendationScore: number | null;
-            deletedAt: Date | null;
+            updatedAt: Date;
         }[];
         meta: {
             page: number;
@@ -150,24 +150,10 @@ export declare class DestinationsController {
                 totalReviews: number;
             }[];
         }[];
-        userReviews: ({
-            user: {
-                id: number;
-                name: string;
-                profilePicture: string | null;
-            };
-        } & {
-            id: number;
-            createdAt: Date;
-            rating: number;
-            destinationId: number;
-            reviewText: string | null;
-            userId: number;
-        })[];
         images: {
             id: number;
-            createdAt: Date;
             destinationId: number;
+            createdAt: Date;
             imageUrl: string;
         }[];
         sentimentTrends: {
@@ -178,13 +164,27 @@ export declare class DestinationsController {
             negativeCount: number;
             neutralCount: number;
         }[];
+        userReviews: ({
+            user: {
+                id: number;
+                name: string;
+                profilePicture: string | null;
+            };
+        } & {
+            id: number;
+            destinationId: number;
+            reviewText: string | null;
+            rating: number;
+            createdAt: Date;
+            userId: number;
+        })[];
         destinationTopics: ({
             topic: {
                 group: {
                     id: number;
                     createdAt: Date;
-                    updatedAt: Date;
                     description: string | null;
+                    updatedAt: Date;
                     keywords: import("@prisma/client/runtime/client").JsonValue | null;
                     groupName: string;
                     displayOrder: number;
@@ -205,12 +205,12 @@ export declare class DestinationsController {
             topicId: number;
             totalReviews: number;
         })[];
+        deletedAt: Date | null;
         id: number;
-        name: string;
         createdAt: Date;
-        updatedAt: Date;
-        description: string | null;
+        name: string;
         slug: string;
+        description: string | null;
         city: string;
         province: string;
         category: string;
@@ -226,17 +226,17 @@ export declare class DestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
-        deletedAt: Date | null;
+        updatedAt: Date;
     }>;
     getReviewsByTopic(id: number, topicIdStr: string, pageStr: string, limitStr: string): Promise<{
         data: {
             id: number;
-            rating: number | null;
-            sentiment: string | null;
-            reviewText: string | null;
             reviewerName: string;
+            reviewText: string | null;
+            rating: number | null;
             reviewDate: Date | null;
             likesCount: number | null;
+            sentiment: string | null;
         }[];
         meta: {
             total: number;
@@ -248,17 +248,17 @@ export declare class DestinationsController {
     getReviewsByTopicGroup(id: number, groupIdStr: string, pageStr: string, limitStr: string): Promise<{
         data: {
             id: number;
+            reviewerName: string;
+            reviewText: string | null;
+            rating: number | null;
+            reviewDate: Date | null;
+            likesCount: number | null;
+            sentiment: string | null;
+            topicId: number | null;
             topic: {
                 id: number;
                 topicName: string;
             } | null;
-            rating: number | null;
-            sentiment: string | null;
-            reviewText: string | null;
-            reviewerName: string;
-            reviewDate: Date | null;
-            likesCount: number | null;
-            topicId: number | null;
         }[];
         meta: {
             total: number;
@@ -292,24 +292,10 @@ export declare class DestinationsController {
                 totalReviews: number;
             }[];
         }[];
-        userReviews: ({
-            user: {
-                id: number;
-                name: string;
-                profilePicture: string | null;
-            };
-        } & {
-            id: number;
-            createdAt: Date;
-            rating: number;
-            destinationId: number;
-            reviewText: string | null;
-            userId: number;
-        })[];
         images: {
             id: number;
-            createdAt: Date;
             destinationId: number;
+            createdAt: Date;
             imageUrl: string;
         }[];
         sentimentTrends: {
@@ -320,6 +306,20 @@ export declare class DestinationsController {
             negativeCount: number;
             neutralCount: number;
         }[];
+        userReviews: ({
+            user: {
+                id: number;
+                name: string;
+                profilePicture: string | null;
+            };
+        } & {
+            id: number;
+            destinationId: number;
+            reviewText: string | null;
+            rating: number;
+            createdAt: Date;
+            userId: number;
+        })[];
         destinationTopics: ({
             topic: {
                 id: number;
@@ -337,12 +337,12 @@ export declare class DestinationsController {
             topicId: number;
             totalReviews: number;
         })[];
+        deletedAt: Date | null;
         id: number;
-        name: string;
         createdAt: Date;
-        updatedAt: Date;
-        description: string | null;
+        name: string;
         slug: string;
+        description: string | null;
         city: string;
         province: string;
         category: string;
@@ -358,6 +358,6 @@ export declare class DestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
-        deletedAt: Date | null;
+        updatedAt: Date;
     }>;
 }

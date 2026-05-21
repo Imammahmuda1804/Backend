@@ -20,10 +20,7 @@ export class AdminModerationController {
     private readonly analyticsService: AnalyticsService,
   ) {}
 
-  /**
-   * DELETE /api/admin/reviews/:id
-   * Hapus scraped review yang tidak pantas.
-   */
+  // Menghapus scraped review lewat endpoint admin.
   @Delete('reviews/:id')
   @ApiOperation({ summary: 'Hapus scraped review (moderasi)' })
   @ApiParam({ name: 'id', type: Number })
@@ -35,10 +32,7 @@ export class AdminModerationController {
     return this.reviewsService.deleteReview(id);
   }
 
-  /**
-   * DELETE /api/admin/user-reviews/:id
-   * Hapus user review yang tidak pantas.
-   */
+  // Menghapus user review lewat endpoint admin.
   @Delete('user-reviews/:id')
   @ApiOperation({ summary: 'Hapus user review (moderasi)' })
   @ApiParam({ name: 'id', type: Number })
@@ -50,10 +44,7 @@ export class AdminModerationController {
     return this.reviewsService.deleteUserReview(id);
   }
 
-  /**
-   * POST /api/admin/analytics/recalculate/:destinationId
-   * Recalculate semua analytics untuk satu destinasi.
-   */
+  // Menghitung ulang analytics destinasi.
   @Post('analytics/recalculate/:destinationId')
   @ApiOperation({
     summary: 'Recalculate semua analytics untuk destinasi',

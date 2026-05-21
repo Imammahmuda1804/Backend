@@ -1,11 +1,4 @@
-/**
- * Generate URL-friendly slug dari nama destinasi
- *
- * @example
- * generateSlug('Pantai Kuta Bali')    => 'pantai-kuta-bali'
- * generateSlug('Candi Borobudur!!!')  => 'candi-borobudur'
- * generateSlug('Gunung Bromo (Jatim)') => 'gunung-bromo-jatim'
- */
+// Membuat slug URL dari nama destinasi.
 export function generateSlug(name: string): string {
   return name
     .toLowerCase()
@@ -16,13 +9,7 @@ export function generateSlug(name: string): string {
     .replace(/^-+|-+$/g, ''); // Hapus dash di awal/akhir
 }
 
-/**
- * Generate unique slug dengan menambahkan suffix angka jika sudah ada
- *
- * @param baseName - Nama asli
- * @param existingSlugs - Array slug yang sudah ada di database
- * @returns Slug unik
- */
+// Membuat slug unik dengan suffix angka.
 export function generateUniqueSlug(
   baseName: string,
   existingSlugs: string[],

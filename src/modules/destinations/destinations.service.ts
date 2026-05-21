@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 import * as path from 'path';
 import {
   CreateDestinationDto,
@@ -28,18 +28,18 @@ type TopicGroupAggregation = {
 };
 
 @Injectable()
+// Mengelola data destinasi, media, detail publik, ranking, dan agregasi topik.
 export class DestinationsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Membuat destinasi baru dan menghasilkan slug unik.
   async create(dto: CreateDestinationDto) {
-    // 1. Generate slug
     const existingDestinations = await this.prisma.destination.findMany({
       select: { slug: true },
     });
     const existingSlugs = existingDestinations.map((d) => d.slug);
     const uniqueSlug = generateUniqueSlug(dto.name, existingSlugs);
 
-    // 2. Create destination
     try {
       return await this.prisma.destination.create({
         data: {
@@ -59,7 +59,7 @@ export class DestinationsService {
         },
       });
     } catch (error: unknown) {
-      // Prisma error for unique constraint
+      // Menangani slug atau nama yang sudah dipakai.
       if (
         error &&
         typeof error === 'object' &&
@@ -74,6 +74,7 @@ export class DestinationsService {
     }
   }
 
+  // Mengambil daftar destinasi dengan pagination dan filter.
   async findAll(
     page: number,
     limit: number,
@@ -85,12 +86,12 @@ export class DestinationsService {
   ) {
     const skip = (page - 1) * limit;
 
-    // Resolve topic filter: prefer topicIds (multi) over topicId (single)
+    // Memilih filter topik multi jika tersedia.
     const effectiveTopicIds =
       topicIds && topicIds.length > 0 ? topicIds : topicId ? [topicId] : [];
 
     const whereCondition: Prisma.DestinationWhereInput = {
-      deletedAt: null, // Exclude soft-deleted
+      deletedAt: null, // Abaikan data soft delete.
       ...(search && {
         OR: [
           { name: { contains: search, mode: 'insensitive' as const } },
@@ -112,32 +113,33 @@ export class DestinationsService {
       }),
     };
 
-    const data = await this.prisma.destination.findMany({
-      where: whereCondition,
-      skip,
-      take: limit,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        images: true,
-        destinationTopics: {
-          orderBy: { totalReviews: 'desc' },
-          take: 3,
-          include: {
-            topic: {
-              select: {
-                id: true,
-                topicName: true,
-                keywords: true,
+    const [data, total] = await Promise.all([
+      this.prisma.destination.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          images: true,
+          destinationTopics: {
+            orderBy: { totalReviews: 'desc' },
+            take: 3,
+            include: {
+              topic: {
+                select: {
+                  id: true,
+                  topicName: true,
+                  keywords: true,
+                },
               },
             },
           },
         },
-      },
-    });
-
-    const total = await this.prisma.destination.count({
-      where: whereCondition,
-    });
+      }),
+      this.prisma.destination.count({
+        where: whereCondition,
+      }),
+    ]);
 
     return {
       data: data.map((destination) => ({
@@ -159,10 +161,12 @@ export class DestinationsService {
     };
   }
 
+  // Mengambil daftar kategori tetap untuk filter dan form destinasi.
   getCategories() {
     return DESTINATION_CATEGORIES;
   }
 
+  // Mengambil daftar kota dari destinasi yang belum dihapus.
   async getCities(): Promise<string[]> {
     const results = await this.prisma.destination.findMany({
       where: { deletedAt: null },
@@ -173,6 +177,7 @@ export class DestinationsService {
     return results.map((r) => r.city).filter(Boolean);
   }
 
+  // Mengambil detail destinasi lengkap untuk admin.
   async findOneAdmin(id: number) {
     const destination = await this.prisma.destination.findUnique({
       where: { id },
@@ -180,11 +185,11 @@ export class DestinationsService {
         images: true,
         sentimentTrends: {
           orderBy: { date: 'desc' },
-          take: 30, // Last 30 days summary
+          take: 30, // Ringkasan 30 hari terakhir.
         },
         scrapingJobs: {
           orderBy: { startedAt: 'desc' },
-          take: 5, // Last 5 scraping jobs
+          take: 5, // Lima job scraping terakhir.
         },
         destinationTopics: {
           include: {
@@ -205,6 +210,7 @@ export class DestinationsService {
     return destination;
   }
 
+  // Memperbarui data utama destinasi.
   async update(id: number, dto: UpdateDestinationDto) {
     const destination = await this.prisma.destination.findUnique({
       where: { id },
@@ -236,6 +242,7 @@ export class DestinationsService {
     });
   }
 
+  // Menandai destinasi sebagai terhapus tanpa menghapus baris database.
   async softDelete(id: number) {
     const destination = await this.prisma.destination.findUnique({
       where: { id },
@@ -250,6 +257,7 @@ export class DestinationsService {
     });
   }
 
+  // Memperbarui URL Google Maps destinasi.
   async updateMapsUrl(id: number, dto: UpdateMapsUrlDto) {
     const destination = await this.prisma.destination.findUnique({
       where: { id },
@@ -264,6 +272,7 @@ export class DestinationsService {
     });
   }
 
+  // Mengganti thumbnail destinasi dan menghapus file lokal lama.
   async uploadThumbnail(destinationId: number, filename: string) {
     const destination = await this.prisma.destination.findUnique({
       where: { id: destinationId },
@@ -275,11 +284,10 @@ export class DestinationsService {
         'destinations',
         filename,
       );
-      if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+      await this.removeFileIfExists(filepath);
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
 
-    // Delete old thumbnail file if it was a local upload
     if (destination.thumbnailUrl?.startsWith('/uploads/')) {
       const oldFilename = path.basename(destination.thumbnailUrl);
       const oldFilepath = path.join(
@@ -288,7 +296,7 @@ export class DestinationsService {
         'destinations',
         oldFilename,
       );
-      if (fs.existsSync(oldFilepath)) fs.unlinkSync(oldFilepath);
+      await this.removeFileIfExists(oldFilepath);
     }
 
     const thumbnailUrl = `/uploads/destinations/${filename}`;
@@ -298,6 +306,7 @@ export class DestinationsService {
     });
   }
 
+  // Menambahkan satu gambar galeri destinasi.
   async uploadImage(destinationId: number, filename: string) {
     const destination = await this.prisma.destination.findUnique({
       where: { id: destinationId },
@@ -309,9 +318,7 @@ export class DestinationsService {
         'destinations',
         filename,
       );
-      if (fs.existsSync(filepath)) {
-        fs.unlinkSync(filepath);
-      }
+      await this.removeFileIfExists(filepath);
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
 
@@ -325,6 +332,7 @@ export class DestinationsService {
     });
   }
 
+  // Menghapus gambar galeri dari database dan file lokal.
   async deleteImage(imageId: number) {
     const image = await this.prisma.destinationImage.findUnique({
       where: { id: imageId },
@@ -340,43 +348,41 @@ export class DestinationsService {
       'destinations',
       filename,
     );
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
-    }
+    await this.removeFileIfExists(filepath);
 
     return this.prisma.destinationImage.delete({
       where: { id: imageId },
     });
   }
 
-  // --- PUBLIC ENDPOINTS ---
-
+  // Mengambil rekomendasi destinasi berdasarkan skor rekomendasi.
   async findRecommendations(page: number, limit: number) {
     const skip = (page - 1) * limit;
     const whereCondition = { deletedAt: null };
 
-    const data = await this.prisma.destination.findMany({
-      where: whereCondition,
-      skip,
-      take: limit,
-      orderBy: { recommendationScore: 'desc' },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        city: true,
-        province: true,
-        thumbnailUrl: true,
-        googleRating: true,
-        userRating: true,
-        positiveRatio: true,
-        recommendationScore: true,
-      },
-    });
-
-    const total = await this.prisma.destination.count({
-      where: whereCondition,
-    });
+    const [data, total] = await Promise.all([
+      this.prisma.destination.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+        orderBy: { recommendationScore: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          city: true,
+          province: true,
+          thumbnailUrl: true,
+          googleRating: true,
+          userRating: true,
+          positiveRatio: true,
+          recommendationScore: true,
+        },
+      }),
+      this.prisma.destination.count({
+        where: whereCondition,
+      }),
+    ]);
 
     return {
       data,
@@ -389,6 +395,7 @@ export class DestinationsService {
     };
   }
 
+  // Mengambil detail publik destinasi berdasarkan id.
   async findOnePublic(id: number) {
     const destination = await this.prisma.destination.findFirst({
       where: { id, deletedAt: null },
@@ -422,30 +429,30 @@ export class DestinationsService {
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
 
-    // Aggregate user (platform) rating
+    // Menghitung rating user aplikasi.
     const reviewAgg = await this.prisma.userReview.aggregate({
       where: { destinationId: id },
       _avg: { rating: true },
       _count: true,
     });
 
-    // Aggregate scraped (Google Maps) review rating
+    // Menghitung rating dari review Google Maps.
     const scrapedAgg = await this.prisma.review.aggregate({
       where: { destinationId: id },
       _avg: { rating: true },
       _count: { rating: true },
     });
 
-    // Aggregate sentiment breakdown per topic
+    // Menghitung sentimen per topik.
     const topicSentimentBreakdown = await this.buildTopicSentimentBreakdown(id);
     const topicGroups = await this.buildTopicGroups(id);
 
     return {
       ...destination,
-      // Platform user reviews
+      // Review user aplikasi.
       averageUserRating: reviewAgg._avg.rating || null,
       totalUserReviews: reviewAgg._count,
-      // Scraped Google Maps reviews
+      // Review hasil scraping Google Maps.
       scrapedAverageRating: scrapedAgg._avg.rating
         ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
         : destination.userRating,
@@ -455,13 +462,14 @@ export class DestinationsService {
     };
   }
 
+  // Mengambil detail publik destinasi berdasarkan slug.
   async findOnePublicBySlug(slug: string) {
     const destination = await this.prisma.destination.findFirst({
       where: { slug, deletedAt: null },
       include: {
         images: true,
         sentimentTrends: {
-          orderBy: { date: 'asc' }, // usually charts need ascending dates
+          orderBy: { date: 'asc' }, // Chart memakai urutan tanggal naik.
           take: 30,
         },
         destinationTopics: {
@@ -492,21 +500,21 @@ export class DestinationsService {
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
 
-    // Aggregate user (platform) rating
+    // Menghitung rating user aplikasi.
     const reviewAgg = await this.prisma.userReview.aggregate({
       where: { destinationId: destination.id },
       _avg: { rating: true },
       _count: true,
     });
 
-    // Aggregate scraped (Google Maps) review rating
+    // Menghitung rating dari review Google Maps.
     const scrapedAgg = await this.prisma.review.aggregate({
       where: { destinationId: destination.id },
       _avg: { rating: true },
       _count: { rating: true },
     });
 
-    // Aggregate sentiment breakdown per topic
+    // Menghitung sentimen per topik.
     const topicSentimentBreakdown = await this.buildTopicSentimentBreakdown(
       destination.id,
     );
@@ -514,10 +522,10 @@ export class DestinationsService {
 
     return {
       ...destination,
-      // Platform user reviews
+      // Review user aplikasi.
       averageUserRating: reviewAgg._avg.rating || null,
       totalUserReviews: reviewAgg._count,
-      // Scraped Google Maps reviews
+      // Review hasil scraping Google Maps.
       scrapedAverageRating: scrapedAgg._avg.rating
         ? parseFloat(scrapedAgg._avg.rating.toFixed(2))
         : destination.userRating,
@@ -527,6 +535,7 @@ export class DestinationsService {
     };
   }
 
+  // Mengambil ranking destinasi berdasarkan skor, sentimen, atau rating.
   async findRanking(sortBy: string, limit: number) {
     let orderBy: Record<string, 'asc' | 'desc'> = {
       recommendationScore: 'desc',
@@ -557,9 +566,7 @@ export class DestinationsService {
     });
   }
 
-  /**
-   * Get scraped reviews filtered by topic for public destination detail.
-   */
+  // Mengambil review Google Maps yang berkaitan dengan satu topik sempit.
   async getReviewsByTopic(
     destinationId: number,
     topicId: number,
@@ -608,6 +615,7 @@ export class DestinationsService {
     };
   }
 
+  // Mengambil review dari semua topik sempit dalam satu topic group.
   async getReviewsByTopicGroup(
     destinationId: number,
     groupId: number,
@@ -680,6 +688,7 @@ export class DestinationsService {
     };
   }
 
+  // Mengelompokkan topik sempit menjadi topic group untuk halaman detail.
   private async buildTopicGroups(destinationId: number) {
     const grouped = await this.prisma.review.groupBy({
       by: ['topicId', 'sentiment'],
@@ -773,10 +782,8 @@ export class DestinationsService {
       .sort((a, b) => b.totalReviews - a.totalReviews);
   }
 
-  /**
-   * Build sentiment breakdown per topic for a destination.
-   * Returns: { [topicId]: { positive: N, negative: N, neutral: N } }
-   */
+  // Membuat ringkasan sentimen per topik.
+  // Menghitung sentimen positif, negatif, dan netral per topik.
   private async buildTopicSentimentBreakdown(
     destinationId: number,
   ): Promise<
@@ -813,5 +820,10 @@ export class DestinationsService {
     }
 
     return breakdown;
+  }
+
+  // Menghapus file lokal jika ada tanpa melempar error saat file hilang.
+  private async removeFileIfExists(filepath: string): Promise<void> {
+    await fs.rm(filepath, { force: true });
   }
 }

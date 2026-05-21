@@ -1,12 +1,7 @@
 import { IsOptional, IsInt, Min, Max, IsString, IsIn } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
-/**
- * PaginationQueryDto
- * DTO standar untuk semua endpoint yang mendukung pagination
- *
- * Usage: @Query() query: PaginationQueryDto
- */
+// Query standar untuk endpoint pagination.
 export class PaginationQueryDto {
   @ApiPropertyOptional({ description: 'Nomor halaman', default: 1, minimum: 1 })
   @IsOptional()

@@ -1,8 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-/**
- * Metadata pagination
- */
+// Metadata response pagination.
 export class PaginationMeta {
   @ApiProperty({ description: 'Halaman saat ini' })
   page: number;
@@ -23,12 +21,7 @@ export class PaginationMeta {
   hasNextPage: boolean;
 }
 
-/**
- * PaginatedResponseDto
- * Format standar untuk response yang menggunakan pagination
- *
- * Usage: return new PaginatedResponseDto(items, totalItems, query.page, query.limit);
- */
+// Format response untuk data berpaginasi.
 export class PaginatedResponseDto<T> {
   data: T[];
   meta: PaginationMeta;

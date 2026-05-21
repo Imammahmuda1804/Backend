@@ -7,19 +7,14 @@ import {
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-/**
- * Response format standar
- */
+// Bentuk response standar API.
 export interface ApiResponse<T> {
   status: 'success';
   data: T;
   meta?: any;
 }
 
-/**
- * Transform Interceptor
- * Wrap semua response dengan format standar: { status: 'success', data: ... }
- */
+// Membungkus response sukses dengan format standar.
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<
   T,

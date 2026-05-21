@@ -7,12 +7,8 @@ import { CreateUserReviewDto } from './dto';
 export class ReviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * POST /user-reviews
-   * Buat review baru, lalu recalculate user_rating & user_review_count destinasi.
-   */
+  // Membuat review user dan menghitung ulang rating.
   async createUserReview(userId: number, dto: CreateUserReviewDto) {
-    // 1. Validate destination exists
     const destination = await this.prisma.destination.findFirst({
       where: { id: dto.destination_id, deletedAt: null },
       select: { id: true },
@@ -21,8 +17,6 @@ export class ReviewsService {
     if (!destination) {
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
-
-    // 2. Create review
     const review = await this.prisma.userReview.create({
       data: {
         userId,
@@ -38,8 +32,6 @@ export class ReviewsService {
         createdAt: true,
       },
     });
-
-    // 3. Recalculate destination user_rating & user_review_count (non-blocking)
     this.recalculateUserRating(dto.destination_id).catch(() => {
       // Tidak gagalkan request jika recalculate gagal
     });
@@ -53,10 +45,7 @@ export class ReviewsService {
     };
   }
 
-  /**
-   * DELETE /admin/reviews/:id — hapus scraped review (admin moderation)
-   * ReviewEmbedding dihapus via cascade di DB.
-   */
+  // Menghapus scraped review dari admin.
   async deleteReview(reviewId: number) {
     const review = await this.prisma.review.findUnique({
       where: { id: reviewId },
@@ -73,10 +62,7 @@ export class ReviewsService {
     return { message: 'Review deleted' };
   }
 
-  /**
-   * DELETE /admin/user-reviews/:id — hapus user review (admin moderation)
-   * Lalu recalculate user_rating destinasi.
-   */
+  // Menghapus user review dari admin.
   async deleteUserReview(userReviewId: number) {
     const userReview = await this.prisma.userReview.findUnique({
       where: { id: userReviewId },
@@ -95,10 +81,7 @@ export class ReviewsService {
     return { message: 'User review deleted' };
   }
 
-  /**
-   * Recalculate AVG rating dan count dari semua user reviews per destination.
-   * Juga update recommendationScore karena formula-nya menggunakan userRating.
-   */
+  // Menghitung ulang rating user destinasi.
   async recalculateUserRating(destinationId: number): Promise<void> {
     const agg = await this.prisma.userReview.aggregate({
       where: { destinationId },
@@ -136,10 +119,7 @@ export class ReviewsService {
     });
   }
 
-  /**
-   * GET /admin/reviews/destination/:id
-   * Get paginated reviews for a specific destination with optional filters.
-   */
+  // Mengambil review destinasi untuk admin.
   async getReviewsByDestination(
     destinationId: number,
     page: number,
@@ -198,10 +178,7 @@ export class ReviewsService {
     };
   }
 
-  /**
-   * DELETE /admin/reviews/bulk
-   * Hapus masal review berdasarkan destinasi dan kategori
-   */
+  // Menghapus banyak review sekaligus.
   async deleteBulkReviews(
     destinationId: number,
     category: 'all' | 'processed' | 'unprocessed',

@@ -27,58 +27,58 @@ import { join } from 'path';
 
 @Module({
   imports: [
-    // Global Configuration
+    // Memuat konfigurasi global.
     ConfigModule.forRoot(envConfig),
 
-    // Database (Global)
+    // Memuat koneksi database.
     PrismaModule,
 
-    // Authentication
+    // Mengaktifkan autentikasi.
     AuthModule,
 
-    // User Management
+    // Memuat fitur user.
     UsersModule,
 
-    // Admin Module
+    // Memuat fitur admin.
     AdminModule,
 
-    // Destinations Module
+    // Memuat fitur destinasi.
     DestinationsModule,
 
-    // Scraper Module
+    // Memuat fitur scraper.
     ScraperModule,
 
-    // NLP Module
+    // Memuat fitur NLP.
     NlpModule,
 
-    // Vector Module
+    // Memuat fitur vector search.
     VectorModule,
 
-    // Uploads Module
+    // Memuat fitur upload.
     UploadsModule,
 
-    // Search Module
+    // Memuat fitur search.
     SearchModule,
 
-    // Analytics Module
+    // Memuat fitur analytics.
     AnalyticsModule,
 
-    // Favorites Module
+    // Memuat fitur favorit.
     FavoritesModule,
 
-    // User Reviews Module
+    // Memuat fitur review user.
     ReviewsModule,
 
-    // Topics Module
+    // Memuat fitur topik.
     TopicsModule,
 
-    // Static Files
+    // Menyajikan file statis.
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
 
-    // Rate Limiting
+    // Mengatur batas request.
     ThrottlerModule.forRoot({
       throttlers: [
         {
@@ -88,7 +88,7 @@ import { join } from 'path';
       ],
     }),
 
-    // BullMQ Queue (Redis)
+    // Mengatur queue Redis.
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -113,4 +113,5 @@ import { join } from 'path';
     },
   ],
 })
+// Menggabungkan semua module backend dan guard global aplikasi.
 export class AppModule {}

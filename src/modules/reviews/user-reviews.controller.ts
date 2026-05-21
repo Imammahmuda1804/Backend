@@ -15,9 +15,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class UserReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
-  /**
-   * POST /api/user-reviews
-   */
+  // Membuat review user.
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({

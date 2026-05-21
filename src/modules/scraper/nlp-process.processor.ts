@@ -52,7 +52,7 @@ export class NlpProcessProcessor extends WorkerHost {
       const csvString = this.csvService.generateInternalCsv(nlpData);
       const csvBuffer = Buffer.from(csvString);
 
-      // We call the real FastAPI NLP service
+      // Memanggil service FastAPI NLP utama.
       let nlpResult;
       try {
         nlpResult = await this.nlpService.processPipeline(
@@ -75,8 +75,8 @@ export class NlpProcessProcessor extends WorkerHost {
         }
 
         this.logger.warn('Using dummy data fallback (development only).');
-        // Fallback for development if FastAPI is not up
-        // Match the actual FastAPI response format
+        // Fallback development jika FastAPI mati.
+        // Menyamakan format response FastAPI.
         const positiveCount = reviews.filter(
           (r) => r.rating && r.rating >= 4,
         ).length;

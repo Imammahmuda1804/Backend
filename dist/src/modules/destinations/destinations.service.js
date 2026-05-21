@@ -45,7 +45,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DestinationsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
-const fs = __importStar(require("fs"));
+const fs_1 = require("fs");
 const path = __importStar(require("path"));
 const slug_util_1 = require("../../common/utils/slug.util");
 const destination_categories_1 = require("./destination-categories");
@@ -114,31 +114,33 @@ let DestinationsService = class DestinationsService {
                 category: { equals: category, mode: 'insensitive' },
             }),
         };
-        const data = await this.prisma.destination.findMany({
-            where: whereCondition,
-            skip,
-            take: limit,
-            orderBy: { createdAt: 'desc' },
-            include: {
-                images: true,
-                destinationTopics: {
-                    orderBy: { totalReviews: 'desc' },
-                    take: 3,
-                    include: {
-                        topic: {
-                            select: {
-                                id: true,
-                                topicName: true,
-                                keywords: true,
+        const [data, total] = await Promise.all([
+            this.prisma.destination.findMany({
+                where: whereCondition,
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    images: true,
+                    destinationTopics: {
+                        orderBy: { totalReviews: 'desc' },
+                        take: 3,
+                        include: {
+                            topic: {
+                                select: {
+                                    id: true,
+                                    topicName: true,
+                                    keywords: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        });
-        const total = await this.prisma.destination.count({
-            where: whereCondition,
-        });
+            }),
+            this.prisma.destination.count({
+                where: whereCondition,
+            }),
+        ]);
         return {
             data: data.map((destination) => ({
                 ...destination,
@@ -258,15 +260,13 @@ let DestinationsService = class DestinationsService {
         });
         if (!destination) {
             const filepath = path.join(process.cwd(), 'uploads', 'destinations', filename);
-            if (fs.existsSync(filepath))
-                fs.unlinkSync(filepath);
+            await this.removeFileIfExists(filepath);
             throw new common_1.NotFoundException('Destinasi tidak ditemukan');
         }
         if (destination.thumbnailUrl?.startsWith('/uploads/')) {
             const oldFilename = path.basename(destination.thumbnailUrl);
             const oldFilepath = path.join(process.cwd(), 'uploads', 'destinations', oldFilename);
-            if (fs.existsSync(oldFilepath))
-                fs.unlinkSync(oldFilepath);
+            await this.removeFileIfExists(oldFilepath);
         }
         const thumbnailUrl = `/uploads/destinations/${filename}`;
         return this.prisma.destination.update({
@@ -280,9 +280,7 @@ let DestinationsService = class DestinationsService {
         });
         if (!destination) {
             const filepath = path.join(process.cwd(), 'uploads', 'destinations', filename);
-            if (fs.existsSync(filepath)) {
-                fs.unlinkSync(filepath);
-            }
+            await this.removeFileIfExists(filepath);
             throw new common_1.NotFoundException('Destinasi tidak ditemukan');
         }
         const imageUrl = `/uploads/destinations/${filename}`;
@@ -302,9 +300,7 @@ let DestinationsService = class DestinationsService {
         }
         const filename = path.basename(image.imageUrl);
         const filepath = path.join(process.cwd(), 'uploads', 'destinations', filename);
-        if (fs.existsSync(filepath)) {
-            fs.unlinkSync(filepath);
-        }
+        await this.removeFileIfExists(filepath);
         return this.prisma.destinationImage.delete({
             where: { id: imageId },
         });
@@ -312,27 +308,29 @@ let DestinationsService = class DestinationsService {
     async findRecommendations(page, limit) {
         const skip = (page - 1) * limit;
         const whereCondition = { deletedAt: null };
-        const data = await this.prisma.destination.findMany({
-            where: whereCondition,
-            skip,
-            take: limit,
-            orderBy: { recommendationScore: 'desc' },
-            select: {
-                id: true,
-                name: true,
-                slug: true,
-                city: true,
-                province: true,
-                thumbnailUrl: true,
-                googleRating: true,
-                userRating: true,
-                positiveRatio: true,
-                recommendationScore: true,
-            },
-        });
-        const total = await this.prisma.destination.count({
-            where: whereCondition,
-        });
+        const [data, total] = await Promise.all([
+            this.prisma.destination.findMany({
+                where: whereCondition,
+                skip,
+                take: limit,
+                orderBy: { recommendationScore: 'desc' },
+                select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                    city: true,
+                    province: true,
+                    thumbnailUrl: true,
+                    googleRating: true,
+                    userRating: true,
+                    positiveRatio: true,
+                    recommendationScore: true,
+                },
+            }),
+            this.prisma.destination.count({
+                where: whereCondition,
+            }),
+        ]);
         return {
             data,
             meta: {
@@ -685,6 +683,9 @@ let DestinationsService = class DestinationsService {
             }
         }
         return breakdown;
+    }
+    async removeFileIfExists(filepath) {
+        await fs_1.promises.rm(filepath, { force: true });
     }
 };
 exports.DestinationsService = DestinationsService;

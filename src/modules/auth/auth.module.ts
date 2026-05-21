@@ -6,11 +6,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
-/**
- * AuthModule — Module untuk authentication
- *
- * Mengexport JwtStrategy agar bisa dipakai oleh JwtAuthGuard di seluruh aplikasi
- */
+// Module autentikasi dan strategi JWT.
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),

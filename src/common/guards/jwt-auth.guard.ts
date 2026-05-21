@@ -13,10 +13,7 @@ interface AuthenticatedUser {
   role: string;
 }
 
-/**
- * JWT Authentication Guard
- * Otomatis melindungi semua endpoint kecuali yang ditandai @Public()
- */
+// Guard JWT global untuk endpoint privat.
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(private reflector: Reflector) {
@@ -24,7 +21,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
-    // Cek apakah endpoint ditandai @Public()
+    // Lewati endpoint publik.
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),

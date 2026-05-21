@@ -30,9 +30,6 @@ let FavoritesController = class FavoritesController {
         const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20;
         return this.favoritesService.getFavorites(userId, parsedPage, parsedLimit);
     }
-    async removeFavorite(destinationId, userId) {
-        return this.favoritesService.removeFavorite(userId, destinationId);
-    }
     async checkFavorite(destinationId, userId) {
         return this.favoritesService.checkFavorite(userId, destinationId);
     }
@@ -66,19 +63,6 @@ __decorate([
     __metadata("design:paramtypes", [Number, String, String]),
     __metadata("design:returntype", Promise)
 ], FavoritesController.prototype, "getFavorites", null);
-__decorate([
-    (0, common_1.Delete)(':destinationId'),
-    (0, swagger_1.ApiOperation)({ summary: 'Hapus destinasi dari favorites' }),
-    (0, swagger_1.ApiParam)({ name: 'destinationId', type: Number }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: 'Berhasil dihapus dari favorites' }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
-    (0, swagger_1.ApiResponse)({ status: 404, description: 'Tidak ada di favorites' }),
-    __param(0, (0, common_1.Param)('destinationId', common_1.ParseIntPipe)),
-    __param(1, (0, current_user_decorator_1.CurrentUser)('id')),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
-    __metadata("design:returntype", Promise)
-], FavoritesController.prototype, "removeFavorite", null);
 __decorate([
     (0, common_1.Get)('check/:destinationId'),
     (0, swagger_1.ApiOperation)({ summary: 'Cek apakah destinasi ada di daftar favorit' }),

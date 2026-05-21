@@ -43,7 +43,6 @@ export class UsersService {
   }
 
   async updateProfile(userId: number, dto: UpdateProfileDto) {
-    // 1. Validate unique email jika diubah
     if (dto.email) {
       const existingUser = await this.prisma.user.findUnique({
         where: { email: dto.email },
@@ -53,14 +52,10 @@ export class UsersService {
         throw new ConflictException('Email sudah digunakan oleh pengguna lain');
       }
     }
-
-    // 2. Hash password baru (jika ada)
     let hashedPassword = undefined;
     if (dto.password) {
       hashedPassword = await bcrypt.hash(dto.password, 10);
     }
-
-    // 3. Update user
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -217,8 +212,6 @@ export class UsersService {
       });
       if (existing) throw new ConflictException('Email sudah digunakan');
     }
-
-    // Hash password if provided
     let hashedPassword: string | undefined;
     if (dto.password) {
       hashedPassword = await bcrypt.hash(dto.password, 10);

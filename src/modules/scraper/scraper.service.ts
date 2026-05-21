@@ -24,10 +24,7 @@ export class ScraperService {
     @InjectQueue('scraping-queue') private readonly scrapingQueue: Queue,
   ) {}
 
-  /**
-   * Mencari tempat di Google Maps.
-   * Mendukung pencarian via teks biasa atau URL Google Maps langsung.
-   */
+  // Mencari tempat di Google Maps.
   async searchMaps(query: string) {
     if (!query || query.trim() === '') {
       throw new BadRequestException('Query parameter (q) is required');
@@ -41,20 +38,7 @@ export class ScraperService {
     }
   }
 
-  /**
-   * Memulai scraping ulasan untuk destinasi tertentu.
-   *
-   * Aturan filter yang DIKUNCI (tidak bisa diubah dari request):
-   *  - Sort     : newest
-   *  - Bintang  : semua (tanpa filter)
-   *  - Has text : true
-   *
-   * Yang bisa dikontrol admin:
-   *  - max_reviews : batas jumlah ulasan berteks yang HARUS didapat
-   *  - maps_url    : override URL Maps (opsional, fallback ke DB)
-   *
-   * Hasil scraping disimpan sebagai file Excel, TIDAK ke database.
-   */
+  // Memulai scraping ulasan destinasi.
   async startScraping(dto: StartScrapingDto, adminId?: number) {
     const destination = await this.prisma.destination.findUnique({
       where: { id: dto.destination_id },
@@ -182,10 +166,7 @@ export class ScraperService {
     };
   }
 
-  /**
-   * Download file Excel hasil scraping.
-   * File disimpan oleh ScraperProcessor di uploads/scraped_data/job_{jobId}.xlsx
-   */
+  // Mengunduh file Excel hasil scraping.
   async downloadExcel(
     jobId: number,
   ): Promise<{ filePath: string; filename: string }> {
@@ -213,7 +194,7 @@ export class ScraperService {
       );
     }
 
-    // Generate nama file download yang informatif
+    // Membuat nama file download.
     const safeName = (job.destination?.name || 'Destination')
       .replace(/[^a-zA-Z0-9\s]/g, '')
       .replace(/\s+/g, '_')

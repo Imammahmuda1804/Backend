@@ -75,8 +75,8 @@ export const multerImageOptions = {
 export const multerCsvOptions = {
   fileFilter: csvFileFilter,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  // Use memory storage for CSV/Excel files
-  // Files will be available in file.buffer
+  // Menyimpan file CSV/Excel di memori.
+  // File tersedia melalui file.buffer.
 };
 
 export const multerProfileImageOptions = {

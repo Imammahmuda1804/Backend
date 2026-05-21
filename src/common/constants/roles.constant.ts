@@ -1,7 +1,4 @@
-/**
- * Role constants
- * Sesuai dengan enum Role di Prisma schema
- */
+// Daftar role yang dipakai aplikasi.
 export const ROLES = {
   ADMIN: 'ADMIN',
   USER: 'USER',

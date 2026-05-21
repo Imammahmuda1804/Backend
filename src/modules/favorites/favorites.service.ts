@@ -5,12 +5,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class FavoritesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * POST /favorites/:destinationId
-   * Simpan destinasi ke favorites. Handle duplicate gracefully.
-   */
+  // Menambahkan destinasi ke favorit.
   async addFavorite(userId: number, destinationId: number) {
-    // 1. Cek destination exists
     const destination = await this.prisma.destination.findFirst({
       where: { id: destinationId, deletedAt: null },
       select: { id: true, name: true },
@@ -19,21 +15,19 @@ export class FavoritesService {
     if (!destination) {
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
-
-    // 2. Upsert — jika sudah ada, tidak error
     try {
       await this.prisma.favorite.create({
         data: { userId, destinationId },
       });
     } catch (error: unknown) {
-      // Prisma unique constraint violation (P2002) → sudah di-favorite
+      // Jika favorit sudah ada, kembalikan sukses.
       if (
         error &&
         typeof error === 'object' &&
         'code' in error &&
         error.code === 'P2002'
       ) {
-        // Sudah ada — return success tanpa error
+        // Favorit sudah tercatat.
         return { message: 'Destination already in favorites' };
       }
       throw error;
@@ -42,10 +36,7 @@ export class FavoritesService {
     return { message: 'Destination saved to favorites' };
   }
 
-  /**
-   * GET /favorites
-   * Paginated list favorites milik user.
-   */
+  // Mengambil daftar favorit user.
   async getFavorites(userId: number, page: number, limit: number) {
     const skip = (page - 1) * limit;
 
@@ -87,34 +78,7 @@ export class FavoritesService {
     };
   }
 
-  /**
-   * DELETE /favorites/:destinationId
-   * Hapus dari favorites. 404 jika tidak ada.
-   */
-  async removeFavorite(userId: number, destinationId: number) {
-    const favorite = await this.prisma.favorite.findUnique({
-      where: {
-        userId_destinationId: { userId, destinationId },
-      },
-    });
-
-    if (!favorite) {
-      throw new NotFoundException('Destinasi tidak ada di favorites');
-    }
-
-    await this.prisma.favorite.delete({
-      where: {
-        userId_destinationId: { userId, destinationId },
-      },
-    });
-
-    return { message: 'Destination removed from favorites' };
-  }
-
-  /**
-   * GET /favorites/check/:destinationId
-   * Cek apakah destinasi ada di daftar favorit.
-   */
+  // Mengambil daftar favorit user.
   async checkFavorite(
     userId: number,
     destinationId: number,

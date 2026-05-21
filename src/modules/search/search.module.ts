@@ -6,8 +6,8 @@ import { VectorModule } from '../vector/vector.module';
 
 @Module({
   imports: [
-    NlpModule, // provides NlpService (embedQuery)
-    VectorModule, // provides VectorService (hybridSearch)
+    NlpModule, // Menyediakan NlpService.
+    VectorModule, // Menyediakan VectorService.
   ],
   controllers: [SearchController],
   providers: [SearchService],

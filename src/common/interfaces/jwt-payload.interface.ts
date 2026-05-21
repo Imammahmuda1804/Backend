@@ -1,7 +1,4 @@
-/**
- * JWT Payload interface
- * Struktur data yang di-encode ke dalam JWT token
- */
+// Struktur payload yang disimpan di JWT.
 export interface JwtPayload {
   sub: number; // user id
   email: string;

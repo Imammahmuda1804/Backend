@@ -11,17 +11,7 @@ type AuthenticatedRequest = Request & {
   user?: AuthenticatedUser;
 };
 
-/**
- * @CurrentUser() decorator
- * Ambil user dari JWT payload yang sudah di-decode oleh passport
- *
- * Usage:
- *   @Get('me')
- *   getProfile(@CurrentUser() user: JwtPayload) { ... }
- *
- *   @Get('me')
- *   getProfile(@CurrentUser('sub') userId: number) { ... }
- */
+// Mengambil user aktif dari payload JWT.
 export const CurrentUser = createParamDecorator(
   (data: keyof AuthenticatedUser | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();

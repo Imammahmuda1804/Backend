@@ -2,11 +2,6 @@ import { TopicsService } from './topics.service';
 export declare class TopicsController {
     private readonly topicsService;
     constructor(topicsService: TopicsService);
-    renameTopics(): Promise<{
-        renamed: number;
-        failed: number;
-        total: number;
-    }>;
     findAll(scope?: 'search' | 'detail'): Promise<{
         id: number;
         group_name: string;
@@ -51,25 +46,6 @@ export declare class TopicsController {
             total_destinations: number;
         }[];
     }[]>;
-    renameTopic(id: number, topicName: string): Promise<{
-        id: number;
-        topicName: string;
-    }>;
-    updateTopicSettings(id: number, body: {
-        groupId?: number | null;
-        isSearchVisible?: boolean;
-        isDetailVisible?: boolean;
-    }): Promise<{
-        id: number;
-        topic_name: string;
-        group_id: number | null;
-        is_search_visible: boolean;
-        is_detail_visible: boolean;
-    }>;
-    renameGroup(id: number, groupName: string): Promise<{
-        id: number;
-        group_name: string;
-    }>;
     deleteTopic(id: number): Promise<{
         deleted: boolean;
         id: number;

@@ -1,13 +1,11 @@
 import { Global, Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 
-/**
- * PrismaModule — Global module
- * Sekali import di AppModule, PrismaService tersedia di seluruh aplikasi
- */
+// Menyediakan PrismaService secara global.
 @Global()
 @Module({
   providers: [PrismaService],
   exports: [PrismaService],
 })
+// Menyediakan PrismaService sebagai dependency global untuk semua module.
 export class PrismaModule {}

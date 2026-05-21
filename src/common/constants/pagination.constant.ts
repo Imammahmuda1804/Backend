@@ -1,6 +1,4 @@
-/**
- * Default pagination values
- */
+// Nilai bawaan untuk pagination.
 export const PAGINATION = {
   DEFAULT_PAGE: 1,
   DEFAULT_LIMIT: 10,

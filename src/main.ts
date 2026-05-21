@@ -8,22 +8,23 @@ import { swaggerConfig } from './config/swagger.config';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 
+// Menyiapkan aplikasi NestJS, middleware global, validasi, dokumentasi, dan server HTTP.
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const configService = app.get(ConfigService);
 
-  // Global prefix
+  // Mengatur prefix API.
   app.setGlobalPrefix('api');
 
-  // Security - Helmet
+  // Mengaktifkan header keamanan.
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
 
-  // CORS
+  // Mengatur akses CORS.
   const corsOrigins = configService.get<string>('CORS_ORIGINS', '');
   const allowedOrigins = corsOrigins
     ? corsOrigins
@@ -43,13 +44,13 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // Global Exception Filter — format error response standar
+  // Mengaktifkan format error global.
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // Global Transform Interceptor — wrap response ke { status, data }
+  // Mengaktifkan format response global.
   app.useGlobalInterceptors(new TransformInterceptor());
 
-  // Global Validation Pipe
+  // Mengaktifkan validasi request global.
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -61,7 +62,7 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger Documentation
+  // Menyiapkan dokumentasi Swagger.
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: {
@@ -71,7 +72,7 @@ async function bootstrap() {
     },
   });
 
-  // Start server
+  // Menjalankan server HTTP.
   const port = configService.get<number>('PORT', 3000);
   await app.listen(port);
 

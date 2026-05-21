@@ -51,11 +51,11 @@ export declare class AnalyticsService {
             };
         } & {
             id: number;
-            status: string;
-            createdAt: Date;
             destinationId: number;
             source: string;
+            createdAt: Date;
             totalReviews: number | null;
+            status: string;
             startedAt: Date | null;
             finishedAt: Date | null;
             errorMessage: string | null;
@@ -73,11 +73,11 @@ export declare class AnalyticsService {
                 };
             } & {
                 id: number;
-                status: string;
-                createdAt: Date;
                 destinationId: number;
                 source: string;
+                createdAt: Date;
                 totalReviews: number | null;
+                status: string;
                 startedAt: Date | null;
                 finishedAt: Date | null;
                 errorMessage: string | null;
@@ -90,11 +90,11 @@ export declare class AnalyticsService {
                 };
             } & {
                 id: number;
-                status: string;
-                createdAt: Date;
                 destinationId: number;
                 source: string;
+                createdAt: Date;
                 totalReviews: number | null;
+                status: string;
                 startedAt: Date | null;
                 finishedAt: Date | null;
                 errorMessage: string | null;
@@ -110,14 +110,14 @@ export declare class AnalyticsService {
             destinations_without_trends: number;
             recent_negative_reviews: {
                 id: number;
+                reviewText: string | null;
+                rating: number | null;
                 createdAt: Date;
                 destination: {
                     id: number;
                     name: string;
                     city: string;
                 };
-                rating: number | null;
-                reviewText: string | null;
             }[];
         };
         topic_risk_matrix: {
@@ -145,11 +145,11 @@ export declare class AnalyticsService {
             };
         } & {
             id: number;
-            status: string;
-            createdAt: Date;
             destinationId: number;
             source: string;
+            createdAt: Date;
             totalReviews: number | null;
+            status: string;
             startedAt: Date | null;
             finishedAt: Date | null;
             errorMessage: string | null;
@@ -157,33 +157,33 @@ export declare class AnalyticsService {
         })[];
         recent_scraped_reviews: {
             id: number;
+            reviewerName: string;
+            rating: number | null;
+            sentiment: string | null;
             createdAt: Date;
             destination: {
                 name: string;
             };
-            rating: number | null;
-            sentiment: string | null;
-            reviewerName: string;
         }[];
         recent_user_reviews: {
             id: number;
+            reviewText: string | null;
+            rating: number;
             createdAt: Date;
-            user: {
-                name: string;
-            };
             destination: {
                 name: string;
             };
-            rating: number;
-            reviewText: string | null;
+            user: {
+                name: string;
+            };
         }[];
         recent_registrations: {
             id: number;
-            email: string;
+            createdAt: Date;
             name: string;
+            email: string;
             role: import("@prisma/client").$Enums.Role;
             status: string;
-            createdAt: Date;
         }[];
     }>;
     getAdminTrends(period?: 'daily' | 'weekly' | 'monthly'): Promise<{

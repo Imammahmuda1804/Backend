@@ -32,7 +32,7 @@ export class DestinationsController {
     const page = Number(query.page) || 1;
     const limit = Number(query.limit) || 10;
 
-    // Parse topic_ids comma-separated string to number array
+    // Mengubah topic_ids menjadi array angka.
     const topicIds = query.topic_ids
       ? query.topic_ids
           .split(',')

@@ -12,6 +12,7 @@ import { NlpServiceUnavailableException } from '../nlp/exceptions/nlp-unavailabl
 import { SearchQueryDto } from './dto';
 
 @Injectable()
+// Mengelola semantic search dan riwayat pencarian pengguna.
 export class SearchService {
   private readonly logger = new Logger(SearchService.name);
 
@@ -21,21 +22,14 @@ export class SearchService {
     private readonly vectorService: VectorService,
   ) {}
 
-  /**
-   * Semantic search utama
-   * 1. Embed query via FastAPI
-   * 2. Hybrid search di pgvector
-   * 3. Simpan ke search_logs jika user login
-   */
+  // Menjalankan search semantik dan menyimpan riwayat user.
   async semanticSearch(dto: SearchQueryDto, userId?: number) {
     const limit = Math.min(dto.limit ?? 10, 50);
 
-    // Log untuk debugging
+    // Log request pencarian.
     this.logger.log(
       `Search request: "${dto.query}" by user ${userId || 'guest'}`,
     );
-
-    // 1. Get embedding dari FastAPI — propagate 503 jika service down
     let embedding: number[];
     try {
       embedding = await this.nlpService.embedQuery(dto.query);
@@ -47,8 +41,6 @@ export class SearchService {
       }
       throw error;
     }
-
-    // 2. Hybrid / Semantic search di pgvector
     const topicIds = dto.topicIds ?? dto.topic_ids;
     const minRating = dto.minRating ?? dto.min_rating;
     const results = await this.vectorService.hybridSearch(
@@ -64,8 +56,6 @@ export class SearchService {
       },
     );
     const enrichedResults = await this.attachTopTopics(results);
-
-    // 3. Simpan search log jika user login
     if (userId) {
       try {
         await this.prisma.searchLog.create({
@@ -92,6 +82,7 @@ export class SearchService {
     return enrichedResults;
   }
 
+  // Menambahkan tiga topik dominan pada setiap hasil destinasi.
   private async attachTopTopics<T extends { id: number }>(results: T[]) {
     if (results.length === 0) return results;
 
@@ -133,9 +124,7 @@ export class SearchService {
     }));
   }
 
-  /**
-   * GET /search/history — riwayat pencarian user (paginated)
-   */
+  // Mengambil riwayat pencarian user.
   async getHistory(userId: number, page: number, limit: number) {
     const skip = (page - 1) * limit;
 
@@ -165,9 +154,7 @@ export class SearchService {
     };
   }
 
-  /**
-   * DELETE /search/history — hapus semua riwayat user
-   */
+  // Menghapus semua riwayat pencarian user.
   async clearHistory(userId: number) {
     const { count } = await this.prisma.searchLog.deleteMany({
       where: { userId },
@@ -179,9 +166,7 @@ export class SearchService {
     };
   }
 
-  /**
-   * DELETE /search/history/:id — hapus satu entry (validasi ownership)
-   */
+  // Menghapus satu riwayat pencarian user.
   async deleteHistoryEntry(entryId: number, userId: number) {
     const entry = await this.prisma.searchLog.findUnique({
       where: { id: entryId },

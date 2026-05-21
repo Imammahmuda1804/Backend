@@ -18,7 +18,7 @@ export const swaggerConfig = new DocumentBuilder()
       in: 'header',
     },
     // Tidak pakai nama custom — pakai default 'bearer'
-    // agar cocok dengan @ApiBearerAuth() tanpa argumen di semua controller
+    // Menyamakan skema bearer dengan decorator Swagger.
   )
   .addTag('Auth', 'Autentikasi & Otorisasi')
   .addTag('Users', 'Manajemen Profil User')

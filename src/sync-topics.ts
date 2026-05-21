@@ -57,7 +57,7 @@ async function bootstrap() {
 
     if (!existing) {
       console.log(`\n🤖 Generate nama AI untuk Topik ID ${topicId}...`);
-      // Ini akan memanggil AI Gemini melalui fallback chain
+      // Menamai topik memakai fallback Gemini.
       topicName = await aiNaming.generateTopicName(topicId, keywords);
 
       await prisma.topic.create({

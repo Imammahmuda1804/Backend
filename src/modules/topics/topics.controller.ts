@@ -1,12 +1,9 @@
 import {
   Controller,
   Get,
-  Post,
-  Put,
   Delete,
   Param,
   Query,
-  Body,
   ParseIntPipe,
 } from '@nestjs/common';
 import {
@@ -26,22 +23,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 export class TopicsController {
   constructor(private readonly topicsService: TopicsService) {}
 
-  /**
-   * POST /api/topics/rename-ai
-   * Trigger AI rename untuk semua topik yang masih menggunakan nama keyword-based.
-   */
-  @Post('rename-ai')
-  @ApiBearerAuth()
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Rename semua topik menggunakan AI (Gemini)' })
-  @ApiResponse({ status: 200, description: 'Hasil rename topik' })
-  async renameTopics() {
-    return this.topicsService.renameUnnamedTopics();
-  }
-
-  /**
-   * GET /api/topics
-   */
+  // Mengambil daftar topik sesuai scope tampilan.
   @Get()
   @Public()
   @ApiOperation({ summary: 'List semua topics dengan jumlah destinasi' })
@@ -58,57 +40,7 @@ export class TopicsController {
     return this.topicsService.findGroups();
   }
 
-  /**
-   * PUT /api/topics/:id/rename
-   * Rename topik tertentu secara manual.
-   */
-  @Put(':id/rename')
-  @ApiBearerAuth()
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Rename topik secara manual' })
-  @ApiParam({ name: 'id', type: Number, description: 'Topic ID' })
-  @ApiResponse({ status: 200, description: 'Topik berhasil di-rename' })
-  @ApiResponse({ status: 404, description: 'Topic tidak ditemukan' })
-  async renameTopic(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('topicName') topicName: string,
-  ) {
-    return this.topicsService.renameTopic(id, topicName);
-  }
-
-  @Put(':id/settings')
-  @ApiBearerAuth()
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Update group dan visibilitas topic' })
-  @ApiParam({ name: 'id', type: Number, description: 'Topic ID' })
-  async updateTopicSettings(
-    @Param('id', ParseIntPipe) id: number,
-    @Body()
-    body: {
-      groupId?: number | null;
-      isSearchVisible?: boolean;
-      isDetailVisible?: boolean;
-    },
-  ) {
-    return this.topicsService.updateTopicSettings(id, body);
-  }
-
-  @Put('groups/:id/rename')
-  @ApiBearerAuth()
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Rename topic group' })
-  @ApiParam({ name: 'id', type: Number, description: 'Topic group ID' })
-  async renameGroup(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('groupName') groupName: string,
-  ) {
-    return this.topicsService.renameGroup(id, groupName);
-  }
-
-  /**
-   * DELETE /api/topics/:id
-   * Hapus topik beserta relasinya.
-   */
+  // Menghapus topik sebagai admin.
   @Delete(':id')
   @ApiBearerAuth()
   @Roles('ADMIN')
@@ -120,9 +52,7 @@ export class TopicsController {
     return this.topicsService.deleteTopic(id);
   }
 
-  /**
-   * GET /api/topics/:id/destinations
-   */
+  // Mengambil destinasi yang terkait dengan topik.
   @Get(':id/destinations')
   @Public()
   @ApiOperation({ summary: 'Destinasi berdasarkan topic' })

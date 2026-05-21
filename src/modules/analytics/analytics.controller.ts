@@ -15,18 +15,12 @@ import { Public } from '../../common/decorators/public.decorator';
 @Controller('analytics')
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
-
-  // ── Task 8.1 ──────────────────────────────────────────────────
-
   @Get('dashboard')
   @ApiOperation({ summary: 'Public analytics dashboard' })
   @ApiResponse({ status: 200, description: 'Dashboard stats berhasil diambil' })
   async getDashboard() {
     return this.analyticsService.getPublicDashboard();
   }
-
-  // ── Task 8.2 ──────────────────────────────────────────────────
-
   @Get('destination/:id')
   @ApiOperation({ summary: 'Analytics lengkap untuk satu destinasi' })
   @ApiParam({ name: 'id', type: Number })
@@ -65,9 +59,6 @@ export class AnalyticsController {
   ) {
     return this.analyticsService.getDestinationTrends(id, query.period);
   }
-
-  // ── Task 8.3 ──────────────────────────────────────────────────
-
   @Get('compare')
   @ApiOperation({ summary: 'Perbandingan dua destinasi' })
   @ApiResponse({ status: 200, description: 'Perbandingan berhasil' })

@@ -7,16 +7,7 @@ interface AuthenticatedUser {
   role: string;
 }
 
-/**
- * OptionalJwtAuthGuard
- *
- * Berbeda dengan JwtAuthGuard biasa:
- * - Jika token ada dan valid → req.user di-populate
- * - Jika token tidak ada atau tidak valid → req.user = undefined, request tetap lanjut (tidak 401)
- *
- * Digunakan untuk endpoint yang bisa diakses guest maupun user login,
- * tapi ingin memanfaatkan info user jika tersedia (e.g. simpan search history).
- */
+// Guard JWT opsional untuk endpoint guest dan user login.
 @Injectable()
 export class OptionalJwtAuthGuard extends AuthGuard('jwt') {
   async canActivate(context: ExecutionContext): Promise<boolean> {

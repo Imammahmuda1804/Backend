@@ -4,12 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from '../../../common/interfaces';
 
-/**
- * JWT Strategy — Passport strategy untuk memvalidasi JWT token
- *
- * Token diambil dari header Authorization: Bearer <token>
- * Setelah validasi, payload diinjeksi ke request.user
- */
+// Strategi Passport untuk membaca dan memvalidasi JWT.
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
@@ -25,10 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  /**
-   * Dipanggil setelah JWT terverifikasi.
-   * Return value akan diset ke request.user
-   */
+  // Mengubah payload JWT menjadi request.user.
   validate(payload: JwtPayload) {
     return {
       id: payload.sub,

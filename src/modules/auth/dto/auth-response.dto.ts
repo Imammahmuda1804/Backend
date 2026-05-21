@@ -1,8 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-/**
- * User data yang dikembalikan setelah login/register (tanpa password)
- */
+// Data user yang aman untuk response auth.
 export class AuthUserDto {
   @ApiProperty({ example: 1 })
   id: number;
@@ -17,9 +15,7 @@ export class AuthUserDto {
   role: string;
 }
 
-/**
- * Response dari endpoint login
- */
+// Response login berisi token dan user.
 export class LoginResponseDto {
   @ApiProperty({ description: 'JWT access token' })
   access_token: string;
@@ -31,9 +27,7 @@ export class LoginResponseDto {
   user: AuthUserDto;
 }
 
-/**
- * Response dari endpoint register
- */
+// Response register berisi data user.
 export class RegisterResponseDto {
   @ApiProperty({ example: 1 })
   id: number;

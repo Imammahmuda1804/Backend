@@ -1,26 +1,16 @@
 import { PAGINATION } from '../constants/pagination.constant';
 
-/**
- * Hitung offset untuk Prisma skip berdasarkan page dan limit
- */
+// Menghitung offset pagination untuk Prisma.
 export function calculateOffset(page: number, limit: number): number {
   return (page - 1) * limit;
 }
 
-/**
- * Hitung total halaman
- */
+// Menghitung total halaman pagination.
 export function calculateTotalPages(totalItems: number, limit: number): number {
   return Math.ceil(totalItems / limit);
 }
 
-/**
- * Build Prisma orderBy object dari sort dan order string
- *
- * @example
- * buildOrderBy('createdAt', 'desc') => { createdAt: 'desc' }
- * buildOrderBy(undefined, undefined) => { createdAt: 'desc' }
- */
+// Membuat orderBy Prisma dari parameter sort.
 export function buildOrderBy(
   sort?: string,
   order?: 'asc' | 'desc',

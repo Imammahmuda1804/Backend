@@ -9,6 +9,7 @@ import { NlpServiceUnavailableException } from './exceptions/nlp-unavailable.exc
 import { NlpProcessingException } from './exceptions/nlp-processing.exception';
 
 @Injectable()
+// Menjadi client HTTP dari backend NestJS ke service FastAPI Model.
 export class NlpService {
   private readonly logger = new Logger(NlpService.name);
   private readonly nlpBaseUrl: string;
@@ -75,6 +76,7 @@ export class NlpService {
     }
   }
 
+  // Meminta embedding query ke FastAPI untuk semantic search.
   async embedQuery(text: string): Promise<number[]> {
     try {
       const response = await firstValueFrom(
@@ -106,6 +108,7 @@ export class NlpService {
     }
   }
 
+  // Mengecek kesehatan service FastAPI Model.
   async healthCheck(): Promise<boolean> {
     try {
       const response = await firstValueFrom(
@@ -118,6 +121,7 @@ export class NlpService {
     }
   }
 
+  // Mengubah error Axios menjadi exception backend yang terstruktur.
   private handleAxiosError(error: AxiosError): never {
     if (error.code === 'ECONNREFUSED') {
       this.logger.error('Connection refused. Is FastAPI running?');

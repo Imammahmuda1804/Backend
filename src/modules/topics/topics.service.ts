@@ -5,6 +5,7 @@ import { AiNamingService } from '../nlp/ai-naming.service';
 type TopicScope = 'search' | 'detail';
 
 @Injectable()
+// Mengelola topic NLP, topic group, visibility, rename, dan relasi destinasi.
 export class TopicsService {
   private readonly logger = new Logger(TopicsService.name);
   constructor(
@@ -12,18 +13,12 @@ export class TopicsService {
     private readonly aiNamingService: AiNamingService,
   ) {}
 
-  /**
-   * POST /admin/topics/rename-ai
-   * Me-rename semua topik yang masih menggunakan nama keyword-based
-   * (format "Topic X: ...") menjadi nama informatif via Gemini AI.
-   * Bisa dijalankan kapan saja saat quota Gemini tersedia.
-   */
+  // Menamai ulang topic fallback memakai AI naming.
   async renameUnnamedTopics(): Promise<{
     renamed: number;
     failed: number;
     total: number;
   }> {
-    // Cari topik yang masih pakai nama keyword-based (dimulai dengan "Topic ")
     const topics = await this.prisma.topic.findMany({
       where: {
         topicName: { startsWith: 'Topic ' },
@@ -51,7 +46,6 @@ export class TopicsService {
         keywords,
       );
 
-      // Cek apakah AI berhasil memberikan nama baru (bukan fallback keyword-based)
       if (!newName.startsWith('Topic ')) {
         await this.prisma.topic.update({
           where: { id: topic.id },
@@ -72,10 +66,7 @@ export class TopicsService {
     return { renamed, failed, total: topics.length };
   }
 
-  /**
-   * GET /topics
-   * List semua topics dengan jumlah destinasi terkait.
-   */
+  // Mengambil daftar topic atau topic group sesuai scope UI.
   async findAll(scope?: TopicScope) {
     if (scope === 'detail') {
       return this.findGroups();
@@ -123,6 +114,7 @@ export class TopicsService {
     }));
   }
 
+  // Mengambil semua topic group beserta topic di dalamnya.
   async findGroups() {
     const groups = await this.prisma.topicGroup.findMany({
       orderBy: [{ displayOrder: 'asc' }, { id: 'asc' }],
@@ -166,10 +158,7 @@ export class TopicsService {
     }));
   }
 
-  /**
-   * GET /topics/:id/destinations
-   * Paginated destinations yang memiliki topic tertentu.
-   */
+  // Mengambil destinasi yang memiliki topic tertentu.
   async findDestinationsByTopic(topicId: number, page: number, limit: number) {
     // Cek topic exists
     const topic = await this.prisma.topic.findUnique({
@@ -232,10 +221,7 @@ export class TopicsService {
     };
   }
 
-  /**
-   * PUT /topics/:id/rename
-   * Rename topik secara manual oleh admin.
-   */
+  // Mengganti nama topic secara manual oleh admin.
   async renameTopic(
     topicId: number,
     newName: string,
@@ -254,6 +240,7 @@ export class TopicsService {
     return updated;
   }
 
+  // Mengubah group dan visibility topic untuk search/detail.
   async updateTopicSettings(
     topicId: number,
     data: {
@@ -304,6 +291,7 @@ export class TopicsService {
     };
   }
 
+  // Mengganti nama topic group luas.
   async renameGroup(groupId: number, groupName: string) {
     const group = await this.prisma.topicGroup.findUnique({
       where: { id: groupId },
@@ -319,10 +307,7 @@ export class TopicsService {
     return { id: updated.id, group_name: updated.groupName };
   }
 
-  /**
-   * DELETE /topics/:id
-   * Hapus topik beserta relasi destinationTopic dan unlink review.
-   */
+  // Menghapus topic dan melepas relasinya dari review/destinasi.
   async deleteTopic(
     topicId: number,
   ): Promise<{ deleted: boolean; id: number }> {
@@ -331,7 +316,6 @@ export class TopicsService {
     });
     if (!topic) throw new NotFoundException('Topic tidak ditemukan');
 
-    // Hapus relasi terlebih dahulu, lalu topik
     await this.prisma.$transaction([
       this.prisma.destinationTopic.deleteMany({ where: { topicId } }),
       this.prisma.review.updateMany({

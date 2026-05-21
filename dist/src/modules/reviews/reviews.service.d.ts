@@ -24,11 +24,10 @@ export declare class ReviewsService {
                 topicName: string;
             } | null;
         } & {
-            id: number;
             createdAt: Date;
-            rating: number | null;
-            sentiment: string | null;
+            id: number;
             destinationId: number;
+            rating: number | null;
             reviewText: string | null;
             reviewerName: string;
             cleanedText: string | null;
@@ -36,6 +35,7 @@ export declare class ReviewsService {
             source: string | null;
             likesCount: number | null;
             ownerReply: string | null;
+            sentiment: string | null;
             sentimentConfidence: number | null;
             topicId: number | null;
             scrapingJobId: number | null;

@@ -18,10 +18,9 @@ export declare class AdminDestinationsController {
     private readonly scraperService;
     constructor(destinationsService: DestinationsService, scraperService: ScraperService);
     create(dto: CreateDestinationDto): Promise<{
+        createdAt: Date;
         id: number;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         description: string | null;
         slug: string;
         city: string;
@@ -39,6 +38,7 @@ export declare class AdminDestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
+        updatedAt: Date;
         deletedAt: Date | null;
     }>;
     findAll(query: DestinationQueryDto): Promise<{
@@ -51,8 +51,8 @@ export declare class AdminDestinationsController {
                 total_reviews: number;
             }[];
             images: {
-                id: number;
                 createdAt: Date;
+                id: number;
                 destinationId: number;
                 imageUrl: string;
             }[];
@@ -65,13 +65,12 @@ export declare class AdminDestinationsController {
             } & {
                 id: number;
                 destinationId: number;
-                topicId: number;
                 totalReviews: number;
+                topicId: number;
             })[];
+            createdAt: Date;
             id: number;
             name: string;
-            createdAt: Date;
-            updatedAt: Date;
             description: string | null;
             slug: string;
             city: string;
@@ -89,6 +88,7 @@ export declare class AdminDestinationsController {
             thumbnailUrl: string | null;
             positiveRatio: number | null;
             recommendationScore: number | null;
+            updatedAt: Date;
             deletedAt: Date | null;
         }[];
         meta: {
@@ -99,21 +99,9 @@ export declare class AdminDestinationsController {
         };
     }>;
     findOne(id: number): Promise<{
-        scrapingJobs: {
-            id: number;
-            status: string;
-            createdAt: Date;
-            destinationId: number;
-            source: string;
-            totalReviews: number | null;
-            startedAt: Date | null;
-            finishedAt: Date | null;
-            errorMessage: string | null;
-            createdBy: number | null;
-        }[];
         images: {
-            id: number;
             createdAt: Date;
+            id: number;
             destinationId: number;
             imageUrl: string;
         }[];
@@ -128,17 +116,17 @@ export declare class AdminDestinationsController {
         destinationTopics: ({
             topic: {
                 group: {
-                    id: number;
                     createdAt: Date;
-                    updatedAt: Date;
+                    id: number;
                     description: string | null;
+                    updatedAt: Date;
                     keywords: import("@prisma/client/runtime/client").JsonValue | null;
                     groupName: string;
                     displayOrder: number;
                 } | null;
             } & {
-                id: number;
                 createdAt: Date;
+                id: number;
                 topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
                 groupId: number | null;
@@ -149,14 +137,25 @@ export declare class AdminDestinationsController {
         } & {
             id: number;
             destinationId: number;
-            topicId: number;
             totalReviews: number;
+            topicId: number;
         })[];
+        scrapingJobs: {
+            createdAt: Date;
+            id: number;
+            destinationId: number;
+            status: string;
+            source: string;
+            totalReviews: number | null;
+            startedAt: Date | null;
+            finishedAt: Date | null;
+            errorMessage: string | null;
+            createdBy: number | null;
+        }[];
     } & {
+        createdAt: Date;
         id: number;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         description: string | null;
         slug: string;
         city: string;
@@ -174,13 +173,13 @@ export declare class AdminDestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
+        updatedAt: Date;
         deletedAt: Date | null;
     }>;
     update(id: number, dto: UpdateDestinationDto): Promise<{
+        createdAt: Date;
         id: number;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         description: string | null;
         slug: string;
         city: string;
@@ -198,13 +197,13 @@ export declare class AdminDestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
+        updatedAt: Date;
         deletedAt: Date | null;
     }>;
     softDelete(id: number): Promise<{
+        createdAt: Date;
         id: number;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         description: string | null;
         slug: string;
         city: string;
@@ -222,13 +221,13 @@ export declare class AdminDestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
+        updatedAt: Date;
         deletedAt: Date | null;
     }>;
     updateMapsUrl(id: number, dto: UpdateMapsUrlDto): Promise<{
+        createdAt: Date;
         id: number;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         description: string | null;
         slug: string;
         city: string;
@@ -246,13 +245,13 @@ export declare class AdminDestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
+        updatedAt: Date;
         deletedAt: Date | null;
     }>;
     uploadThumbnail(id: number, file: MulterFile): Promise<{
+        createdAt: Date;
         id: number;
         name: string;
-        createdAt: Date;
-        updatedAt: Date;
         description: string | null;
         slug: string;
         city: string;
@@ -270,17 +269,18 @@ export declare class AdminDestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
+        updatedAt: Date;
         deletedAt: Date | null;
     }>;
     uploadImage(id: number, file: MulterFile): Promise<{
-        id: number;
         createdAt: Date;
+        id: number;
         destinationId: number;
         imageUrl: string;
     }>;
     deleteImage(imageId: number): Promise<{
-        id: number;
         createdAt: Date;
+        id: number;
         destinationId: number;
         imageUrl: string;
     }>;

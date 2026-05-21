@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Get,
-  Delete,
   Param,
   Query,
   ParseIntPipe,
@@ -26,9 +25,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class FavoritesController {
   constructor(private readonly favoritesService: FavoritesService) {}
 
-  /**
-   * POST /api/favorites/:destinationId
-   */
+  // Menambahkan destinasi ke favorit.
   @Post(':destinationId')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Simpan destinasi ke favorites' })
@@ -43,9 +40,7 @@ export class FavoritesController {
     return this.favoritesService.addFavorite(userId, destinationId);
   }
 
-  /**
-   * GET /api/favorites
-   */
+  // Mengambil daftar favorit user.
   @Get()
   @ApiOperation({ summary: 'Daftar destinasi favorit user' })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
@@ -62,25 +57,7 @@ export class FavoritesController {
     return this.favoritesService.getFavorites(userId, parsedPage, parsedLimit);
   }
 
-  /**
-   * DELETE /api/favorites/:destinationId
-   */
-  @Delete(':destinationId')
-  @ApiOperation({ summary: 'Hapus destinasi dari favorites' })
-  @ApiParam({ name: 'destinationId', type: Number })
-  @ApiResponse({ status: 200, description: 'Berhasil dihapus dari favorites' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'Tidak ada di favorites' })
-  async removeFavorite(
-    @Param('destinationId', ParseIntPipe) destinationId: number,
-    @CurrentUser('id') userId: number,
-  ) {
-    return this.favoritesService.removeFavorite(userId, destinationId);
-  }
-
-  /**
-   * GET /api/favorites/check/:destinationId
-   */
+  // Mengambil daftar favorit user.
   @Get('check/:destinationId')
   @ApiOperation({ summary: 'Cek apakah destinasi ada di daftar favorit' })
   @ApiParam({ name: 'destinationId', type: Number })

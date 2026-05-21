@@ -9,13 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ─────────────────────────────────────────────────────────────
-  // TASK 8.1 — Dashboard
-  // ─────────────────────────────────────────────────────────────
-
-  /**
-   * GET /analytics/dashboard — public stats
-   */
+  // Mengambil statistik dashboard publik.
   async getPublicDashboard() {
     const [
       totalDestinations,
@@ -57,7 +51,7 @@ export class AnalyticsService {
       }),
     ]);
 
-    // Resolve topic names
+    // Mengambil nama topik.
     const topicIds = topTopics.map((t) => t.topicId);
     const topics = await this.prisma.topic.findMany({
       where: { id: { in: topicIds } },
@@ -79,9 +73,7 @@ export class AnalyticsService {
     };
   }
 
-  /**
-   * GET /admin/dashboard/summary — admin stats (Task 10.1 enhanced)
-   */
+  // Mengambil ringkasan dashboard admin.
   async getAdminSummary() {
     const [
       userCounts,
@@ -100,25 +92,25 @@ export class AnalyticsService {
       topicSentimentRows,
       destinationQualityRows,
     ] = await Promise.all([
-      // Users breakdown: active vs suspended
+      // Menghitung status user.
       this.prisma.user.groupBy({
         by: ['status'],
         _count: { status: true },
       }),
 
-      // Active destinations
+      // Menghitung destinasi aktif.
       this.prisma.destination.count({ where: { deletedAt: null } }),
 
-      // Soft-deleted destinations
+      // Menghitung destinasi soft delete.
       this.prisma.destination.count({ where: { deletedAt: { not: null } } }),
 
-      // Scraped reviews (from Google Maps)
+      // Menghitung review Google Maps.
       this.prisma.review.count(),
 
-      // User-submitted reviews
+      // Menghitung review user aplikasi.
       this.prisma.userReview.count(),
 
-      // Scraping jobs breakdown by status
+      // Menghitung job scraping per status.
       this.prisma.scrapingJob.groupBy({
         by: ['status'],
         _count: { status: true },
@@ -215,7 +207,7 @@ export class AnalyticsService {
       }),
     ]);
 
-    // Resolve topic names
+    // Mengambil nama topik.
     const topicIds = topTopics.map((t) => t.topicId);
     const topics = await this.prisma.topic.findMany({
       where: { id: { in: topicIds } },
@@ -279,14 +271,10 @@ export class AnalyticsService {
       null;
     const latestFailedJob =
       latestScrapingJobs.find((job) => hasStatus(job.status, 'failed')) ?? null;
-
-    // Build user breakdown
     const userBreakdown: Record<string, number> = {};
     for (const u of userCounts) {
       userBreakdown[u.status] = u._count.status;
     }
-
-    // Build scraping jobs breakdown
     const jobBreakdown: Record<string, number> = {};
     for (const j of scrapingJobCounts) {
       jobBreakdown[j.status] = j._count.status;
@@ -345,9 +333,7 @@ export class AnalyticsService {
     };
   }
 
-  /**
-   * GET /admin/dashboard/activity — recent activity (Task 10.1 enhanced)
-   */
+  // Mengambil aktivitas terbaru admin.
   async getAdminActivity() {
     const [recentJobs, recentScrapedReviews, recentUserReviews, recentUsers] =
       await Promise.all([
@@ -411,9 +397,7 @@ export class AnalyticsService {
     };
   }
 
-  /**
-   * GET /admin/dashboard/trends — limited to 30d/12w/12m (Task 10.1 enhanced)
-   */
+  // Mengambil tren dashboard admin.
   async getAdminTrends(period: 'daily' | 'weekly' | 'monthly' = 'monthly') {
     // Tentukan batas waktu berdasarkan period
     const now = new Date();
@@ -440,7 +424,7 @@ export class AnalyticsService {
       },
     });
 
-    // Group by period
+    // Mengelompokkan data per periode.
     const grouped = new Map<
       string,
       { positive: number; negative: number; neutral: number; total: number }
@@ -472,13 +456,7 @@ export class AnalyticsService {
     return { period, trends: result };
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // TASK 8.2 — Destination Analytics
-  // ─────────────────────────────────────────────────────────────
-
-  /**
-   * GET /analytics/destination/:id
-   */
+  // Mengambil analytics satu destinasi.
   async getDestinationAnalytics(destinationId: number) {
     const destination = await this.prisma.destination.findFirst({
       where: { id: destinationId, deletedAt: null },
@@ -522,9 +500,7 @@ export class AnalyticsService {
     };
   }
 
-  /**
-   * GET /analytics/destination/:id/topics
-   */
+  // Mengambil analytics satu destinasi.
   async getDestinationTopics(destinationId: number) {
     const destination = await this.prisma.destination.findFirst({
       where: { id: destinationId, deletedAt: null },
@@ -552,9 +528,7 @@ export class AnalyticsService {
     return { topics };
   }
 
-  /**
-   * GET /analytics/trends/:id?period=daily|weekly|monthly
-   */
+  // Mengambil tren sentimen destinasi.
   async getDestinationTrends(
     destinationId: number,
     period: 'daily' | 'weekly' | 'monthly' = 'monthly',
@@ -579,7 +553,7 @@ export class AnalyticsService {
       },
     });
 
-    // Group by period
+    // Mengelompokkan data per periode.
     const grouped = new Map<
       string,
       { positive: number; negative: number; neutral: number }
@@ -606,13 +580,7 @@ export class AnalyticsService {
     return { trends };
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // TASK 8.3 — Comparison & Export
-  // ─────────────────────────────────────────────────────────────
-
-  /**
-   * GET /analytics/compare?destination1=1&destination2=2
-   */
+  // Membandingkan analytics dua destinasi.
   async compareDestinations(id1: number, id2: number) {
     const [dest1, dest2] = await Promise.all([
       this.getDestinationSnapshot(id1),
@@ -630,7 +598,7 @@ export class AnalyticsService {
       );
     }
 
-    // Determine winners
+    // Menentukan destinasi unggul.
     const sentimentWinner =
       (dest1.positive_ratio ?? 0) >= (dest2.positive_ratio ?? 0) ? id1 : id2;
     const ratingWinner =
@@ -655,9 +623,7 @@ export class AnalyticsService {
     };
   }
 
-  /**
-   * GET /admin/analytics/export/:destinationId — CSV download
-   */
+  // Mengekspor analytics destinasi ke CSV.
   async exportAnalyticsCsv(
     destinationId: number,
   ): Promise<{ csv: string; filename: string }> {
@@ -686,7 +652,7 @@ export class AnalyticsService {
       },
     });
 
-    // Summary stats di baris pertama (sebagai komentar CSV)
+    // Menulis ringkasan di awal CSV.
     const totalReviews = reviews.length;
     const positiveCount = reviews.filter(
       (r) => r.sentiment === 'positive',
@@ -699,11 +665,11 @@ export class AnalyticsService {
     ).length;
 
     const rows: string[] = [
-      // Summary header (comment rows)
+      // Menulis header ringkasan.
       `# Destination: ${destination.name}`,
       `# Total Reviews: ${totalReviews} | Positive: ${positiveCount} | Negative: ${negativeCount} | Neutral: ${neutralCount}`,
       `# Exported at: ${new Date().toISOString()}`,
-      // Column header
+      // Menulis header kolom.
       'id,reviewer_name,rating,sentiment,topic,review_date,likes_count,review_text',
     ];
 
@@ -736,7 +702,7 @@ export class AnalyticsService {
       );
     }
 
-    // Slug-ify destination name for filename
+    // Membuat nama file dari slug destinasi.
     const slug = destination.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '_')
@@ -746,14 +712,7 @@ export class AnalyticsService {
     return { csv: rows.join('\n'), filename };
   }
 
-  // ─────────────────────────────────────────────────────────────
-  // TASK 10.2 — Recalculate Analytics
-  // ─────────────────────────────────────────────────────────────
-
-  /**
-   * POST /admin/analytics/recalculate/:destinationId
-   * Full recalculation pipeline untuk satu destinasi.
-   */
+  // Menghitung ulang analytics satu destinasi.
   async recalculateAnalytics(destinationId: number) {
     const destination = await this.prisma.destination.findFirst({
       where: { id: destinationId, deletedAt: null },
@@ -763,8 +722,6 @@ export class AnalyticsService {
     if (!destination) {
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
-
-    // 1. Hitung sentiment distribution & positive_ratio
     const sentimentReviews = await this.prisma.review.findMany({
       where: { destinationId, sentiment: { not: null } },
       select: { sentiment: true },
@@ -778,8 +735,6 @@ export class AnalyticsService {
       ).length;
       positiveRatio = positiveCount / totalSentimentReviews;
     }
-
-    // 2. Hitung user_rating terbaru
     const userRatingAgg = await this.prisma.userReview.aggregate({
       where: { destinationId },
       _avg: { rating: true },
@@ -788,12 +743,8 @@ export class AnalyticsService {
     const userRating =
       userRatingAgg._avg.rating ?? destination.googleRating ?? 0;
     const userReviewCount = userRatingAgg._count.rating;
-
-    // 3. Hitung recommendation_score
     const normalizedRating = userRating / 5;
     const recommendationScore = normalizedRating * 0.5 + positiveRatio * 0.5;
-
-    // 4. Update destination record
     await this.prisma.destination.update({
       where: { id: destinationId },
       data: {
@@ -803,8 +754,6 @@ export class AnalyticsService {
         userReviewCount,
       },
     });
-
-    // 5. Recalculate destination_topics (dari semua review yang punya topicId)
     const topicReviews = await this.prisma.review.findMany({
       where: { destinationId, topicId: { not: null } },
       select: { topicId: true },
@@ -823,8 +772,6 @@ export class AnalyticsService {
       });
     }
     const topicsCount = Object.keys(topicCounts).length;
-
-    // 6. Recalculate sentiment_trends (group by month)
     const allReviewsWithDate = await this.prisma.review.findMany({
       where: { destinationId, reviewDate: { not: null } },
       select: { reviewDate: true, sentiment: true },
@@ -859,8 +806,6 @@ export class AnalyticsService {
         },
       });
     }
-
-    // 7. Total reviews (scraped)
     const totalReviews = await this.prisma.review.count({
       where: { destinationId },
     });
@@ -874,10 +819,6 @@ export class AnalyticsService {
       topics_count: topicsCount,
     };
   }
-
-  // ─────────────────────────────────────────────────────────────
-  // Private helpers
-  // ─────────────────────────────────────────────────────────────
 
   private buildSentimentDist(
     counts: Array<{ sentiment: string | null; _count: { sentiment: number } }>,
@@ -899,19 +840,19 @@ export class AnalyticsService {
     date: Date,
     period: 'daily' | 'weekly' | 'monthly',
   ): string {
-    const d = new Date(date); // clone agar tidak mutate original
+    const d = new Date(date); // Menyalin tanggal agar nilai asli tidak berubah.
     if (period === 'daily') {
       return d.toISOString().slice(0, 10); // YYYY-MM-DD
     }
     if (period === 'weekly') {
-      // ISO week: get Monday of the week
+      // Mengambil hari Senin pada minggu ISO.
       const day = d.getDay(); // 0=Sun, 1=Mon, ...
       const diffToMonday = day === 0 ? -6 : 1 - day;
       const monday = new Date(d);
       monday.setDate(d.getDate() + diffToMonday);
       return monday.toISOString().slice(0, 10);
     }
-    // monthly
+    // Format bulanan.
     return d.toISOString().slice(0, 7); // YYYY-MM
   }
 

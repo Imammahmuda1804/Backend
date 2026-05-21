@@ -19,7 +19,7 @@ export interface NlpPipelineResult {
     keywords: string[];
     representative_docs?: string[];
   }>;
-  /** Topik baru yang ditemukan oleh BIRCH clustering saat pipeline berjalan */
+  // Topik baru dari pipeline NLP.
   new_topics?: Array<{
     topic_id: number;
     keywords: string[];
@@ -34,6 +34,6 @@ export interface NlpPipelineResult {
     split_strategy?: string;
     [key: string]: unknown;
   };
-  /** Peringatan jika terjadi graceful degradation (OOM, dll) */
+  // Peringatan dari pipeline NLP.
   warning?: string;
 }

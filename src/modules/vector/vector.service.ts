@@ -12,9 +12,11 @@ interface HybridSearchFilters {
 }
 
 @Injectable()
+// Menjalankan operasi pgvector untuk embedding review dan destinasi.
 export class VectorService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Memecah array besar agar insert embedding berjalan bertahap.
   private chunkArray<T>(array: T[], size: number): T[][] {
     const chunked: T[][] = [];
     for (let i = 0; i < array.length; i += size) {
@@ -35,6 +37,7 @@ export class VectorService {
     `;
   }
 
+  // Menyimpan atau memperbarui embedding untuk satu review.
   async insertReviewEmbedding(
     reviewId: number,
     embedding: number[],
@@ -48,6 +51,7 @@ export class VectorService {
     `;
   }
 
+  // Menyimpan banyak embedding review dalam chunk kecil.
   async batchInsertReviewEmbeddings(
     items: Array<{ reviewId: number; embedding: number[] }>,
   ): Promise<void> {
@@ -60,6 +64,7 @@ export class VectorService {
     }
   }
 
+  // Mencari destinasi paling mirip berdasarkan jarak embedding.
   async searchSimilarDestinations(
     queryEmbedding: number[],
     limit: number = 10,
@@ -79,6 +84,7 @@ export class VectorService {
     `;
   }
 
+  // Menggabungkan similarity, rating, sentimen, dan filter pencarian.
   async hybridSearch(
     queryEmbedding: number[],
     limit: number = 10,
@@ -135,7 +141,7 @@ export class VectorService {
       `;
     }
 
-    // Default: hybrid
+    // Mode default memakai hybrid search.
     return this.prisma.$queryRaw<SimilarDestination[]>`
       SELECT
         d.id, d.name, d.slug, d.city, d.province, d.category,

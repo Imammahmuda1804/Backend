@@ -8,10 +8,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
-/**
- * Global HTTP Exception Filter
- * Menangkap semua HttpException dan format response menjadi standar
- */
+// Memformat error HTTP menjadi response standar.
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
@@ -37,7 +34,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       path: request.url,
     };
 
-    // Log error untuk debugging (skip 4xx client errors di production)
+    // Log error server untuk troubleshooting.
     if (status >= 500) {
       this.logger.error(
         `${request.method} ${request.url} - ${status}`,

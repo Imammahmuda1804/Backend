@@ -79,22 +79,6 @@ let FavoritesService = class FavoritesService {
             },
         };
     }
-    async removeFavorite(userId, destinationId) {
-        const favorite = await this.prisma.favorite.findUnique({
-            where: {
-                userId_destinationId: { userId, destinationId },
-            },
-        });
-        if (!favorite) {
-            throw new common_1.NotFoundException('Destinasi tidak ada di favorites');
-        }
-        await this.prisma.favorite.delete({
-            where: {
-                userId_destinationId: { userId, destinationId },
-            },
-        });
-        return { message: 'Destination removed from favorites' };
-    }
     async checkFavorite(userId, destinationId) {
         const favorite = await this.prisma.favorite.findUnique({
             where: {

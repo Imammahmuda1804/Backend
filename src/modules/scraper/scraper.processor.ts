@@ -108,15 +108,13 @@ export class ScraperProcessor extends WorkerHost {
         `Filtered to ${finalReviews.length} text reviews (requested: ${maxReviews ?? 'ALL'})`,
       );
 
-      // Generate Excel file — TIDAK menyimpan ke database
+      // Membuat file Excel tanpa menyimpan review ke database.
       const filePath = await this.generateExcel(
         finalReviews,
         jobId,
         destinationId,
         destinationName || 'Destination',
       );
-
-      // Update job status
       await this.prisma.scrapingJob.update({
         where: { id: jobId },
         data: {
@@ -159,10 +157,7 @@ export class ScraperProcessor extends WorkerHost {
     }
   }
 
-  /**
-   * Fetch Google Maps rating via Apify searchPlaces dan simpan ke destination
-   * jika belum ada.
-   */
+  // Mengambil rating Google Maps jika belum tersedia.
   private async fetchAndSaveGoogleRating(
     destinationId: number,
     mapsUrl: string,
@@ -173,7 +168,7 @@ export class ScraperProcessor extends WorkerHost {
         select: { googleRating: true, googleReviewCount: true },
       });
 
-      // Hanya fetch jika belum punya data Google Rating
+      // Ambil rating hanya jika belum tersedia.
       if (dest?.googleRating !== null && dest?.googleRating !== undefined) {
         this.logger.log(
           `Destination ${destinationId} already has Google rating: ${dest.googleRating}`,
@@ -200,17 +195,14 @@ export class ScraperProcessor extends WorkerHost {
         );
       }
     } catch (err) {
-      // Non-critical — jangan gagalkan job karena ini
+      // Jangan gagalkan job untuk proses non-kritis.
       this.logger.warn(
         `Failed to fetch Google rating (non-critical): ${err instanceof Error ? err.message : err}`,
       );
     }
   }
 
-  /**
-   * Generate file Excel (.xlsx) yang diformat rapi dari data ulasan.
-   * File tidak disimpan ke database Review.
-   */
+  // Membuat file Excel dari hasil scraping.
   private async generateExcel(
     reviews: ScrapedReviewItem[],
     jobId: number,
@@ -224,8 +216,6 @@ export class ScraperProcessor extends WorkerHost {
     const sheet = workbook.addWorksheet('Ulasan', {
       views: [{ state: 'frozen', ySplit: 1 }],
     });
-
-    // ── Kolom ────────────────────────────────────────────────────────────
     sheet.columns = [
       { header: 'No', key: 'no', width: 6 },
       { header: 'Nama Pengulas', key: 'reviewerName', width: 22 },
@@ -235,8 +225,6 @@ export class ScraperProcessor extends WorkerHost {
       { header: 'Jumlah Suka', key: 'likesCount', width: 14 },
       { header: 'Balasan Pemilik', key: 'ownerReply', width: 40 },
     ];
-
-    // ── Header styling ───────────────────────────────────────────────────
     const headerRow = sheet.getRow(1);
     headerRow.height = 28;
     headerRow.eachCell((cell) => {
@@ -263,8 +251,6 @@ export class ScraperProcessor extends WorkerHost {
         right: { style: 'thin', color: { argb: 'FF1A5276' } },
       };
     });
-
-    // ── Data rows ────────────────────────────────────────────────────────
     reviews.forEach((item, index) => {
       const reviewText = item.text || item.reviewText || '';
       const rating = item.stars || item.rating || 0;
@@ -290,7 +276,7 @@ export class ScraperProcessor extends WorkerHost {
         ownerReply,
       });
 
-      // Alternating row color
+      // Warna baris bergantian.
       const bgColor = index % 2 === 0 ? 'FFFFFFFF' : 'FFF8F9FA';
       const borderColor = { argb: 'FFE2E8F0' };
 
@@ -308,7 +294,7 @@ export class ScraperProcessor extends WorkerHost {
           right: { style: 'thin', color: borderColor },
         };
 
-        // Alignment per kolom
+        // Mengatur alignment kolom.
         if (colNumber === 4 || colNumber === 7) {
           // Teks Ulasan & Balasan Pemilik — left align, wrap
           cell.alignment = {
@@ -343,20 +329,18 @@ export class ScraperProcessor extends WorkerHost {
         }
       });
     });
-
-    // ── Auto-filter ──────────────────────────────────────────────────────
     sheet.autoFilter = {
       from: { row: 1, column: 1 },
       to: { row: reviews.length + 1, column: 7 },
     };
 
-    // ── Save file ────────────────────────────────────────────────────────
+    // Menyimpan file hasil scraping.
     const uploadDir = path.join(process.cwd(), 'uploads', 'scraped_data');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
-    // Nama file yang informatif
+    // Membuat nama file yang mudah dilacak.
     const safeName = destinationName
       .replace(/[^a-zA-Z0-9\s]/g, '')
       .replace(/\s+/g, '_')
@@ -374,10 +358,7 @@ export class ScraperProcessor extends WorkerHost {
 
     await workbook.xlsx.writeFile(filePath);
 
-    // Simpan path file di scraping job untuk download nanti
-    // Kita simpan nama file relatif di field errorMessage (karena tidak ada field khusus)
-    // Atau lebih baik kita simpan di tempat yang tepat
-    // Kita akan menggunakan nama file yang dapat diprediksi berdasarkan jobId
+    // Simpan path file untuk download.
     // Jadi kita juga buat symlink/copy dengan nama job_{jobId}.xlsx
     const jobFilePath = path.join(uploadDir, `job_${jobId}.xlsx`);
     if (fs.existsSync(jobFilePath)) {

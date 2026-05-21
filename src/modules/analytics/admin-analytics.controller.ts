@@ -25,9 +25,6 @@ import { Roles } from '../../common/decorators/roles.decorator';
 @Controller('admin')
 export class AdminAnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
-
-  // ── Task 8.1 ──────────────────────────────────────────────────
-
   @Get('dashboard/summary')
   @ApiOperation({ summary: 'Admin dashboard summary' })
   @ApiResponse({ status: 200, description: 'Summary berhasil diambil' })
@@ -55,9 +52,6 @@ export class AdminAnalyticsController {
   async getAdminTrends(@Query() query: TrendsQueryDto) {
     return this.analyticsService.getAdminTrends(query.period);
   }
-
-  // ── Task 8.3 ──────────────────────────────────────────────────
-
   @Get('analytics/export/:destinationId')
   @ApiOperation({ summary: 'Export analytics destinasi sebagai CSV' })
   @ApiParam({ name: 'destinationId', type: Number })

@@ -11,9 +11,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto, LoginDto, RefreshTokenDto } from './dto';
 import { JwtPayload } from '../../common/interfaces';
 
-/**
- * AuthService — Business logic untuk authentication
- */
+// Mengelola registrasi, login, token, dan logout.
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -24,16 +22,8 @@ export class AuthService {
     private readonly configService: ConfigService,
   ) {}
 
-  /**
-   * Register user baru
-   *
-   * 1. Cek email unik
-   * 2. Hash password dengan bcrypt
-   * 3. Create user di database
-   * 4. Return user tanpa password
-   */
+  // Mendaftarkan user baru setelah email divalidasi.
   async register(dto: RegisterDto) {
-    // Cek email sudah terdaftar
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -41,11 +31,7 @@ export class AuthService {
     if (existingUser) {
       throw new ConflictException('Email sudah terdaftar');
     }
-
-    // Hash password
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-
-    // Create user
     const user = await this.prisma.user.create({
       data: {
         name: dto.name,
@@ -68,16 +54,8 @@ export class AuthService {
     return user;
   }
 
-  /**
-   * Login user
-   *
-   * 1. Find user by email
-   * 2. Validate password
-   * 3. Generate access + refresh token
-   * 4. Return tokens + user info
-   */
+  // Memvalidasi kredensial dan membuat token.
   async login(dto: LoginDto) {
-    // Find user
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -86,19 +64,15 @@ export class AuthService {
       throw new UnauthorizedException('Email atau password salah');
     }
 
-    // Cek status aktif
+    // Memastikan akun masih aktif.
     if (user.status !== 'active') {
       throw new UnauthorizedException('Akun Anda telah dinonaktifkan');
     }
-
-    // Validate password
     const isPasswordValid = await bcrypt.compare(dto.password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Email atau password salah');
     }
-
-    // Generate tokens
     const tokens = await this.generateTokens({
       sub: user.id,
       email: user.email,
@@ -119,9 +93,7 @@ export class AuthService {
     };
   }
 
-  /**
-   * Generate access token dan refresh token
-   */
+  // Membuat access token dan refresh token.
   async generateTokens(payload: JwtPayload) {
     const tokenPayload = {
       sub: payload.sub,
@@ -146,20 +118,15 @@ export class AuthService {
     };
   }
 
-  /**
-   * Refresh token
-   */
+  // Memperbarui token dari refresh token valid.
   async refreshToken(dto: RefreshTokenDto) {
     try {
-      // Verifikasi refresh token
       const payload = await this.jwtService.verifyAsync<JwtPayload>(
         dto.refresh_token,
         {
           secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
         },
       );
-
-      // Cek apakah user masih ada di database
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
       });
@@ -167,8 +134,6 @@ export class AuthService {
       if (!user || user.status !== 'active') {
         throw new UnauthorizedException('User tidak valid atau tidak aktif');
       }
-
-      // Generate token pair baru
       const tokens = await this.generateTokens({
         sub: user.id,
         email: user.email,
@@ -183,16 +148,13 @@ export class AuthService {
     }
   }
 
-  /**
-   * Logout user
-   */
+  // Memvalidasi refresh token saat logout.
   async logout(dto: RefreshTokenDto) {
     try {
-      // Verifikasi token
       await this.jwtService.verifyAsync(dto.refresh_token, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
-      // Catatan: Jika butuh blacklist token, bisa implementasi Redis blacklist di sini
+      // Token blacklist dapat ditambahkan lewat Redis.
 
       return { message: 'Logged out successfully' };
     } catch {

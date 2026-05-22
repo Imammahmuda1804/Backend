@@ -20,8 +20,8 @@ export class AdminModerationController {
     private readonly analyticsService: AnalyticsService,
   ) {}
 
-  // Menghapus scraped review lewat endpoint admin.
-  @Delete('reviews/:id')
+  // Menghapus scraped review lewat endpoint moderasi.
+  @Delete('moderation/reviews/:id')
   @ApiOperation({ summary: 'Hapus scraped review (moderasi)' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Review berhasil dihapus' })

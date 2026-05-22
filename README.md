@@ -1,98 +1,274 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# RANAHINSIGHT Backend Service
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Folder `backend` berisi service API utama berbasis NestJS. Service ini menjadi pusat autentikasi, database, destinasi, review, favorit, search, analytics, scraper, NLP processing, topic management, upload file, dan integrasi ke Python Model service.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Kegunaan Service
 
-## Description
+Backend dipakai untuk:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- menyediakan REST API untuk web dan mobile;
+- menyimpan data ke PostgreSQL melalui Prisma;
+- menyimpan embedding pgvector untuk semantic search;
+- mengatur login, profile, role user, dan admin;
+- mengelola destinasi, foto, kategori, galeri, dan maps;
+- mengelola review user dan scraped review;
+- memanggil Python Model service untuk NLP;
+- menyimpan hasil sentiment, confidence, topic, embedding, dan analytics;
+- menjalankan scraper Google Maps melalui Apify;
+- menyediakan dokumentasi API Swagger di `/api/docs`.
 
-## Project setup
+## Syarat Sistem
 
-```bash
-$ npm install
+Disarankan:
+
+- Node.js 20 atau lebih baru.
+- npm sesuai bawaan Node.
+- PostgreSQL dengan extension `vector`/pgvector.
+- Redis untuk queue scraping/NLP.
+- Python Model service aktif di port `8001` jika ingin memakai NLP.
+- Apify token jika ingin menjalankan scraper.
+
+## Instalasi dari Clone Baru
+
+Masuk folder backend:
+
+```powershell
+cd "D:\Kuliah\Ta\New folder\backend"
 ```
 
-## Compile and run the project
+Install dependency:
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```powershell
+npm install
 ```
 
-## Run tests
+Salin env:
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```powershell
+Copy-Item .env.example .env
 ```
 
-## Deployment
+Isi minimal `.env`:
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```env
+PORT=3000
+DATABASE_URL=postgresql://postgres:password@localhost:5432/wisata_db
+JWT_SECRET=isi-secret-panjang
+JWT_REFRESH_SECRET=isi-refresh-secret-panjang
+JWT_EXPIRATION=15m
+JWT_REFRESH_EXPIRATION=7d
+NLP_SERVICE_URL=http://localhost:8001
+APIFY_TOKEN=isi-token-apify
+REDIS_HOST=localhost
+REDIS_PORT=6379
+CORS_ORIGINS=http://localhost:3000,http://localhost:3001
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Generate secret aman:
 
-## Resources
+```powershell
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+## Database dan Prisma
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Pastikan PostgreSQL berjalan dan database tersedia sesuai `DATABASE_URL`.
 
-## Support
+Jalankan migration:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```powershell
+npx prisma migrate dev
+npx prisma generate
+```
 
-## Stay in touch
+Jika database lokal boleh dihapus total:
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+```powershell
+npx prisma migrate reset
+```
 
-## License
+Catatan:
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- `prisma/schema.prisma` adalah source of truth schema.
+- `prisma/migrations/` berisi migration SQL.
+- Extension pgvector dibutuhkan untuk semantic search.
+
+## Menjalankan Backend
+
+Development:
+
+```powershell
+npm run start:dev
+```
+
+Production build:
+
+```powershell
+npm run build
+npm run start:prod
+```
+
+URL default:
+
+```txt
+http://localhost:3000
+```
+
+Swagger:
+
+```txt
+http://localhost:3000/api/docs
+```
+
+Semua endpoint memiliki prefix:
+
+```txt
+/api
+```
+
+## Validasi Setelah Clone
+
+Urutan validasi:
+
+```powershell
+cd "D:\Kuliah\Ta\New folder\backend"
+npm install
+npx prisma validate
+npx prisma migrate status
+npx prisma generate
+npm run lint
+npm run build
+npm run start:dev
+```
+
+Cek:
+
+```txt
+GET http://localhost:3000/api
+GET http://localhost:3000/api/docs
+```
+
+## Integrasi Service Lain
+
+| Service | URL default | Keterangan |
+| --- | --- | --- |
+| Model Python | `http://localhost:8001` | Dipakai `NlpService` untuk embedding dan pipeline NLP. |
+| Web Next.js | `http://localhost:3001` | Memanggil backend melalui Axios. |
+| Mobile Flutter | IP LAN backend, contoh `http://192.168.1.10:3000` | Device fisik harus satu jaringan atau memakai `adb reverse`. |
+| PostgreSQL | sesuai `DATABASE_URL` | Menyimpan data utama. |
+| Redis | `localhost:6379` | Queue scraper dan NLP background. |
+
+## Struktur Folder
+
+| Path | Kegunaan |
+| --- | --- |
+| `src/main.ts` | Entrypoint NestJS, global prefix, CORS, Swagger, filter, interceptor, dan server. |
+| `src/app.module.ts` | Root module yang menggabungkan semua module. |
+| `src/config/` | Konfigurasi env, multer upload, dan Swagger. |
+| `src/prisma/` | Prisma module/service untuk akses database. |
+| `src/common/` | Decorator, guard, filter, interceptor, DTO, constants, dan utility bersama. |
+| `src/modules/auth/` | Login/logout, JWT, DTO auth, dan strategy. |
+| `src/modules/users/` | Profile user, update profile, avatar upload, dan admin user helper. |
+| `src/modules/admin/` | Controller admin lintas domain seperti user dan moderation. |
+| `src/modules/destinations/` | Public/admin destination, kategori, CRUD, media, detail, dan topic aggregation. |
+| `src/modules/search/` | Keyword/semantic search, history, filter kota/kategori/topic/sentimen. |
+| `src/modules/vector/` | Query pgvector dan normalisasi embedding. |
+| `src/modules/nlp/` | Integrasi Python Model, penyimpanan hasil NLP, AI naming topic. |
+| `src/modules/topics/` | Topic, topic group, visibility, rename, dan destination-topic query. |
+| `src/modules/reviews/` | Review user dan admin review management. |
+| `src/modules/favorites/` | Favorite destination user. |
+| `src/modules/analytics/` | Analytics public dan admin dashboard. |
+| `src/modules/scraper/` | Scraper Apify, queue, CSV/Excel export, dan processor. |
+| `src/modules/uploads/` | Penyajian file upload. |
+| `prisma/` | Schema dan migration database. |
+| `uploads/` | File gambar destinasi/profile hasil upload lokal. |
+| `test/` | E2E test NestJS. |
+| `docs/`, `Requirements/`, `Plans/` | Dokumen pendukung project. |
+| `BACKEND_CODE_FLOW.md` | Penjelasan flow source code backend. |
+| `API_DOCUMENTATION.md` | Dokumentasi endpoint backend lengkap. |
+
+## Swagger
+
+Swagger disiapkan di `src/main.ts`:
+
+```txt
+SwaggerModule.setup('api/docs', app, document)
+```
+
+Hasil audit controller:
+
+- Semua controller aktif memiliki `@ApiTags`.
+- Semua controller masuk ke module yang diimport `AppModule`.
+- Karena `SwaggerModule.createDocument(app, swaggerConfig)` membaca metadata NestJS, endpoint controller aktif akan muncul di `/api/docs`.
+
+Jika endpoint baru ditambahkan, pastikan:
+
+1. Controller diberi `@ApiTags`.
+2. Method diberi decorator HTTP seperti `@Get`, `@Post`, `@Put`, `@Delete`.
+3. Controller didaftarkan dalam module.
+4. Module diimport ke `AppModule` atau module yang sudah diimport.
+5. Tambahkan `@ApiOperation`, `@ApiResponse`, dan `@ApiBody` jika endpoint menerima body.
+
+## Endpoint Diagnostic dan Legacy
+
+Beberapa endpoint sengaja dipertahankan walau tidak semua dipakai UI:
+
+- `GET /api` untuk health check cepat.
+- `GET /api/test-nlp` untuk mengecek koneksi backend ke Model Python.
+- `POST /api/auth/logout` untuk logout berbasis refresh token jika nanti token blacklist dipakai.
+- `GET /api/destinations/:id` sebagai fallback detail by ID untuk klien lama.
+- `GET /api/analytics/dashboard` sebagai endpoint analytics public cadangan.
+- Endpoint moderation khusus seperti `DELETE /api/admin/moderation/reviews/:id`.
+
+Endpoint ini tidak wajib dipasang ke frontend jika belum ada kebutuhan produk langsung.
+
+## Perintah Penting
+
+| Perintah | Kegunaan |
+| --- | --- |
+| `npm run start:dev` | Menjalankan server development. |
+| `npm run build` | Build TypeScript ke `dist`. |
+| `npm run start:prod` | Menjalankan hasil build. |
+| `npm run lint` | Lint backend. |
+| `npm test` | Unit test. |
+| `npm run test:e2e` | E2E test. |
+| `npx prisma migrate dev` | Menjalankan migration development. |
+| `npx prisma generate` | Generate Prisma Client. |
+| `npx prisma studio` | Membuka Prisma Studio. |
+
+## Troubleshooting
+
+### Backend tidak bisa konek database
+
+Periksa:
+
+- PostgreSQL aktif.
+- `DATABASE_URL` benar.
+- Database sudah dibuat.
+- Migration sudah dijalankan.
+
+### Semantic search gagal
+
+Periksa:
+
+- Python Model service aktif.
+- `NLP_SERVICE_URL` benar.
+- Extension pgvector aktif.
+- Destination sudah punya embedding.
+
+### Scraper tidak jalan
+
+Periksa:
+
+- `APIFY_TOKEN` valid.
+- Redis aktif.
+- Queue worker backend ikut berjalan.
+
+### Mobile tidak bisa akses backend
+
+Periksa:
+
+- Backend listen di `0.0.0.0` atau host dapat diakses LAN.
+- Firewall Windows membuka port 3000.
+- Mobile dan laptop ada di jaringan yang sama.
+- `Mobile/.env` memakai IP LAN laptop, bukan `localhost`.

@@ -10,15 +10,15 @@ export declare class AdminReviewsController {
                 topicName: string;
             } | null;
         } & {
-            createdAt: Date;
             id: number;
+            createdAt: Date;
             destinationId: number;
             rating: number | null;
             reviewText: string | null;
+            source: string | null;
             reviewerName: string;
             cleanedText: string | null;
             reviewDate: Date | null;
-            source: string | null;
             likesCount: number | null;
             ownerReply: string | null;
             sentiment: string | null;

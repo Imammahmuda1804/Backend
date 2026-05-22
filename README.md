@@ -53,6 +53,10 @@ Isi minimal `.env`:
 ```env
 PORT=3000
 DATABASE_URL=postgresql://postgres:password@localhost:5432/wisata_db
+SEED_ADMIN_EMAIL=admin@wisata.com
+SEED_ADMIN_NAME=Admin RANAHINSIGHT
+SEED_ADMIN_PASSWORD=admin123
+SEED_ADMIN_RESET_PASSWORD=false
 JWT_SECRET=isi-secret-panjang
 JWT_REFRESH_SECRET=isi-refresh-secret-panjang
 JWT_EXPIRATION=15m
@@ -79,6 +83,26 @@ Jalankan migration:
 ```powershell
 npx prisma migrate dev
 npx prisma generate
+```
+
+Jalankan seeder untuk membuat akun admin awal dan topic group bawaan:
+
+```powershell
+npm run db:seed
+```
+
+Seeder bersifat idempotent:
+
+- jika admin dengan email `SEED_ADMIN_EMAIL` belum ada, user admin akan dibuat;
+- jika admin sudah ada, role dan status dipastikan tetap `ADMIN` dan `active`;
+- password admin lama tidak diubah kecuali `SEED_ADMIN_RESET_PASSWORD=true`;
+- topic group awal dibuat atau diperbarui tanpa membuat duplikat berdasarkan nama group.
+
+Default login admin dari `.env.example`:
+
+```txt
+Email: admin@wisata.com
+Password: admin123
 ```
 
 Jika database lokal boleh dihapus total:
@@ -180,7 +204,7 @@ GET http://localhost:3000/api/docs
 | `src/modules/analytics/` | Analytics public dan admin dashboard. |
 | `src/modules/scraper/` | Scraper Apify, queue, CSV/Excel export, dan processor. |
 | `src/modules/uploads/` | Penyajian file upload. |
-| `prisma/` | Schema dan migration database. |
+| `prisma/` | Schema, migration database, dan `seed.ts` untuk admin awal serta topic group. |
 | `uploads/` | File gambar destinasi/profile hasil upload lokal. |
 | `test/` | E2E test NestJS. |
 | `docs/`, `Requirements/`, `Plans/` | Dokumen pendukung project. |
@@ -234,6 +258,7 @@ Endpoint ini tidak wajib dipasang ke frontend jika belum ada kebutuhan produk la
 | `npm run test:e2e` | E2E test. |
 | `npx prisma migrate dev` | Menjalankan migration development. |
 | `npx prisma generate` | Generate Prisma Client. |
+| `npm run db:seed` | Membuat/memperbarui admin awal dan topic group bawaan. |
 | `npx prisma studio` | Membuka Prisma Studio. |
 
 ## Troubleshooting

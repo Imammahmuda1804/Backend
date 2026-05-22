@@ -366,7 +366,7 @@ Body contoh:
 
 Role: User.
 
-Kegunaan: mengambil riwayat pencarian user.
+Kegunaan: mengambil riwayat pencarian user untuk chip history web/mobile.
 
 File:
 
@@ -377,7 +377,7 @@ File:
 
 Role: User.
 
-Kegunaan: hapus semua search history user.
+Kegunaan: hapus semua search history user dari kontrol “Bersihkan” web/mobile.
 
 File:
 
@@ -388,7 +388,7 @@ File:
 
 Role: User.
 
-Kegunaan: hapus satu item search history.
+Kegunaan: hapus satu item search history dari chip history web/mobile.
 
 File:
 
@@ -413,6 +413,17 @@ File:
 Role: User.
 
 Kegunaan: mengambil daftar favorit user.
+
+File:
+
+- `src/modules/favorites/favorites.controller.ts`
+- `src/modules/favorites/favorites.service.ts`
+
+### DELETE `/favorites/:destinationId`
+
+Role: User.
+
+Kegunaan: menghapus destinasi dari favorit. Endpoint ini idempotent, jadi tetap sukses walaupun data favorit sudah tidak ada.
 
 File:
 
@@ -554,7 +565,7 @@ File:
 
 Role: Public.
 
-Kegunaan: mengambil destinasi yang berkaitan dengan topic.
+Kegunaan: mengambil destinasi yang berkaitan dengan topic untuk drawer admin topics.
 
 File:
 
@@ -577,7 +588,7 @@ File:
 
 Role: Admin.
 
-Kegunaan: mengganti nama topic group luas.
+Kegunaan: mengganti nama topic group luas dari inline editor admin topics.
 
 File:
 
@@ -920,7 +931,7 @@ File:
 
 Role: Admin.
 
-Kegunaan: mencari tempat dari Google Maps sebelum scraping.
+Kegunaan: mencari tempat dari Google Maps sebelum scraping dan mengisi URL Maps di admin scraper.
 
 File:
 
@@ -958,7 +969,7 @@ Body:
 
 Role: Admin.
 
-Kegunaan: mengecek status job scraping.
+Kegunaan: mengecek status job scraping untuk drawer detail job admin scraper.
 
 File:
 
@@ -987,7 +998,7 @@ Query:
 
 Role: Admin.
 
-Kegunaan: mengambil riwayat review hasil scraping.
+Kegunaan: mengambil riwayat review hasil scraping untuk panel history admin scraper.
 
 File:
 

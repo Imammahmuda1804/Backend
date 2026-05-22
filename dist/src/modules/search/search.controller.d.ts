@@ -15,8 +15,8 @@ export declare class SearchController {
     search(dto: SearchQueryDto, req?: SearchRequest): Promise<import("../vector/interfaces/similar-destination.interface").SimilarDestination[]>;
     getHistory(userId: number, page?: string, limit?: string): Promise<{
         data: {
-            createdAt: Date;
             id: number;
+            createdAt: Date;
             keyword: string;
         }[];
         meta: {

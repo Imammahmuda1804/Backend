@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Delete,
   Param,
   Query,
   ParseIntPipe,
@@ -57,7 +58,21 @@ export class FavoritesController {
     return this.favoritesService.getFavorites(userId, parsedPage, parsedLimit);
   }
 
-  // Mengambil daftar favorit user.
+  // Menghapus destinasi dari favorit.
+  @Delete(':destinationId')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Hapus destinasi dari favorites' })
+  @ApiParam({ name: 'destinationId', type: Number })
+  @ApiResponse({ status: 200, description: 'Berhasil dihapus dari favorites' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async removeFavorite(
+    @Param('destinationId', ParseIntPipe) destinationId: number,
+    @CurrentUser('id') userId: number,
+  ) {
+    return this.favoritesService.removeFavorite(userId, destinationId);
+  }
+
+  // Mengecek status favorit user.
   @Get('check/:destinationId')
   @ApiOperation({ summary: 'Cek apakah destinasi ada di daftar favorit' })
   @ApiParam({ name: 'destinationId', type: Number })

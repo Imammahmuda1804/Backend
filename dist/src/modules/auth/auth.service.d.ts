@@ -10,12 +10,12 @@ export declare class AuthService {
     private readonly logger;
     constructor(prisma: PrismaService, jwtService: JwtService, configService: ConfigService);
     register(dto: RegisterDto): Promise<{
-        name: string;
+        id: number;
         email: string;
+        name: string;
         role: import("@prisma/client").$Enums.Role;
         profilePicture: string | null;
         createdAt: Date;
-        id: number;
     }>;
     login(dto: LoginDto): Promise<{
         user: {

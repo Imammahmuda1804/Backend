@@ -28,6 +28,9 @@ export declare class FavoritesService {
             total_pages: number;
         };
     }>;
+    removeFavorite(userId: number, destinationId: number): Promise<{
+        message: string;
+    }>;
     checkFavorite(userId: number, destinationId: number): Promise<{
         isFavorite: boolean;
     }>;

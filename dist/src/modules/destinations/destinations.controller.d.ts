@@ -47,28 +47,28 @@ export declare class DestinationsController {
             }[];
             images: {
                 id: number;
-                destinationId: number;
                 createdAt: Date;
+                destinationId: number;
                 imageUrl: string;
             }[];
             destinationTopics: ({
                 topic: {
                     id: number;
-                    topicName: string;
                     keywords: import("@prisma/client/runtime/client").JsonValue;
+                    topicName: string;
                 };
             } & {
                 id: number;
                 destinationId: number;
-                topicId: number;
                 totalReviews: number;
+                topicId: number;
             })[];
-            deletedAt: Date | null;
             id: number;
-            createdAt: Date;
             name: string;
-            slug: string;
+            createdAt: Date;
+            updatedAt: Date;
             description: string | null;
+            slug: string;
             city: string;
             province: string;
             category: string;
@@ -84,7 +84,7 @@ export declare class DestinationsController {
             thumbnailUrl: string | null;
             positiveRatio: number | null;
             recommendationScore: number | null;
-            updatedAt: Date;
+            deletedAt: Date | null;
         }[];
         meta: {
             page: number;
@@ -150,10 +150,24 @@ export declare class DestinationsController {
                 totalReviews: number;
             }[];
         }[];
+        userReviews: ({
+            user: {
+                id: number;
+                name: string;
+                profilePicture: string | null;
+            };
+        } & {
+            id: number;
+            createdAt: Date;
+            userId: number;
+            destinationId: number;
+            rating: number;
+            reviewText: string | null;
+        })[];
         images: {
             id: number;
-            destinationId: number;
             createdAt: Date;
+            destinationId: number;
             imageUrl: string;
         }[];
         sentimentTrends: {
@@ -164,36 +178,22 @@ export declare class DestinationsController {
             negativeCount: number;
             neutralCount: number;
         }[];
-        userReviews: ({
-            user: {
-                id: number;
-                name: string;
-                profilePicture: string | null;
-            };
-        } & {
-            id: number;
-            destinationId: number;
-            reviewText: string | null;
-            rating: number;
-            createdAt: Date;
-            userId: number;
-        })[];
         destinationTopics: ({
             topic: {
                 group: {
                     id: number;
                     createdAt: Date;
-                    description: string | null;
                     updatedAt: Date;
-                    keywords: import("@prisma/client/runtime/client").JsonValue | null;
                     groupName: string;
+                    description: string | null;
+                    keywords: import("@prisma/client/runtime/client").JsonValue | null;
                     displayOrder: number;
                 } | null;
             } & {
                 id: number;
                 createdAt: Date;
-                topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                topicName: string;
                 groupId: number | null;
                 labelType: string;
                 isSearchVisible: boolean;
@@ -202,15 +202,15 @@ export declare class DestinationsController {
         } & {
             id: number;
             destinationId: number;
-            topicId: number;
             totalReviews: number;
+            topicId: number;
         })[];
-        deletedAt: Date | null;
         id: number;
-        createdAt: Date;
         name: string;
-        slug: string;
+        createdAt: Date;
+        updatedAt: Date;
         description: string | null;
+        slug: string;
         city: string;
         province: string;
         category: string;
@@ -226,14 +226,14 @@ export declare class DestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
-        updatedAt: Date;
+        deletedAt: Date | null;
     }>;
     getReviewsByTopic(id: number, topicIdStr: string, pageStr: string, limitStr: string): Promise<{
         data: {
             id: number;
-            reviewerName: string;
-            reviewText: string | null;
             rating: number | null;
+            reviewText: string | null;
+            reviewerName: string;
             reviewDate: Date | null;
             likesCount: number | null;
             sentiment: string | null;
@@ -248,17 +248,17 @@ export declare class DestinationsController {
     getReviewsByTopicGroup(id: number, groupIdStr: string, pageStr: string, limitStr: string): Promise<{
         data: {
             id: number;
-            reviewerName: string;
-            reviewText: string | null;
             rating: number | null;
-            reviewDate: Date | null;
-            likesCount: number | null;
-            sentiment: string | null;
-            topicId: number | null;
+            reviewText: string | null;
             topic: {
                 id: number;
                 topicName: string;
             } | null;
+            reviewerName: string;
+            reviewDate: Date | null;
+            likesCount: number | null;
+            sentiment: string | null;
+            topicId: number | null;
         }[];
         meta: {
             total: number;
@@ -292,10 +292,24 @@ export declare class DestinationsController {
                 totalReviews: number;
             }[];
         }[];
+        userReviews: ({
+            user: {
+                id: number;
+                name: string;
+                profilePicture: string | null;
+            };
+        } & {
+            id: number;
+            createdAt: Date;
+            userId: number;
+            destinationId: number;
+            rating: number;
+            reviewText: string | null;
+        })[];
         images: {
             id: number;
-            destinationId: number;
             createdAt: Date;
+            destinationId: number;
             imageUrl: string;
         }[];
         sentimentTrends: {
@@ -306,26 +320,12 @@ export declare class DestinationsController {
             negativeCount: number;
             neutralCount: number;
         }[];
-        userReviews: ({
-            user: {
-                id: number;
-                name: string;
-                profilePicture: string | null;
-            };
-        } & {
-            id: number;
-            destinationId: number;
-            reviewText: string | null;
-            rating: number;
-            createdAt: Date;
-            userId: number;
-        })[];
         destinationTopics: ({
             topic: {
                 id: number;
                 createdAt: Date;
-                topicName: string;
                 keywords: import("@prisma/client/runtime/client").JsonValue | null;
+                topicName: string;
                 groupId: number | null;
                 labelType: string;
                 isSearchVisible: boolean;
@@ -334,15 +334,15 @@ export declare class DestinationsController {
         } & {
             id: number;
             destinationId: number;
-            topicId: number;
             totalReviews: number;
+            topicId: number;
         })[];
-        deletedAt: Date | null;
         id: number;
-        createdAt: Date;
         name: string;
-        slug: string;
+        createdAt: Date;
+        updatedAt: Date;
         description: string | null;
+        slug: string;
         city: string;
         province: string;
         category: string;
@@ -358,6 +358,6 @@ export declare class DestinationsController {
         thumbnailUrl: string | null;
         positiveRatio: number | null;
         recommendationScore: number | null;
-        updatedAt: Date;
+        deletedAt: Date | null;
     }>;
 }

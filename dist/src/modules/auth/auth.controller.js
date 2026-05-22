@@ -23,14 +23,37 @@ let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
+    async register(dto) {
+        return this.authService.register(dto);
+    }
     async login(dto) {
         return this.authService.login(dto);
+    }
+    async refresh(dto) {
+        return this.authService.refreshToken(dto);
     }
     async logout(dto) {
         return this.authService.logout(dto);
     }
 };
 exports.AuthController = AuthController;
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('register'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    (0, swagger_1.ApiOperation)({ summary: 'Register user baru' }),
+    (0, swagger_1.ApiBody)({ type: dto_1.RegisterDto }),
+    (0, swagger_1.ApiResponse)({
+        status: 201,
+        description: 'Registrasi berhasil',
+        type: dto_1.RegisterResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({ status: 409, description: 'Email sudah terdaftar' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.RegisterDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "register", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Post)('login'),
@@ -48,6 +71,19 @@ __decorate([
     __metadata("design:paramtypes", [dto_1.LoginDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('refresh'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Refresh access token' }),
+    (0, swagger_1.ApiBody)({ type: dto_1.RefreshTokenDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Token berhasil diperbarui' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Refresh token invalid' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.RefreshTokenDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "refresh", null);
 __decorate([
     (0, common_1.Post)('logout'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),

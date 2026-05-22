@@ -18,6 +18,7 @@ const swagger_1 = require("@nestjs/swagger");
 const topics_service_1 = require("./topics.service");
 const public_decorator_1 = require("../../common/decorators/public.decorator");
 const roles_decorator_1 = require("../../common/decorators/roles.decorator");
+const topic_admin_dto_1 = require("./dto/topic-admin.dto");
 let TopicsController = class TopicsController {
     topicsService;
     constructor(topicsService) {
@@ -28,6 +29,18 @@ let TopicsController = class TopicsController {
     }
     async findGroups() {
         return this.topicsService.findGroups();
+    }
+    async renameWithAi() {
+        return this.topicsService.renameUnnamedTopics();
+    }
+    async renameGroup(id, dto) {
+        return this.topicsService.renameGroup(id, dto.groupName);
+    }
+    async renameTopic(id, dto) {
+        return this.topicsService.renameTopic(id, dto.topicName);
+    }
+    async updateSettings(id, dto) {
+        return this.topicsService.updateTopicSettings(id, dto);
     }
     async deleteTopic(id) {
         return this.topicsService.deleteTopic(id);
@@ -58,6 +71,63 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], TopicsController.prototype, "findGroups", null);
+__decorate([
+    (0, common_1.Post)('rename-ai'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Rename topic fallback memakai AI' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Proses rename AI selesai' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
+    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden - ADMIN only' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "renameWithAi", null);
+__decorate([
+    (0, common_1.Put)('groups/:id/rename'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Rename topic group' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic group ID' }),
+    (0, swagger_1.ApiBody)({ type: topic_admin_dto_1.RenameTopicGroupDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Topic group berhasil diganti' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Topic group tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, topic_admin_dto_1.RenameTopicGroupDto]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "renameGroup", null);
+__decorate([
+    (0, common_1.Put)(':id/rename'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Rename topic' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic ID' }),
+    (0, swagger_1.ApiBody)({ type: topic_admin_dto_1.RenameTopicDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Topic berhasil diganti' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Topic tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, topic_admin_dto_1.RenameTopicDto]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "renameTopic", null);
+__decorate([
+    (0, common_1.Put)(':id/settings'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update setting topic' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic ID' }),
+    (0, swagger_1.ApiBody)({ type: topic_admin_dto_1.UpdateTopicSettingsDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Setting topic berhasil diubah' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Topic atau group tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, topic_admin_dto_1.UpdateTopicSettingsDto]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "updateSettings", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiBearerAuth)(),

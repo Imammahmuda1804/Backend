@@ -51,11 +51,11 @@ export declare class AnalyticsService {
             };
         } & {
             id: number;
+            status: string;
+            createdAt: Date;
             destinationId: number;
             source: string;
-            createdAt: Date;
             totalReviews: number | null;
-            status: string;
             startedAt: Date | null;
             finishedAt: Date | null;
             errorMessage: string | null;
@@ -73,11 +73,11 @@ export declare class AnalyticsService {
                 };
             } & {
                 id: number;
+                status: string;
+                createdAt: Date;
                 destinationId: number;
                 source: string;
-                createdAt: Date;
                 totalReviews: number | null;
-                status: string;
                 startedAt: Date | null;
                 finishedAt: Date | null;
                 errorMessage: string | null;
@@ -90,11 +90,11 @@ export declare class AnalyticsService {
                 };
             } & {
                 id: number;
+                status: string;
+                createdAt: Date;
                 destinationId: number;
                 source: string;
-                createdAt: Date;
                 totalReviews: number | null;
-                status: string;
                 startedAt: Date | null;
                 finishedAt: Date | null;
                 errorMessage: string | null;
@@ -110,9 +110,9 @@ export declare class AnalyticsService {
             destinations_without_trends: number;
             recent_negative_reviews: {
                 id: number;
-                reviewText: string | null;
-                rating: number | null;
                 createdAt: Date;
+                rating: number | null;
+                reviewText: string | null;
                 destination: {
                     id: number;
                     name: string;
@@ -145,11 +145,11 @@ export declare class AnalyticsService {
             };
         } & {
             id: number;
+            status: string;
+            createdAt: Date;
             destinationId: number;
             source: string;
-            createdAt: Date;
             totalReviews: number | null;
-            status: string;
             startedAt: Date | null;
             finishedAt: Date | null;
             errorMessage: string | null;
@@ -157,33 +157,33 @@ export declare class AnalyticsService {
         })[];
         recent_scraped_reviews: {
             id: number;
-            reviewerName: string;
-            rating: number | null;
-            sentiment: string | null;
             createdAt: Date;
+            rating: number | null;
             destination: {
                 name: string;
             };
+            reviewerName: string;
+            sentiment: string | null;
         }[];
         recent_user_reviews: {
             id: number;
-            reviewText: string | null;
-            rating: number;
             createdAt: Date;
-            destination: {
+            user: {
                 name: string;
             };
-            user: {
+            rating: number;
+            reviewText: string | null;
+            destination: {
                 name: string;
             };
         }[];
         recent_registrations: {
             id: number;
-            createdAt: Date;
-            name: string;
             email: string;
+            name: string;
             role: import("@prisma/client").$Enums.Role;
             status: string;
+            createdAt: Date;
         }[];
     }>;
     getAdminTrends(period?: 'daily' | 'weekly' | 'monthly'): Promise<{

@@ -63,6 +63,7 @@ Komentar penting:
 Posisi pada flow: akses database.
 
 File penting:
+- `../../prisma/seed.ts`: seeder database untuk admin awal dan topic group bawaan.
 - `prisma.module.ts`: membuat Prisma tersedia global.
 - `prisma.service.ts`: membuat Prisma Client dengan adapter PostgreSQL Prisma v7.
 
@@ -72,6 +73,14 @@ Komentar penting:
 - `constructor`: membuat client Prisma dengan adapter PostgreSQL.
 - `onModuleInit`: membuka koneksi database.
 - `onModuleDestroy`: menutup koneksi database.
+
+Flow seed:
+- perintah `npm run db:seed` menjalankan `prisma/seed.ts`;
+- file `.env` dibaca untuk `DATABASE_URL`, `SEED_ADMIN_EMAIL`, `SEED_ADMIN_NAME`, `SEED_ADMIN_PASSWORD`, dan `SEED_ADMIN_RESET_PASSWORD`;
+- `seedAdmin()` membuat admin baru jika email belum ada;
+- jika admin sudah ada, role dipastikan `ADMIN` dan status `active`;
+- password admin lama dipertahankan kecuali `SEED_ADMIN_RESET_PASSWORD=true`;
+- `seedTopicGroups()` membuat atau memperbarui group topik awal untuk tampilan broad topic.
 
 ## Module Feature
 
@@ -281,7 +290,8 @@ Kegunaan:
 Posisi pada flow: daftar favorit user.
 
 Kegunaan:
-- tambah/hapus favorit;
+- tambah favorit lewat `POST /api/favorites/:destinationId`;
+- hapus favorit lewat `DELETE /api/favorites/:destinationId` secara idempotent;
 - cek status favorit;
 - list favorit user.
 
@@ -303,7 +313,8 @@ Kegunaan:
 3. `SearchService` memanggil `NlpService.embedQuery`.
 4. Python `Model` mengembalikan embedding.
 5. `VectorService.hybridSearch` mencari destinasi dengan pgvector.
-6. Backend menambahkan topic dominan dan mengirim hasil ke frontend.
+6. Backend menambahkan topic dominan dan menyimpan history jika user login.
+7. Web/mobile bisa menghapus satu history atau membersihkan semua history lewat endpoint search history.
 
 ### Flow Detail Destinasi
 
@@ -328,7 +339,15 @@ Kegunaan:
 2. Backend menamai topic dan memetakan ke topic group.
 3. Search memakai topik/kategori sesuai kebutuhan UI.
 4. Detail memakai topic group untuk ringkasan luas.
-5. Admin bisa rename dan mengatur visibility topic.
+5. Admin bisa rename topic, rename group, mengatur visibility, dan melihat destinasi yang terkait topic.
+
+### Flow Scraper Operations
+
+1. Admin mencari tempat Google Maps dari halaman scraper jika URL Maps belum jelas.
+2. Admin memilih destinasi, mengisi URL Maps, lalu memulai scraping job.
+3. `ScraperService` membuat job dan mengirim task ke queue.
+4. Worker scraping memproses job, menyimpan history, dan menyiapkan file hasil.
+5. Admin memantau status job, membuka detail job, melihat history scraping, dan mengunduh Excel.
 
 ## Catatan Untuk Pembaca Baru NestJS
 

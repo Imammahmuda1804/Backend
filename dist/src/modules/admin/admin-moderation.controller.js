@@ -37,7 +37,7 @@ let AdminModerationController = class AdminModerationController {
 };
 exports.AdminModerationController = AdminModerationController;
 __decorate([
-    (0, common_1.Delete)('reviews/:id'),
+    (0, common_1.Delete)('moderation/reviews/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Hapus scraped review (moderasi)' }),
     (0, swagger_1.ApiParam)({ name: 'id', type: Number }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Review berhasil dihapus' }),

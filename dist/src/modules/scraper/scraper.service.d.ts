@@ -32,10 +32,10 @@ export declare class ScraperService {
             province: string;
         };
     } & {
-        createdAt: Date;
         id: number;
-        destinationId: number;
         status: string;
+        createdAt: Date;
+        destinationId: number;
         source: string;
         totalReviews: number | null;
         startedAt: Date | null;
@@ -50,10 +50,10 @@ export declare class ScraperService {
                 city: string;
             };
         } & {
-            createdAt: Date;
             id: number;
-            destinationId: number;
             status: string;
+            createdAt: Date;
+            destinationId: number;
             source: string;
             totalReviews: number | null;
             startedAt: Date | null;
@@ -74,10 +74,10 @@ export declare class ScraperService {
                 name: string;
             };
             job: {
-                createdAt: Date;
                 id: number;
-                destinationId: number;
                 status: string;
+                createdAt: Date;
+                destinationId: number;
                 source: string;
                 totalReviews: number | null;
                 startedAt: Date | null;
@@ -86,8 +86,8 @@ export declare class ScraperService {
                 createdBy: number | null;
             };
         } & {
-            createdAt: Date;
             id: number;
+            createdAt: Date;
             destinationId: number;
             totalReviews: number | null;
             jobId: number;

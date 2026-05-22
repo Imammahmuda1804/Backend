@@ -78,7 +78,16 @@ export class FavoritesService {
     };
   }
 
-  // Mengambil daftar favorit user.
+  // Menghapus destinasi dari favorit.
+  async removeFavorite(userId: number, destinationId: number) {
+    await this.prisma.favorite.deleteMany({
+      where: { userId, destinationId },
+    });
+
+    return { message: 'Destination removed from favorites' };
+  }
+
+  // Mengecek status favorit user.
   async checkFavorite(
     userId: number,
     destinationId: number,

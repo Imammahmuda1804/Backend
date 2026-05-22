@@ -1,4 +1,5 @@
 import { TopicsService } from './topics.service';
+import { RenameTopicDto, RenameTopicGroupDto, UpdateTopicSettingsDto } from './dto/topic-admin.dto';
 export declare class TopicsController {
     private readonly topicsService;
     constructor(topicsService: TopicsService);
@@ -46,6 +47,26 @@ export declare class TopicsController {
             total_destinations: number;
         }[];
     }[]>;
+    renameWithAi(): Promise<{
+        renamed: number;
+        failed: number;
+        total: number;
+    }>;
+    renameGroup(id: number, dto: RenameTopicGroupDto): Promise<{
+        id: number;
+        group_name: string;
+    }>;
+    renameTopic(id: number, dto: RenameTopicDto): Promise<{
+        id: number;
+        topicName: string;
+    }>;
+    updateSettings(id: number, dto: UpdateTopicSettingsDto): Promise<{
+        id: number;
+        topic_name: string;
+        group_id: number | null;
+        is_search_visible: boolean;
+        is_detail_visible: boolean;
+    }>;
     deleteTopic(id: number): Promise<{
         deleted: boolean;
         id: number;

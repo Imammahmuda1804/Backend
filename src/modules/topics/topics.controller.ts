@@ -25,6 +25,8 @@ import {
   RenameTopicDto,
   RenameTopicGroupDto,
   UpdateTopicSettingsDto,
+  MergeTopicsDto,
+  TopicGroupPayloadDto,
 } from './dto/topic-admin.dto';
 
 @ApiTags('Topics')
@@ -59,6 +61,61 @@ export class TopicsController {
   @ApiResponse({ status: 403, description: 'Forbidden - ADMIN only' })
   async renameWithAi() {
     return this.topicsService.renameUnnamedTopics();
+  }
+
+  // Menggabungkan beberapa topik sempit ke satu topik utama.
+  @Post('merge')
+  @ApiBearerAuth()
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Gabungkan beberapa topic ke topic tujuan' })
+  @ApiBody({ type: MergeTopicsDto })
+  @ApiResponse({ status: 201, description: 'Topic berhasil digabung' })
+  @ApiResponse({ status: 400, description: 'Payload merge tidak valid' })
+  @ApiResponse({
+    status: 404,
+    description: 'Topic target atau sumber tidak ditemukan',
+  })
+  async mergeTopics(@Body() dto: MergeTopicsDto) {
+    return this.topicsService.mergeTopics(
+      dto.targetTopicId,
+      dto.sourceTopicIds,
+    );
+  }
+
+  @Post('groups')
+  @ApiBearerAuth()
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Buat topic group baru' })
+  @ApiBody({ type: TopicGroupPayloadDto })
+  @ApiResponse({ status: 201, description: 'Topic group berhasil dibuat' })
+  async createGroup(@Body() dto: TopicGroupPayloadDto) {
+    return this.topicsService.createGroup(dto);
+  }
+
+  @Put('groups/:id')
+  @ApiBearerAuth()
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Update topic group' })
+  @ApiParam({ name: 'id', type: Number, description: 'Topic group ID' })
+  @ApiBody({ type: TopicGroupPayloadDto })
+  @ApiResponse({ status: 200, description: 'Topic group berhasil diperbarui' })
+  @ApiResponse({ status: 404, description: 'Topic group tidak ditemukan' })
+  async updateGroup(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: TopicGroupPayloadDto,
+  ) {
+    return this.topicsService.updateGroup(id, dto);
+  }
+
+  @Delete('groups/:id')
+  @ApiBearerAuth()
+  @Roles('ADMIN')
+  @ApiOperation({ summary: 'Hapus topic group' })
+  @ApiParam({ name: 'id', type: Number, description: 'Topic group ID' })
+  @ApiResponse({ status: 200, description: 'Topic group berhasil dihapus' })
+  @ApiResponse({ status: 404, description: 'Topic group tidak ditemukan' })
+  async deleteGroup(@Param('id', ParseIntPipe) id: number) {
+    return this.topicsService.deleteGroup(id);
   }
 
   // Mengganti nama topic luas.
@@ -141,6 +198,43 @@ export class TopicsController {
       id,
       parsedPage,
       parsedLimit,
+    );
+  }
+}
+
+@ApiTags('Admin - Topics')
+@ApiBearerAuth()
+@Roles('ADMIN')
+@Controller('admin/topics')
+export class AdminTopicsController {
+  constructor(private readonly topicsService: TopicsService) {}
+
+  @Get(':id/reviews')
+  @ApiOperation({ summary: 'List ulasan berdasarkan topic untuk admin' })
+  @ApiParam({ name: 'id', type: Number, description: 'Topic ID' })
+  @ApiQuery({
+    name: 'sentiment',
+    required: false,
+    enum: ['positive', 'neutral', 'negative'],
+  })
+  @ApiQuery({ name: 'destinationId', required: false, type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiResponse({ status: 200, description: 'Ulasan topic berhasil diambil' })
+  @ApiResponse({ status: 404, description: 'Topic tidak ditemukan' })
+  async findReviewsByTopic(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('sentiment') sentiment?: 'positive' | 'neutral' | 'negative',
+    @Query('destinationId') destinationId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.topicsService.findReviewsByTopic(
+      id,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 10,
+      sentiment,
+      destinationId ? parseInt(destinationId, 10) : undefined,
     );
   }
 }

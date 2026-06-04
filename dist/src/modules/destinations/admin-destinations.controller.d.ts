@@ -23,8 +23,8 @@ export declare class AdminDestinationsController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        slug: string;
         city: string;
+        slug: string;
         province: string;
         category: string;
         latitude: number | null;
@@ -73,8 +73,8 @@ export declare class AdminDestinationsController {
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
-            slug: string;
             city: string;
+            slug: string;
             province: string;
             category: string;
             latitude: number | null;
@@ -158,8 +158,8 @@ export declare class AdminDestinationsController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        slug: string;
         city: string;
+        slug: string;
         province: string;
         category: string;
         latitude: number | null;
@@ -182,8 +182,8 @@ export declare class AdminDestinationsController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        slug: string;
         city: string;
+        slug: string;
         province: string;
         category: string;
         latitude: number | null;
@@ -206,8 +206,8 @@ export declare class AdminDestinationsController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        slug: string;
         city: string;
+        slug: string;
         province: string;
         category: string;
         latitude: number | null;
@@ -230,8 +230,8 @@ export declare class AdminDestinationsController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        slug: string;
         city: string;
+        slug: string;
         province: string;
         category: string;
         latitude: number | null;
@@ -254,8 +254,8 @@ export declare class AdminDestinationsController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        slug: string;
         city: string;
+        slug: string;
         province: string;
         category: string;
         latitude: number | null;

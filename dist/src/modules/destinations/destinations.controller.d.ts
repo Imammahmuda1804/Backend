@@ -68,8 +68,8 @@ export declare class DestinationsController {
             createdAt: Date;
             updatedAt: Date;
             description: string | null;
-            slug: string;
             city: string;
+            slug: string;
             province: string;
             category: string;
             latitude: number | null;
@@ -97,9 +97,14 @@ export declare class DestinationsController {
         data: {
             id: number;
             name: string;
-            slug: string;
+            description: string | null;
             city: string;
+            slug: string;
             province: string;
+            latitude: number | null;
+            longitude: number | null;
+            googleMapsUrl: string | null;
+            googlePlaceId: string | null;
             googleRating: number | null;
             userRating: number | null;
             thumbnailUrl: string | null;
@@ -116,9 +121,13 @@ export declare class DestinationsController {
     getRanking(sortBy: string, limit: string): Promise<{
         id: number;
         name: string;
-        slug: string;
         city: string;
+        slug: string;
         province: string;
+        latitude: number | null;
+        longitude: number | null;
+        googleMapsUrl: string | null;
+        googlePlaceId: string | null;
         googleRating: number | null;
         userRating: number | null;
         thumbnailUrl: string | null;
@@ -210,8 +219,8 @@ export declare class DestinationsController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        slug: string;
         city: string;
+        slug: string;
         province: string;
         category: string;
         latitude: number | null;
@@ -342,8 +351,8 @@ export declare class DestinationsController {
         createdAt: Date;
         updatedAt: Date;
         description: string | null;
-        slug: string;
         city: string;
+        slug: string;
         province: string;
         category: string;
         latitude: number | null;

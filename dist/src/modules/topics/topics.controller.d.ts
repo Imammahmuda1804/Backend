@@ -1,5 +1,5 @@
 import { TopicsService } from './topics.service';
-import { RenameTopicDto, RenameTopicGroupDto, UpdateTopicSettingsDto } from './dto/topic-admin.dto';
+import { RenameTopicDto, RenameTopicGroupDto, UpdateTopicSettingsDto, MergeTopicsDto, TopicGroupPayloadDto } from './dto/topic-admin.dto';
 export declare class TopicsController {
     private readonly topicsService;
     constructor(topicsService: TopicsService);
@@ -52,6 +52,41 @@ export declare class TopicsController {
         failed: number;
         total: number;
     }>;
+    mergeTopics(dto: MergeTopicsDto): Promise<{
+        merged: boolean;
+        target_topic_id: number;
+        target_topic_name: string;
+        source_topic_ids: number[];
+        deleted_topics: number;
+    }>;
+    createGroup(dto: TopicGroupPayloadDto): Promise<{
+        id: number;
+        group_name: string;
+        description: string | null;
+        keywords: import("@prisma/client/runtime/client").JsonValue;
+        display_order: number;
+        topics: never[];
+    }>;
+    updateGroup(id: number, dto: TopicGroupPayloadDto): Promise<{
+        id: number;
+        group_name: string;
+        description: string | null;
+        keywords: import("@prisma/client/runtime/client").JsonValue;
+        display_order: number;
+        topics: {
+            id: number;
+            topic_name: string;
+            keywords: import("@prisma/client/runtime/client").JsonValue;
+            is_search_visible: boolean;
+            is_detail_visible: boolean;
+            total_destinations: number;
+        }[];
+    }>;
+    deleteGroup(id: number): Promise<{
+        deleted: boolean;
+        id: number;
+        group_name: string;
+    }>;
     renameGroup(id: number, dto: RenameTopicGroupDto): Promise<{
         id: number;
         group_name: string;
@@ -59,6 +94,12 @@ export declare class TopicsController {
     renameTopic(id: number, dto: RenameTopicDto): Promise<{
         id: number;
         topicName: string;
+    } | {
+        merged: boolean;
+        target_topic_id: number;
+        target_topic_name: string;
+        source_topic_ids: number[];
+        deleted_topics: number;
     }>;
     updateSettings(id: number, dto: UpdateTopicSettingsDto): Promise<{
         id: number;
@@ -76,12 +117,55 @@ export declare class TopicsController {
             total_reviews_in_topic: number;
             id: number;
             name: string;
-            slug: string;
             city: string;
+            slug: string;
             province: string;
             thumbnailUrl: string | null;
             positiveRatio: number | null;
             recommendationScore: number | null;
+        }[];
+        meta: {
+            page: number;
+            limit: number;
+            total: number;
+            total_pages: number;
+        };
+    }>;
+}
+export declare class AdminTopicsController {
+    private readonly topicsService;
+    constructor(topicsService: TopicsService);
+    findReviewsByTopic(id: number, sentiment?: 'positive' | 'neutral' | 'negative', destinationId?: string, page?: string, limit?: string): Promise<{
+        topic: {
+            id: number;
+            topic_name: string;
+            group: {
+                id: number;
+                group_name: string;
+            } | null;
+        };
+        sentiment_summary: {
+            positive: number;
+            neutral: number;
+            negative: number;
+            unknown: number;
+        };
+        data: {
+            id: number;
+            reviewer_name: string;
+            review_text: string | null;
+            rating: number | null;
+            review_date: Date | null;
+            sentiment: string | null;
+            sentiment_confidence: number | null;
+            destination: {
+                id: number;
+                name: string;
+                city: string;
+                slug: string;
+                province: string;
+                thumbnailUrl: string | null;
+            };
         }[];
         meta: {
             page: number;

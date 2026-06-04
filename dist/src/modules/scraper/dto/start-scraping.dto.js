@@ -15,6 +15,7 @@ const class_validator_1 = require("class-validator");
 class StartScrapingDto {
     destination_id;
     max_reviews = 100;
+    fetch_all_reviews = false;
     maps_url;
 }
 exports.StartScrapingDto = StartScrapingDto;
@@ -34,6 +35,15 @@ __decorate([
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], StartScrapingDto.prototype, "max_reviews", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Jika true, scraper akan mencoba mengambil seluruh ulasan berteks dan mengabaikan max_reviews.',
+        default: false,
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], StartScrapingDto.prototype, "fetch_all_reviews", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'URL Google Maps kustom. Jika diisi, akan menggantikan URL yang tersimpan di data destinasi.',

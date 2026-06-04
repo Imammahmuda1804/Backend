@@ -11,6 +11,8 @@ export declare class NlpResultStorageService {
     saveNlpResults(destinationId: number, nlpResult: NlpPipelineResult, reviewIds: number[]): Promise<void>;
     private logPipelineResult;
     private saveTopics;
+    private findTopicByNormalizedName;
+    private mergeTopicKeywords;
     private updateReviews;
     private saveReviewEmbeddings;
     private saveDestinationEmbedding;

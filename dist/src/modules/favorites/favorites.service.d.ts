@@ -12,8 +12,8 @@ export declare class FavoritesService {
             destination: {
                 id: number;
                 name: string;
-                slug: string;
                 city: string;
+                slug: string;
                 province: string;
                 googleRating: number | null;
                 thumbnailUrl: string | null;

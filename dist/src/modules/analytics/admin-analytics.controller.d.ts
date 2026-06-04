@@ -19,7 +19,11 @@ export declare class AdminAnalyticsController {
         };
         total_scraping_jobs: number;
         scraping_jobs_breakdown: Record<string, number>;
-        sentiment_distribution: Record<string, number>;
+        sentiment_distribution: {
+            positive: number;
+            negative: number;
+            neutral: number;
+        };
         top_destinations: {
             id: number;
             name: string;

@@ -36,9 +36,12 @@ model User {
   updatedAt      DateTime @updatedAt @map("updated_at")
 
   favorites    Favorite[]
+  routes       Route[]
+  savedRoutes  SavedRoute[]
   searchLogs   SearchLog[]
   userReviews  UserReview[]
   scrapingJobs ScrapingJob[]
+  nlpProcessingRuns NlpProcessingRun[]
 
   @@map("users")
 }
@@ -89,6 +92,8 @@ model Destination {
   destinationTopics DestinationTopic[]
   scrapingJobs      ScrapingJob[]
   scrapingHistories ScrapingHistory[]
+  routeStops        RouteStop[]
+  nlpProcessingRuns NlpProcessingRun[]
 
   @@index([slug])
   @@index([city])
@@ -128,6 +133,7 @@ model Review {
   rating        Int?
   reviewDate    DateTime? @map("review_date")
   source        String?   @default("google_maps")
+  reviewHash    String?   @map("review_hash")
   likesCount    Int?      @map("likes_count")
   ownerReply    String?   @map("owner_reply")
   sentiment     String?
@@ -146,7 +152,36 @@ model Review {
   @@index([topicId])
   @@index([createdAt])
   @@index([scrapingJobId])
+  @@unique([destinationId, source, reviewHash])
   @@map("reviews")
+}
+
+model NlpProcessingRun {
+  id                Int       @id @default(autoincrement())
+  destinationId     Int       @map("destination_id")
+  adminId           Int?      @map("admin_id")
+  fileName          String    @map("file_name")
+  fileHash          String    @map("file_hash")
+  mode              String    @default("skip_existing")
+  status            String    @default("processing")
+  totalRows         Int       @default(0) @map("total_rows")
+  insertedReviews   Int       @default(0) @map("inserted_reviews")
+  skippedDuplicates Int       @default(0) @map("skipped_duplicates")
+  processedReviews  Int       @default(0) @map("processed_reviews")
+  errorMessage      String?   @map("error_message")
+  startedAt         DateTime  @default(now()) @map("started_at")
+  finishedAt        DateTime? @map("finished_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  admin       User?       @relation(fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([destinationId])
+  @@index([adminId])
+  @@index([fileHash])
+  @@index([status])
+  @@index([startedAt])
+  @@map("nlp_processing_runs")
 }
 
 // ============================================
@@ -339,4 +374,84 @@ model ScrapingHistory {
   @@index([destinationId])
   @@index([jobId])
   @@map("scraping_history")
+}
+
+model Route {
+  id                       Int      @id @default(autoincrement())
+  title                    String
+  description              String?
+  createdByUserId          Int?     @map("created_by_user_id")
+  isAdminCurated           Boolean  @default(false) @map("is_admin_curated")
+  visibility               String   @default("private")
+  shareSlug                String   @unique @map("share_slug")
+  city                     String?
+  totalDistanceKm          Float?   @map("total_distance_km")
+  estimatedDurationMinutes Int?     @map("estimated_duration_minutes")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+
+  createdBy   User?        @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  stops       RouteStop[]
+  savedRoutes SavedRoute[]
+
+  @@index([createdByUserId])
+  @@index([visibility])
+  @@index([isAdminCurated])
+  @@index([city])
+  @@map("routes")
+}
+
+model RouteStop {
+  id                     Int    @id @default(autoincrement())
+  routeId                Int    @map("route_id")
+  destinationId          Int    @map("destination_id")
+  stopOrder              Int    @map("stop_order")
+  distanceFromPreviousKm Float? @map("distance_from_previous_km")
+  distanceToNextKm       Float? @map("distance_to_next_km")
+  note                   String?
+  estimatedVisitMinutes  Int?   @map("estimated_visit_minutes")
+
+  route       Route       @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  progress    SavedRouteProgress[]
+
+  @@unique([routeId, destinationId])
+  @@index([routeId])
+  @@index([destinationId])
+  @@index([stopOrder])
+  @@map("route_stops")
+}
+
+model SavedRoute {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  routeId   Int      @map("route_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user     User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  route    Route                @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  progress SavedRouteProgress[]
+
+  @@unique([userId, routeId])
+  @@index([userId])
+  @@index([routeId])
+  @@map("saved_routes")
+}
+
+model SavedRouteProgress {
+  id           Int       @id @default(autoincrement())
+  savedRouteId Int       @map("saved_route_id")
+  routeStopId  Int       @map("route_stop_id")
+  status       String    @default("pending")
+  note         String?
+  visitedAt    DateTime? @map("visited_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  savedRoute SavedRoute @relation(fields: [savedRouteId], references: [id], onDelete: Cascade)
+  routeStop  RouteStop  @relation(fields: [routeStopId], references: [id], onDelete: Cascade)
+
+  @@unique([savedRouteId, routeStopId])
+  @@index([savedRouteId])
+  @@index([routeStopId])
+  @@map("saved_route_progress")
 }

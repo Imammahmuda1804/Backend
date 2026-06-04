@@ -477,6 +477,7 @@ let AnalyticsService = class AnalyticsService {
             ? id1
             : id2;
         const scoreDiff = Math.abs((dest1.recommendation_score ?? 0) - (dest2.recommendation_score ?? 0));
+        const recommended = this.pickRecommendedDestination(dest1, dest2);
         return {
             destination1: dest1,
             destination2: dest2,
@@ -485,6 +486,7 @@ let AnalyticsService = class AnalyticsService {
                 rating_winner: ratingWinner,
                 recommendation_winner: recommendationWinner,
                 score_difference: Math.round(scoreDiff * 1000) / 1000,
+                insights: this.buildCompareInsights(dest1, dest2, recommended),
             },
         };
     }
@@ -688,39 +690,277 @@ let AnalyticsService = class AnalyticsService {
             select: {
                 id: true,
                 name: true,
+                slug: true,
+                city: true,
+                province: true,
+                category: true,
+                thumbnailUrl: true,
+                latitude: true,
+                longitude: true,
+                googleMapsUrl: true,
                 googleRating: true,
                 userRating: true,
                 positiveRatio: true,
                 recommendationScore: true,
                 destinationTopics: {
-                    include: { topic: { select: { topicName: true } } },
+                    include: {
+                        topic: {
+                            select: {
+                                topicName: true,
+                                group: { select: { groupName: true } },
+                            },
+                        },
+                    },
                     orderBy: { totalReviews: 'desc' },
-                    take: 5,
+                    take: 10,
                 },
             },
         });
         if (!dest)
             return null;
-        const sentimentCounts = await this.prisma.review.groupBy({
-            by: ['sentiment'],
-            _count: { sentiment: true },
-            where: { destinationId: id, sentiment: { not: null } },
-        });
+        const [sentimentCounts, reviewCount] = await Promise.all([
+            this.prisma.review.groupBy({
+                by: ['sentiment'],
+                _count: { sentiment: true },
+                where: { destinationId: id, sentiment: { not: null } },
+            }),
+            this.prisma.review.count({ where: { destinationId: id } }),
+        ]);
+        const topics = dest.destinationTopics.map((t) => ({
+            topic_name: t.topic.topicName,
+            total_reviews: t.totalReviews,
+            group_name: t.topic.group?.groupName ?? null,
+        }));
+        const sentiment = this.buildSentimentDist(sentimentCounts);
+        const topicGroups = this.buildTopicGroups(topics);
         return {
             id: dest.id,
             name: dest.name,
-            sentiment: this.buildSentimentDist(sentimentCounts),
-            topics: dest.destinationTopics.map((t) => ({
-                topic_name: t.topic.topicName,
-                total_reviews: t.totalReviews,
-            })),
+            slug: dest.slug,
+            city: dest.city,
+            province: dest.province,
+            category: dest.category,
+            thumbnailUrl: dest.thumbnailUrl,
+            latitude: dest.latitude,
+            longitude: dest.longitude,
+            googleMapsUrl: dest.googleMapsUrl,
+            sentiment,
+            topics: topics.slice(0, 5),
+            top_topics: topics.slice(0, 5),
+            topic_groups: topicGroups,
             rating: {
                 google: dest.googleRating,
                 user: dest.userRating,
             },
             recommendation_score: dest.recommendationScore,
             positive_ratio: dest.positiveRatio,
+            review_count: reviewCount,
+            travel_traits: this.buildTravelTraits(dest.category, topics),
+            decision_factors: this.buildDecisionFactors(dest, topics, sentiment),
+            highlights: this.pickTopicSignals(topics, 'highlight'),
+            risks: this.pickTopicSignals(topics, 'risk'),
         };
+    }
+    buildTopicGroups(topics) {
+        const groups = new Map();
+        for (const topic of topics) {
+            const groupName = topic.group_name || 'Topik lainnya';
+            groups.set(groupName, (groups.get(groupName) ?? 0) + topic.total_reviews);
+        }
+        return Array.from(groups.entries())
+            .map(([group_name, total_reviews]) => ({ group_name, total_reviews }))
+            .sort((a, b) => b.total_reviews - a.total_reviews)
+            .slice(0, 5);
+    }
+    buildTravelTraits(category, topics) {
+        const text = this.topicText(topics);
+        return {
+            family: this.scoreKeywords(text, category, [
+                'keluarga',
+                'anak',
+                'edukasi',
+                'aman',
+                'nyaman',
+            ]),
+            couple: this.scoreKeywords(text, category, [
+                'romantis',
+                'tenang',
+                'foto',
+                'pemandangan',
+                'sunset',
+            ]),
+            solo: this.scoreKeywords(text, category, [
+                'tenang',
+                'mudah',
+                'aman',
+                'murah',
+                'akses',
+            ]),
+            photo_spot: this.scoreKeywords(text, category, [
+                'foto',
+                'spot',
+                'pemandangan',
+                'indah',
+                'ikonik',
+            ]),
+            relaxing: this.scoreKeywords(text, category, [
+                'tenang',
+                'asri',
+                'sejuk',
+                'nyaman',
+                'healing',
+            ]),
+            culture: this.scoreKeywords(text, category, [
+                'budaya',
+                'sejarah',
+                'tradisi',
+                'museum',
+                'religi',
+            ]),
+            adventure: this.scoreKeywords(text, category, [
+                'petualangan',
+                'alam',
+                'trekking',
+                'air terjun',
+                'akses susah',
+            ]),
+        };
+    }
+    buildDecisionFactors(dest, topics, sentiment) {
+        const text = this.topicText(topics);
+        const quality = Math.round((dest.positiveRatio ?? 0.5) * 55 + (dest.recommendationScore ?? 0.5) * 45);
+        return {
+            access: this.clampScore(48 +
+                (dest.googleMapsUrl || (dest.latitude && dest.longitude) ? 12 : 0) +
+                this.keywordDelta(text, ['akses mudah', 'jalan bagus', 'mudah'], 18) -
+                this.keywordDelta(text, ['akses susah', 'jalan rusak', 'macet'], 22)),
+            cost_value: this.clampScore(quality +
+                this.keywordDelta(text, ['murah', 'terjangkau', 'worth'], 12) -
+                this.keywordDelta(text, ['mahal', 'pungli', 'biaya'], 22)),
+            cleanliness: this.clampScore(quality +
+                this.keywordDelta(text, ['bersih', 'terawat', 'nyaman'], 15) -
+                this.keywordDelta(text, ['kotor', 'tidak terawat', 'sampah'], 24)),
+            facilities: this.clampScore(50 +
+                this.keywordDelta(text, ['toilet', 'parkir', 'mushola', 'warung'], 22) -
+                this.keywordDelta(text, ['fasilitas kurang', 'toilet kotor'], 16)),
+            crowd: this.clampScore(58 +
+                this.keywordDelta(text, ['tenang', 'sepi', 'nyaman'], 18) -
+                this.keywordDelta(text, ['ramai', 'padat', 'antri'], 20) -
+                (sentiment.negative > sentiment.positive ? 8 : 0)),
+            view_activity: this.clampScore(quality +
+                this.keywordDelta(text, ['pemandangan', 'foto', 'aktivitas', 'budaya', 'kuliner', 'pantai'], 18)),
+        };
+    }
+    pickTopicSignals(topics, kind) {
+        const keywords = kind === 'highlight'
+            ? [
+                'indah',
+                'bagus',
+                'bersih',
+                'nyaman',
+                'murah',
+                'mudah',
+                'foto',
+                'budaya',
+                'asri',
+                'tenang',
+                'menarik',
+                'lengkap',
+            ]
+            : [
+                'mahal',
+                'pungli',
+                'kotor',
+                'susah',
+                'rusak',
+                'ramai',
+                'macet',
+                'kurang',
+                'tidak',
+                'buruk',
+                'parkir',
+            ];
+        const matched = topics
+            .filter((topic) => keywords.some((keyword) => topic.topic_name.toLowerCase().includes(keyword)))
+            .map((topic) => this.cleanTopicName(topic.topic_name))
+            .filter(Boolean)
+            .slice(0, 4);
+        if (matched.length > 0)
+            return [...new Set(matched)];
+        return topics
+            .map((topic) => this.cleanTopicName(topic.topic_name))
+            .filter(Boolean)
+            .slice(0, kind === 'highlight' ? 3 : 2);
+    }
+    pickRecommendedDestination(dest1, dest2) {
+        const score = (dest) => (dest.recommendation_score ?? 0) * 0.45 +
+            (dest.positive_ratio ?? 0) * 0.3 +
+            ((dest.rating.user ?? dest.rating.google ?? 0) / 5) * 0.15 +
+            (dest.risks.length ? 0 : 0.1);
+        return score(dest1) >= score(dest2) ? dest1 : dest2;
+    }
+    buildCompareInsights(dest1, dest2, recommended) {
+        const other = recommended.id === dest1.id ? dest2 : dest1;
+        const bestFor = Object.entries(recommended.travel_traits)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([key]) => this.traitLabel(key));
+        return {
+            recommended_destination_id: recommended.id,
+            summary: `${recommended.name} lebih cocok dipilih jika Anda mengejar ${bestFor.join(', ').toLowerCase()}. ${other.name} tetap menarik sebagai pembanding, terutama jika faktor risikonya sesuai toleransi perjalanan Anda.`,
+            best_for: bestFor,
+            tradeoffs: [
+                ...recommended.highlights
+                    .slice(0, 2)
+                    .map((item) => `${recommended.name}: ${item}`),
+                ...other.risks
+                    .slice(0, 2)
+                    .map((item) => `${other.name}: perlu cek ${item.toLowerCase()}`),
+            ].slice(0, 4),
+            score_cards: [this.buildScoreCard(dest1), this.buildScoreCard(dest2)],
+        };
+    }
+    buildScoreCard(dest) {
+        const factorAverage = Object.values(dest.decision_factors).reduce((sum, value) => sum + value, 0) / Object.values(dest.decision_factors).length;
+        return {
+            destination_id: dest.id,
+            label: dest.name,
+            score: this.clampScore((dest.recommendation_score ?? 0.5) * 45 +
+                (dest.positive_ratio ?? 0.5) * 25 +
+                factorAverage * 0.3),
+            reasons: [...dest.highlights.slice(0, 2), ...dest.risks.slice(0, 1)],
+        };
+    }
+    topicText(topics) {
+        return topics.map((topic) => topic.topic_name.toLowerCase()).join(' ');
+    }
+    scoreKeywords(text, category, keywords) {
+        const categoryHit = keywords.some((keyword) => category.includes(keyword))
+            ? 18
+            : 0;
+        return this.clampScore(42 + categoryHit + this.keywordDelta(text, keywords, 18));
+    }
+    keywordDelta(text, keywords, amount) {
+        const hits = keywords.filter((keyword) => text.includes(keyword)).length;
+        return Math.min(amount, hits * Math.ceil(amount / 2));
+    }
+    clampScore(value) {
+        return Math.max(0, Math.min(100, Math.round(value)));
+    }
+    cleanTopicName(name) {
+        return name.replace(/^Topic \d+:\s*/, '').trim();
+    }
+    traitLabel(key) {
+        const labels = {
+            family: 'Keluarga',
+            couple: 'Pasangan',
+            solo: 'Solo traveler',
+            photo_spot: 'Foto',
+            relaxing: 'Santai',
+            culture: 'Budaya',
+            adventure: 'Petualangan',
+        };
+        return labels[key] ?? key;
     }
 };
 exports.AnalyticsService = AnalyticsService;

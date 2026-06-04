@@ -257,6 +257,11 @@ Role: Public.
 
 Kegunaan: mengambil destinasi rekomendasi.
 
+Response utama:
+
+- `data[]`: destinasi rekomendasi berisi `id`, `name`, `slug`, `description`, `city`, `thumbnailUrl`, rating, sentimen, koordinat, dan skor rekomendasi.
+- `meta`: informasi pagination.
+
 File:
 
 - `src/modules/destinations/destinations.controller.ts`
@@ -529,8 +534,14 @@ File:
 
 Query:
 
-- `destinationAId`
-- `destinationBId`
+- `destination1`: ID destinasi pertama.
+- `destination2`: ID destinasi kedua.
+
+Response utama:
+
+- `destination1` dan `destination2`: snapshot destinasi, rating, sentimen, topik, skor rekomendasi.
+- Field tambahan compare user: `city`, `slug`, `thumbnailUrl`, `category`, `latitude`, `longitude`, `googleMapsUrl`, `review_count`, `topic_groups`, `top_topics`, `travel_traits`, `decision_factors`, `highlights`, dan `risks`.
+- `comparison`: pemenang sentimen/rating/rekomendasi, selisih skor, dan `insights` untuk ringkasan keputusan, best-for, tradeoff, dan score card.
 
 ## Topics
 
@@ -572,17 +583,111 @@ File:
 - `src/modules/topics/topics.controller.ts`
 - `src/modules/topics/topics.service.ts`
 
+### GET `/admin/topics/:id/reviews`
+
+Role: Admin.
+
+Kegunaan: mengambil ulasan yang terkait dengan satu topic untuk drawer inspeksi topik di halaman admin topics.
+
+File:
+
+- `src/modules/topics/topics.controller.ts`
+- `src/modules/topics/topics.service.ts`
+
+Query:
+
+- `sentiment`: optional, salah satu `positive`, `neutral`, atau `negative`.
+- `destinationId`: optional, membatasi ulasan pada satu destinasi.
+- `page`: halaman data.
+- `limit`: jumlah data per halaman.
+
+Response:
+
+- `topic`: informasi topic dan group.
+- `sentiment_summary`: jumlah ulasan positif, netral, negatif, dan unknown.
+- `data`: daftar ulasan beserta destinasi, rating, sentimen, confidence, dan tanggal.
+- `meta`: pagination.
+
 ### POST `/topics/rename-ai`
 
 Role: Admin.
 
-Kegunaan: menamai ulang topic fallback seperti `Topic 17` memakai AI naming.
+Kegunaan: menamai ulang topic fallback seperti `Topic 17` memakai AI naming. Jika nama hasil AI sama dengan topic yang sudah ada setelah normalisasi huruf/spasi, backend otomatis menggabungkan topic fallback ke topic existing agar taxonomy tidak punya nama duplikat.
 
 File:
 
 - `src/modules/topics/topics.controller.ts`
 - `src/modules/topics/topics.service.ts`
 - `src/modules/nlp/ai-naming.service.ts`
+
+### POST `/topics/merge`
+
+Role: Admin.
+
+Kegunaan: menggabungkan dua atau lebih topic sempit ke satu topic target. Review, relasi `destination_topics`, dan keyword source dipindahkan ke target, lalu topic source dihapus.
+
+File:
+
+- `src/modules/topics/topics.controller.ts`
+- `src/modules/topics/topics.service.ts`
+- `src/modules/topics/dto/topic-admin.dto.ts`
+
+Body:
+
+```json
+{
+  "targetTopicId": 12,
+  "sourceTopicIds": [21, 34]
+}
+```
+
+### POST `/topics/groups`
+
+Role: Admin.
+
+Kegunaan: membuat topic group luas baru untuk taxonomy admin.
+
+File:
+
+- `src/modules/topics/topics.controller.ts`
+- `src/modules/topics/topics.service.ts`
+- `src/modules/topics/dto/topic-admin.dto.ts`
+
+Body:
+
+```json
+{
+  "groupName": "Akses & Transportasi",
+  "description": "Keluhan dan sinyal terkait akses lokasi, parkir, dan transportasi.",
+  "keywords": ["akses", "parkir", "jalan"],
+  "displayOrder": 10
+}
+```
+
+### PUT `/topics/groups/:id`
+
+Role: Admin.
+
+Kegunaan: memperbarui nama, deskripsi, keyword, dan urutan topic group luas.
+
+File:
+
+- `src/modules/topics/topics.controller.ts`
+- `src/modules/topics/topics.service.ts`
+- `src/modules/topics/dto/topic-admin.dto.ts`
+
+Body sama dengan `POST /topics/groups`.
+
+### DELETE `/topics/groups/:id`
+
+Role: Admin.
+
+Kegunaan: menghapus topic group. Topik yang sebelumnya berada dalam group tersebut menjadi belum dipetakan karena relasi database memakai `SetNull`.
+
+File:
+
+- `src/modules/topics/topics.controller.ts`
+- `src/modules/topics/topics.service.ts`
 
 ### PUT `/topics/groups/:id/rename`
 
@@ -608,7 +713,7 @@ Body:
 
 Role: Admin.
 
-Kegunaan: mengganti nama topic sempit secara manual.
+Kegunaan: mengganti nama topic sempit secara manual. Jika nama baru sama dengan topic existing, backend melakukan merge otomatis ke topic existing.
 
 File:
 
@@ -961,9 +1066,16 @@ Body:
 {
   "destination_id": 1,
   "max_reviews": 100,
+  "fetch_all_reviews": false,
   "maps_url": "https://maps.google.com/..."
 }
 ```
+
+Catatan:
+
+- `max_reviews` membatasi jumlah ulasan berteks yang disimpan ke Excel.
+- Jika `fetch_all_reviews` bernilai `true`, backend mengabaikan `max_reviews` dan meminta scraper mengambil seluruh ulasan berteks yang tersedia.
+- Mode seluruh ulasan bisa berjalan lebih lama dan memakai kuota Apify lebih besar.
 
 ### GET `/admin/scraper/status/:jobId`
 
@@ -1025,11 +1137,42 @@ File:
 
 ## Admin NLP
 
+### POST `/admin/nlp/preflight`
+
+Role: Admin.
+
+Kegunaan: mengecek file CSV/XLSX sebelum proses NLP, menghitung `file_hash`, jumlah baris, review baru, review duplikat, dan run sebelumnya.
+
+File:
+
+- `src/modules/nlp/nlp.controller.ts`
+- `src/modules/nlp/utils/excel-parser.util.ts`
+- `src/modules/nlp/utils/nlp-dedup.util.ts`
+
+Form data:
+
+| Field | Keterangan |
+| --- | --- |
+| `file` | File CSV/XLSX review. |
+| `destination_id` | ID destinasi tujuan. |
+
+Response utama:
+
+| Field | Keterangan |
+| --- | --- |
+| `total_rows` | Jumlah review valid di file. |
+| `new_reviews` | Review yang belum ada berdasarkan `review_hash`. |
+| `duplicate_reviews` | Review yang sudah ada. |
+| `already_processed` | `true` jika hash file pernah diproses. |
+| `recommended_mode` | Mode aman yang disarankan UI. |
+
 ### POST `/admin/nlp/upload`
 
 Role: Admin.
 
-Kegunaan: upload file review untuk diproses NLP.
+Kegunaan: upload file review untuk diproses NLP dengan dedup review dan history proses.
+
+Catatan: endpoint ini wajib terhubung ke Python Model service melalui `NLP_SERVICE_URL`. Jika service Model mati atau hasil pipeline tidak mengembalikan topik untuk review yang diproses, run ditandai `failed` dan data baru pada mode aman tidak disimpan sebagai hasil sukses.
 
 File:
 
@@ -1038,14 +1181,277 @@ File:
 - `src/modules/nlp/nlp-result-storage.service.ts`
 - `src/modules/nlp/ai-naming.service.ts`
 - `src/modules/nlp/utils/excel-parser.util.ts`
+- `src/modules/nlp/utils/nlp-dedup.util.ts`
 
 Form data:
 
 | Field | Keterangan |
 | --- | --- |
 | `file` | File CSV/XLSX review. |
-| `destinationId` | ID destinasi tujuan. |
-| `textColumn` | Nama kolom teks jika berbeda dari default. |
+| `destination_id` | ID destinasi tujuan. |
+| `mode` | `skip_existing`, `reprocess_existing`, atau `replace_existing`. Default `skip_existing`. |
+
+Mode proses:
+
+| Mode | Perilaku |
+| --- | --- |
+| `skip_existing` | Hanya insert dan proses review baru. Duplikat dilewati. |
+| `reprocess_existing` | Review yang sudah ada tidak dibuat ulang, tetapi dianalisis ulang. |
+| `replace_existing` | Review scraping lama destinasi dihapus, lalu file dipakai sebagai data baru. |
+
+### GET `/admin/nlp/history`
+
+Role: Admin.
+
+Kegunaan: mengambil riwayat proses NLP untuk panel admin.
+
+Query:
+
+| Query | Keterangan |
+| --- | --- |
+| `destination_id` | Filter destinasi opsional. |
+| `status` | Filter `processing`, `completed`, atau `failed`. |
+| `page` | Halaman pagination. |
+| `limit` | Jumlah data per halaman. |
+
+File:
+
+- `src/modules/nlp/nlp.controller.ts`
+
+### GET `/admin/nlp/history/:id`
+
+Role: Admin.
+
+Kegunaan: mengambil detail satu run NLP, termasuk error dan ringkasan inserted/skipped/processed.
+
+File:
+
+- `src/modules/nlp/nlp.controller.ts`
+
+## Routes
+
+### GET `/routes/public`
+
+Role: Public.
+
+Kegunaan: mengambil katalog route publik, termasuk curated route admin dan route user yang dibagikan.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### GET `/routes/share/:shareSlug`
+
+Role: Public.
+
+Kegunaan: membuka route public atau link-only dari link share.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### GET `/routes/me`
+
+Role: User login.
+
+Kegunaan: mengambil custom route milik user.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### GET `/routes/saved`
+
+Role: User login.
+
+Kegunaan: mengambil route public/link-only yang disimpan user.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### GET `/routes/saved/:routeId/progress`
+
+Role: User login.
+
+Kegunaan: mengambil progress kunjungan per stop untuk route yang sudah disimpan user.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### PUT `/routes/saved/:routeId/progress/:routeStopId`
+
+Role: User login.
+
+Kegunaan: menandai satu stop route tersimpan sebagai `visited` atau `pending`.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+- `src/modules/routes/dto/route.dto.ts`
+
+Body:
+
+```json
+{
+  "status": "visited",
+  "note": "Sudah dikunjungi pagi hari."
+}
+```
+
+### DELETE `/routes/saved/:routeId/progress/:routeStopId`
+
+Role: User login.
+
+Kegunaan: mereset progress satu stop route tersimpan.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### POST `/routes`
+
+Role: User login.
+
+Kegunaan: membuat custom route user. Body berisi `title`, `visibility`, `autoSort`, dan `stops[]`.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+- `src/modules/routes/dto/route.dto.ts`
+
+### POST `/routes/auto-sort`
+
+Role: User login.
+
+Kegunaan: mengurutkan destinasi route berdasarkan koordinat memakai perhitungan Haversine.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+- `src/modules/routes/route-distance.util.ts`
+
+### PUT `/routes/:id`
+
+Role: Owner route.
+
+Kegunaan: mengubah custom route milik user.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### DELETE `/routes/:id`
+
+Role: Owner route.
+
+Kegunaan: menghapus custom route milik user.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### POST `/routes/:id/save`
+
+Role: User login.
+
+Kegunaan: menyimpan route public/link-only ke daftar route user.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### DELETE `/routes/:id/save`
+
+Role: User login.
+
+Kegunaan: menghapus route dari daftar simpanan user.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### POST `/routes/:id/duplicate`
+
+Role: User login.
+
+Kegunaan: membuat salinan private dari route public/link-only agar bisa dipakai sebagai itinerary pribadi.
+
+File:
+
+- `src/modules/routes/routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+## Admin Routes
+
+### GET `/admin/routes`
+
+Role: Admin.
+
+Kegunaan: mengambil semua route untuk manajemen admin.
+
+File:
+
+- `src/modules/routes/admin-routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### POST `/admin/routes`
+
+Role: Admin.
+
+Kegunaan: membuat curated route admin.
+
+File:
+
+- `src/modules/routes/admin-routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### PUT `/admin/routes/:id`
+
+Role: Admin.
+
+Kegunaan: mengubah curated route admin.
+
+File:
+
+- `src/modules/routes/admin-routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### PATCH `/admin/routes/:id/publish`
+
+Role: Admin.
+
+Kegunaan: mengubah visibility route menjadi `private`, `public`, atau `link_only`.
+
+File:
+
+- `src/modules/routes/admin-routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
+
+### DELETE `/admin/routes/:id`
+
+Role: Admin.
+
+Kegunaan: menghapus route sebagai admin.
+
+File:
+
+- `src/modules/routes/admin-routes.controller.ts`
+- `src/modules/routes/routes.service.ts`
 
 ## Catatan Response Global
 

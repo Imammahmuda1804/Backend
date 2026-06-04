@@ -1,11 +1,55 @@
 import { PrismaService } from '../../prisma/prisma.service';
+type CompareTopicSignal = {
+    topic_name: string;
+    total_reviews: number;
+    group_name?: string | null;
+};
+type CompareFactorKey = 'access' | 'cost_value' | 'cleanliness' | 'facilities' | 'crowd' | 'view_activity';
+type CompareDestinationSnapshot = {
+    id: number;
+    name: string;
+    slug: string;
+    city: string;
+    province: string;
+    category: string;
+    thumbnailUrl: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    googleMapsUrl: string | null;
+    sentiment: {
+        positive: number;
+        neutral: number;
+        negative: number;
+    };
+    topics: CompareTopicSignal[];
+    top_topics: CompareTopicSignal[];
+    topic_groups: Array<{
+        group_name: string;
+        total_reviews: number;
+    }>;
+    rating: {
+        google: number | null;
+        user: number | null;
+    };
+    recommendation_score: number | null;
+    positive_ratio: number | null;
+    review_count: number;
+    travel_traits: Record<string, number>;
+    decision_factors: Record<CompareFactorKey, number>;
+    highlights: string[];
+    risks: string[];
+};
 export declare class AnalyticsService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     getPublicDashboard(): Promise<{
         total_destinations: number;
         total_reviews: number;
-        sentiment_distribution: Record<string, number>;
+        sentiment_distribution: {
+            positive: number;
+            negative: number;
+            neutral: number;
+        };
         top_topics: {
             topic_name: string;
             count: number;
@@ -13,8 +57,8 @@ export declare class AnalyticsService {
         top_recommendations: {
             id: number;
             name: string;
-            slug: string;
             city: string;
+            slug: string;
             thumbnailUrl: string | null;
             positiveRatio: number | null;
             recommendationScore: number | null;
@@ -35,7 +79,11 @@ export declare class AnalyticsService {
         };
         total_scraping_jobs: number;
         scraping_jobs_breakdown: Record<string, number>;
-        sentiment_distribution: Record<string, number>;
+        sentiment_distribution: {
+            positive: number;
+            negative: number;
+            neutral: number;
+        };
         top_destinations: {
             id: number;
             name: string;
@@ -200,7 +248,11 @@ export declare class AnalyticsService {
         destination_id: number;
         destination_name: string;
         total_reviews: number;
-        sentiment_distribution: Record<string, number>;
+        sentiment_distribution: {
+            positive: number;
+            negative: number;
+            neutral: number;
+        };
         average_rating: number | null;
         positive_ratio: number | null;
         recommendation_score: number | null;
@@ -221,41 +273,25 @@ export declare class AnalyticsService {
         }[];
     }>;
     compareDestinations(id1: number, id2: number): Promise<{
-        destination1: {
-            id: number;
-            name: string;
-            sentiment: Record<string, number>;
-            topics: {
-                topic_name: string;
-                total_reviews: number;
-            }[];
-            rating: {
-                google: number | null;
-                user: number | null;
-            };
-            recommendation_score: number | null;
-            positive_ratio: number | null;
-        };
-        destination2: {
-            id: number;
-            name: string;
-            sentiment: Record<string, number>;
-            topics: {
-                topic_name: string;
-                total_reviews: number;
-            }[];
-            rating: {
-                google: number | null;
-                user: number | null;
-            };
-            recommendation_score: number | null;
-            positive_ratio: number | null;
-        };
+        destination1: CompareDestinationSnapshot;
+        destination2: CompareDestinationSnapshot;
         comparison: {
             sentiment_winner: number;
             rating_winner: number;
             recommendation_winner: number;
             score_difference: number;
+            insights: {
+                recommended_destination_id: number;
+                summary: string;
+                best_for: string[];
+                tradeoffs: string[];
+                score_cards: {
+                    destination_id: number;
+                    label: string;
+                    score: number;
+                    reasons: string[];
+                }[];
+            };
         };
     }>;
     exportAnalyticsCsv(destinationId: number): Promise<{
@@ -273,4 +309,18 @@ export declare class AnalyticsService {
     private buildSentimentDist;
     private getPeriodKey;
     private getDestinationSnapshot;
+    private buildTopicGroups;
+    private buildTravelTraits;
+    private buildDecisionFactors;
+    private pickTopicSignals;
+    private pickRecommendedDestination;
+    private buildCompareInsights;
+    private buildScoreCard;
+    private topicText;
+    private scoreKeywords;
+    private keywordDelta;
+    private clampScore;
+    private cleanTopicName;
+    private traitLabel;
 }
+export {};

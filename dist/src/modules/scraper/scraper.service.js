@@ -91,6 +91,9 @@ let ScraperService = ScraperService_1 = class ScraperService {
         if (!finalMapsUrl) {
             throw new common_1.BadRequestException('Destinasi belum memiliki URL Google Maps. Sertakan maps_url pada request.');
         }
+        const effectiveMaxReviews = dto.fetch_all_reviews
+            ? undefined
+            : dto.max_reviews;
         const job = await this.prisma.scrapingJob.create({
             data: {
                 destinationId: destination.id,
@@ -103,9 +106,9 @@ let ScraperService = ScraperService_1 = class ScraperService {
             destinationId: destination.id,
             destinationName: destination.name,
             url: finalMapsUrl,
-            maxReviews: dto.max_reviews,
+            maxReviews: effectiveMaxReviews,
         });
-        this.logger.log(`Scraping job #${job.id} queued for destination "${destination.name}" (target: ${dto.max_reviews ?? 'ALL'} text reviews)`);
+        this.logger.log(`Scraping job #${job.id} queued for destination "${destination.name}" (target: ${effectiveMaxReviews ?? 'ALL'} text reviews)`);
         return {
             job_id: job.id,
             status: 'pending',

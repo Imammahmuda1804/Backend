@@ -28,6 +28,7 @@ const analytics_module_1 = require("./modules/analytics/analytics.module");
 const favorites_module_1 = require("./modules/favorites/favorites.module");
 const reviews_module_1 = require("./modules/reviews/reviews.module");
 const topics_module_1 = require("./modules/topics/topics.module");
+const routes_module_1 = require("./modules/routes/routes.module");
 const core_1 = require("@nestjs/core");
 const jwt_auth_guard_1 = require("./common/guards/jwt-auth.guard");
 const roles_guard_1 = require("./common/guards/roles.guard");
@@ -54,6 +55,7 @@ exports.AppModule = AppModule = __decorate([
             favorites_module_1.FavoritesModule,
             reviews_module_1.ReviewsModule,
             topics_module_1.TopicsModule,
+            routes_module_1.RoutesModule,
             serve_static_1.ServeStaticModule.forRoot({
                 rootPath: (0, path_1.join)(process.cwd(), 'uploads'),
                 serveRoot: '/uploads',

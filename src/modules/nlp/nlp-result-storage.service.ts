@@ -7,6 +7,7 @@ import {
   averageAndNormalizeEmbeddings,
   mapPipelineSentiment,
 } from './utils/nlp-result.util';
+import { normalizeTopicNameForMatch } from '../topics/topics.service';
 
 @Injectable()
 // Menyimpan hasil NLP dari FastAPI ke tabel review, topic, embedding, dan analitik destinasi.
@@ -65,8 +66,10 @@ export class NlpResultStorageService {
   }
 
   // Membuat atau memperbarui topik dari hasil pipeline.
-  private async saveTopics(nlpResult: NlpPipelineResult): Promise<Set<number>> {
-    const savedTopicIds = new Set<number>();
+  private async saveTopics(
+    nlpResult: NlpPipelineResult,
+  ): Promise<Map<number, number>> {
+    const savedTopicIds = new Map<number, number>();
     const topicGroups = await this.prisma.topicGroup.findMany({
       orderBy: { displayOrder: 'asc' },
       select: { id: true, groupName: true, keywords: true },
@@ -118,6 +121,28 @@ export class NlpResultStorageService {
           groupCandidates,
         );
 
+      const duplicateTopic = await this.findTopicByNormalizedName(
+        topicName,
+        topicId,
+      );
+      if (duplicateTopic) {
+        this.logger.log(
+          `Topic ${topicId} named "${topicName}" matches existing topic ${duplicateTopic.id}. Mapping reviews to existing topic.`,
+        );
+        await this.prisma.topic.update({
+          where: { id: duplicateTopic.id },
+          data: {
+            keywords: this.mergeTopicKeywords(
+              duplicateTopic.keywords,
+              keywords,
+            ),
+            ...(duplicateTopic.groupId ? {} : { groupId }),
+          },
+        });
+        savedTopicIds.set(topicId, duplicateTopic.id);
+        continue;
+      }
+
       await this.prisma.topic.upsert({
         where: { id: topicId },
         create: {
@@ -131,17 +156,56 @@ export class NlpResultStorageService {
           ...(existingTopic?.groupId ? {} : { groupId }),
         },
       });
-      savedTopicIds.add(topicId);
+      savedTopicIds.set(topicId, topicId);
     }
 
     return savedTopicIds;
+  }
+
+  private async findTopicByNormalizedName(
+    topicName: string,
+    excludeId: number,
+  ) {
+    const normalized = normalizeTopicNameForMatch(topicName);
+    const candidates = await this.prisma.topic.findMany({
+      where: { id: { not: excludeId } },
+      select: { id: true, topicName: true, keywords: true, groupId: true },
+    });
+    return (
+      candidates.find(
+        (topic) => normalizeTopicNameForMatch(topic.topicName) === normalized,
+      ) ?? null
+    );
+  }
+
+  private mergeTopicKeywords(existingKeywords: unknown, newKeywords: string[]) {
+    const merged: string[] = [];
+    const addKeyword = (keyword: unknown) => {
+      const value = String(keyword).trim();
+      if (
+        value &&
+        !merged.some(
+          (item) =>
+            normalizeTopicNameForMatch(item) ===
+            normalizeTopicNameForMatch(value),
+        )
+      ) {
+        merged.push(value);
+      }
+    };
+
+    if (Array.isArray(existingKeywords)) {
+      existingKeywords.forEach(addKeyword);
+    }
+    newKeywords.forEach(addKeyword);
+    return merged.slice(0, 20);
   }
 
   // Memperbarui review dengan teks bersih, sentimen, confidence, dan topik.
   private async updateReviews(
     nlpResult: NlpPipelineResult,
     reviewIds: number[],
-    savedTopicIds: Set<number>,
+    savedTopicIds: Map<number, number>,
   ): Promise<void> {
     if (!Array.isArray(nlpResult.results)) return;
 
@@ -151,8 +215,8 @@ export class NlpResultStorageService {
       if (!realReviewId) continue;
 
       const safeTopicId =
-        review.topic_id != null && savedTopicIds.has(review.topic_id)
-          ? review.topic_id
+        review.topic_id != null
+          ? (savedTopicIds.get(review.topic_id) ?? null)
           : null;
 
       await this.prisma.review.update({
@@ -240,6 +304,10 @@ export class NlpResultStorageService {
 
   // Menghitung jumlah review per topik untuk satu destinasi.
   private async updateDestinationTopics(destinationId: number) {
+    await this.prisma.destinationTopic.deleteMany({
+      where: { destinationId },
+    });
+
     const reviews = await this.prisma.review.findMany({
       where: { destinationId, topicId: { not: null } },
       select: { topicId: true },
@@ -274,6 +342,10 @@ export class NlpResultStorageService {
 
   // Menghitung tren sentimen bulanan dari tanggal review.
   private async updateSentimentTrends(destinationId: number) {
+    await this.prisma.sentimentTrend.deleteMany({
+      where: { destinationId },
+    });
+
     const reviews = await this.prisma.review.findMany({
       where: { destinationId, reviewDate: { not: null } },
       select: { reviewDate: true, sentiment: true },

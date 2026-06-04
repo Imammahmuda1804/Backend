@@ -33,6 +33,7 @@ export declare class ReviewsService {
             reviewerName: string;
             cleanedText: string | null;
             reviewDate: Date | null;
+            reviewHash: string | null;
             likesCount: number | null;
             ownerReply: string | null;
             sentiment: string | null;

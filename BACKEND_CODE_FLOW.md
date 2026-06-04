@@ -132,7 +132,7 @@ Komentar penting:
 - `findOneAdmin`: detail admin.
 - `update`, `softDelete`, `updateMapsUrl`: perubahan data destinasi.
 - `uploadThumbnail`, `uploadImage`, `deleteImage`: flow media.
-- `findRecommendations`, `findRanking`: rekomendasi/ranking public.
+- `findRecommendations`, `findRanking`: rekomendasi/ranking public, termasuk deskripsi untuk hero/timecard frontend.
 - `findOnePublic`, `findOnePublicBySlug`: detail public.
 - `getReviewsByTopic`, `getReviewsByTopicGroup`: ulasan berdasarkan topik.
 - `buildTopicGroups`: pengelompokan topik sempit ke group luas.
@@ -206,8 +206,9 @@ Kegunaan:
 - generate nama topic dengan AI.
 
 Komentar penting:
-- `NlpController`: endpoint admin NLP processing.
-- `uploadAndProcess`: proses file review dan simpan hasil NLP.
+- `NlpController`: endpoint admin NLP processing, preflight file, dan history run.
+- `preflight`: cek hash file/review sebelum proses agar admin melihat review baru dan duplikat.
+- `uploadAndProcess`: proses file review dengan mode `skip_existing`, `reprocess_existing`, atau `replace_existing`.
 - `NlpService`: client HTTP ke FastAPI.
 - `embedQuery`: meminta embedding query.
 - `healthCheck`: cek kesehatan FastAPI.
@@ -224,12 +225,14 @@ Komentar penting:
 
 Alur NLP upload:
 1. Admin upload file review ke `/api/admin/nlp/upload`.
-2. Backend validasi destinasi dan file.
-3. Review mentah disimpan ke tabel `reviews`.
-4. Backend membuat CSV sementara untuk Python.
-5. `NlpService.processPipeline` mengirim file ke FastAPI.
-6. Python mengembalikan sentiment, confidence, topic, embedding, metadata.
-7. `NlpResultStorageService` menyimpan hasil ke database.
+2. Backend validasi destinasi dan file, lalu menghitung `file_hash` dan `review_hash`.
+3. Backend membuat `nlp_processing_runs` untuk history proses.
+4. Mode `skip_existing` hanya menyimpan review baru, `reprocess_existing` menghitung ulang review yang sudah ada, dan `replace_existing` mengganti data scraping destinasi.
+5. Backend membuat CSV sementara untuk review yang benar-benar diproses.
+6. `NlpService.processPipeline` mengirim file ke FastAPI.
+7. Python mengembalikan sentiment, confidence, topic, embedding, metadata.
+8. Backend menolak hasil kosong atau hasil tanpa topik agar run tidak terlihat sukses saat Model mati atau BERTopic gagal dimuat.
+9. `NlpResultStorageService` menyimpan hasil ke database dan menghitung ulang topic/trend dari data unik.
 
 ### `backend/src/modules/topics`
 
@@ -246,9 +249,12 @@ Kegunaan:
 Komentar penting:
 - `TopicsService`: logic topic dan topic group.
 - `renameUnnamedTopics`: rename topic fallback memakai AI.
+- `mergeTopics`: menggabungkan relasi review dan destinasi dari beberapa topic source ke satu topic target.
+- `createGroup`, `updateGroup`, `deleteGroup`: CRUD topic group luas untuk taxonomy admin.
 - `findAll`: topic atau topic group sesuai scope.
 - `findGroups`: semua group dan topic di dalamnya.
 - `findDestinationsByTopic`: destinasi berdasarkan topic.
+- `findReviewsByTopic`: ulasan berdasarkan topic untuk drawer inspeksi admin.
 - `renameTopic`: rename manual topic.
 - `updateTopicSettings`: ubah group/visibility.
 - `renameGroup`: rename group luas.
@@ -295,6 +301,26 @@ Kegunaan:
 - cek status favorit;
 - list favorit user.
 
+### `backend/src/modules/routes`
+
+Posisi pada flow: rute wisata, itinerary, share route, dan saved route.
+
+Kegunaan:
+- katalog route publik lewat `GET /api/routes/public`;
+- detail route shareable lewat `GET /api/routes/share/:shareSlug`;
+- custom route user lewat `POST /api/routes`;
+- route tersimpan dan progress kunjungan lewat `GET /api/routes/saved` dan endpoint progress;
+- simpan, unsave, dan duplicate route user lain;
+- curated route admin lewat `/api/admin/routes`;
+- auto sort destinasi memakai koordinat dan Haversine.
+
+Flow:
+- user/admin memilih destinasi untuk route;
+- backend mengambil koordinat destinasi aktif;
+- jika `autoSort=true`, urutan dihitung dengan nearest-neighbor sederhana;
+- jarak antar stop dan estimasi durasi disimpan di route;
+- route public/link-only bisa dibuka, disimpan, dan diduplikasi user lain.
+
 ### `backend/src/modules/uploads`
 
 Posisi pada flow: upload dan parsing file.
@@ -326,14 +352,41 @@ Kegunaan:
 
 ### Flow NLP Processing
 
-1. Admin upload file review.
-2. Backend simpan review mentah.
-3. Backend kirim file ke Python `Model`.
-4. Python mengembalikan hasil NLP.
-5. Backend menyimpan topic, sentiment confidence, embedding, score, dan trend.
-6. Data tersebut dipakai search, detail, compare, dan dashboard admin.
+1. Admin memilih destinasi dan upload file review.
+2. Web memanggil `/api/admin/nlp/preflight` untuk melihat total baris, review baru, review duplikat, dan file yang pernah diproses.
+3. Admin memilih mode proses. Default `skip_existing` agar file yang sama tidak membuat review duplikat.
+4. Backend membuat `NlpProcessingRun`, menyimpan/memilih review target berdasarkan `review_hash`, lalu mengirim review target ke Python `Model`.
+5. Python mengembalikan hasil NLP.
+6. Jika service Model gagal atau hasil tidak memuat topik untuk review target, backend menandai run sebagai `failed` agar analisis kosong tidak tersimpan sebagai sukses.
+7. Saat nama topic hasil AI sama dengan topic existing, backend memetakan review ke topic existing agar tidak membuat nama topic duplikat.
+8. Backend menyimpan topic, sentiment confidence, embedding, score, dan trend, lalu menandai run sebagai `completed` atau `failed`.
+9. Data unik tersebut dipakai search, detail, compare, dashboard admin, dan history NLP.
 
 ### Flow Topic Two-Level
+
+### Flow Merge Topic
+
+1. Admin membuka halaman `/admin/topics`.
+2. Admin memilih topic target dan satu atau lebih topic source.
+3. `TopicsController` menerima `POST /api/topics/merge`.
+4. `TopicsService.mergeTopics` memindahkan review dan relasi `destination_topics` source ke target.
+5. Keyword source digabung ke target, lalu topic source dihapus.
+6. Rename manual atau AI naming yang menghasilkan nama topic existing memakai flow merge yang sama.
+
+### Flow Ulasan Berdasarkan Topic
+
+1. Admin membuka `/admin/topics` dan menekan aksi ulasan pada satu topic.
+2. Web memanggil `GET /api/admin/topics/:id/reviews` dengan filter sentimen/pagination.
+3. `AdminTopicsController` meneruskan query ke `TopicsService.findReviewsByTopic`.
+4. Service mengambil review dari relasi `Review.topicId`, menghitung ringkasan sentimen, dan mengirim data review serta destinasi terkait.
+5. Drawer admin menampilkan ulasan secara lazy-load agar table taxonomy tetap ringan.
+
+### Flow CRUD Topic Group
+
+1. Admin membuka `/admin/topics`.
+2. Panel topic group memanggil endpoint `POST`, `PUT`, atau `DELETE /api/topics/groups`.
+3. Backend membuat, memperbarui, atau menghapus topic group luas.
+4. Jika group dihapus, relasi topic menjadi `null` sehingga topic tidak ikut terhapus.
 
 1. Python memberi topic sempit dari BERTopic.
 2. Backend menamai topic dan memetakan ke topic group.
@@ -344,8 +397,8 @@ Kegunaan:
 ### Flow Scraper Operations
 
 1. Admin mencari tempat Google Maps dari halaman scraper jika URL Maps belum jelas.
-2. Admin memilih destinasi, mengisi URL Maps, lalu memulai scraping job.
-3. `ScraperService` membuat job dan mengirim task ke queue.
+2. Admin memilih destinasi, mengisi URL Maps, lalu memilih batas ulasan atau mode seluruh ulasan.
+3. `ScraperService` membuat job dan mengirim task ke queue. Jika `fetch_all_reviews` aktif, `maxReviews` tidak dikirim ke Apify sehingga scraper mencoba mengambil semua ulasan berteks.
 4. Worker scraping memproses job, menyimpan history, dan menyiapkan file hasil.
 5. Admin memantau status job, membuka detail job, melihat history scraping, dan mengunduh Excel.
 
@@ -425,16 +478,17 @@ Bagian ini memetakan file backend yang berpengaruh terhadap flow API, database, 
 | `backend/src/modules/search/dto/search-query.dto.ts` | Validasi search | Menormalisasi query, category, topic ids, min rating, dan opsi mode search. | `SearchQueryDto` `search-query.dto.ts:37` |
 | `backend/src/modules/vector/vector.service.ts` | Pgvector query | Menjalankan pencarian vector dan rata-rata embedding destinasi. | `VectorService` `vector.service.ts:16` |
 | `backend/src/modules/analytics/analytics.controller.ts` | Public analytics | Menyediakan data analytics untuk compare dan insight user. | `AnalyticsController` `analytics.controller.ts:16` |
-| `backend/src/modules/analytics/analytics.service.ts` | Logic analytics | Menghitung sentiment, tren, topik, compare, dan ringkasan dashboard. | `AnalyticsService` `analytics.service.ts:9` |
+| `backend/src/modules/analytics/analytics.service.ts` | Logic analytics | Menghitung sentiment, tren, topik, compare, factor matrix, highlight/risiko, dan ringkasan dashboard. | `AnalyticsService` `analytics.service.ts:9` |
 
 ### NLP, Topic, Scraper, Review, Favorite
 
 | Path | Posisi pada flow | Kegunaan | Referensi baris utama |
 | --- | --- | --- | --- |
-| `backend/src/modules/nlp/nlp.controller.ts` | Admin NLP endpoint | Menerima upload file review dan memicu proses NLP ke service Python. | `NlpController` `nlp.controller.ts:33` |
+| `backend/src/modules/nlp/nlp.controller.ts` | Admin NLP endpoint | Menerima preflight/upload file review, menerapkan dedup, mencatat history run, dan memicu proses NLP ke service Python. | `NlpController` `nlp.controller.ts:33` |
 | `backend/src/modules/nlp/nlp.service.ts` | HTTP client Model | Mengirim file/text ke Python FastAPI dan menangani error service NLP. | `NlpService` `nlp.service.ts:13` |
 | `backend/src/modules/nlp/nlp-result-storage.service.ts` | Penyimpanan hasil NLP | Menyimpan sentiment, confidence, topic, embedding, score, dan trend ke database. | `NlpResultStorageService` `nlp-result-storage.service.ts:13` |
 | `backend/src/modules/nlp/ai-naming.service.ts` | AI topic naming | Membuat nama topik sempit dan mapping group dengan validasi fallback. | `AiNamingService` `ai-naming.service.ts:60` |
+| `backend/src/modules/nlp/utils/nlp-dedup.util.ts` | Helper dedup NLP | Membuat hash file/review dan menormalisasi mode proses NLP. | `createFileHash`, `createReviewHash` |
 | `backend/src/modules/nlp/utils/nlp-result.util.ts` | Helper NLP result | Menormalisasi label sentiment dan rata-rata embedding. | `mapPipelineSentiment` `nlp-result.util.ts:2`, `averageAndNormalizeEmbeddings` `nlp-result.util.ts:13` |
 | `backend/src/modules/topics/topics.controller.ts` | Topic API | Endpoint topic public/admin untuk search, detail, rename, group, dan visibility. | `TopicsController` `topics.controller.ts:23` |
 | `backend/src/modules/topics/topics.service.ts` | Logic topic | Mengambil topik, group, statistik, update nama/group, dan data taxonomy. | `TopicsService` `topics.service.ts:9` |
@@ -447,6 +501,9 @@ Bagian ini memetakan file backend yang berpengaruh terhadap flow API, database, 
 | `backend/src/modules/reviews/reviews.service.ts` | Logic review | Menyimpan dan mengambil review user/scrape sesuai kebutuhan endpoint. | `ReviewsService` `reviews.service.ts:7` |
 | `backend/src/modules/favorites/favorites.controller.ts` | Favorite API | Add/remove/check/list favorite untuk user web dan mobile. | `FavoritesController` `favorites.controller.ts:25` |
 | `backend/src/modules/favorites/favorites.service.ts` | Logic favorite | Menghubungkan user dengan destinasi favorit dan data card favorit. | `FavoritesService` `favorites.service.ts:5` |
+| `backend/src/modules/routes/routes.controller.ts` | Route user/public API | Katalog route, detail share, route user, save, duplicate, progress rute tersimpan, dan auto-sort. | `RoutesController` |
+| `backend/src/modules/routes/admin-routes.controller.ts` | Admin route API | CRUD curated route dan publish/unpublish route. | `AdminRoutesController` |
+| `backend/src/modules/routes/routes.service.ts` | Logic route | Mengatur ownership, visibility, stop destinasi, saved route, progress kunjungan, dan hitung jarak. | `RoutesService` |
 
 ## Flow File ke Fungsi Backend
 

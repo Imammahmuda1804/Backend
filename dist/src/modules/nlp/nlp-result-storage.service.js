@@ -16,6 +16,7 @@ const prisma_service_1 = require("../../prisma/prisma.service");
 const vector_service_1 = require("../vector/vector.service");
 const ai_naming_service_1 = require("./ai-naming.service");
 const nlp_result_util_1 = require("./utils/nlp-result.util");
+const topics_service_1 = require("../topics/topics.service");
 let NlpResultStorageService = NlpResultStorageService_1 = class NlpResultStorageService {
     prisma;
     vectorService;
@@ -49,7 +50,7 @@ let NlpResultStorageService = NlpResultStorageService_1 = class NlpResultStorage
         }
     }
     async saveTopics(nlpResult) {
-        const savedTopicIds = new Set();
+        const savedTopicIds = new Map();
         const topicGroups = await this.prisma.topicGroup.findMany({
             orderBy: { displayOrder: 'asc' },
             select: { id: true, groupName: true, keywords: true },
@@ -85,6 +86,19 @@ let NlpResultStorageService = NlpResultStorageService_1 = class NlpResultStorage
             }
             const groupId = existingTopic?.groupId ??
                 this.aiNamingService.classifyTopicGroup(topicName, keywords, representativeDocs, groupCandidates);
+            const duplicateTopic = await this.findTopicByNormalizedName(topicName, topicId);
+            if (duplicateTopic) {
+                this.logger.log(`Topic ${topicId} named "${topicName}" matches existing topic ${duplicateTopic.id}. Mapping reviews to existing topic.`);
+                await this.prisma.topic.update({
+                    where: { id: duplicateTopic.id },
+                    data: {
+                        keywords: this.mergeTopicKeywords(duplicateTopic.keywords, keywords),
+                        ...(duplicateTopic.groupId ? {} : { groupId }),
+                    },
+                });
+                savedTopicIds.set(topicId, duplicateTopic.id);
+                continue;
+            }
             await this.prisma.topic.upsert({
                 where: { id: topicId },
                 create: {
@@ -98,9 +112,33 @@ let NlpResultStorageService = NlpResultStorageService_1 = class NlpResultStorage
                     ...(existingTopic?.groupId ? {} : { groupId }),
                 },
             });
-            savedTopicIds.add(topicId);
+            savedTopicIds.set(topicId, topicId);
         }
         return savedTopicIds;
+    }
+    async findTopicByNormalizedName(topicName, excludeId) {
+        const normalized = (0, topics_service_1.normalizeTopicNameForMatch)(topicName);
+        const candidates = await this.prisma.topic.findMany({
+            where: { id: { not: excludeId } },
+            select: { id: true, topicName: true, keywords: true, groupId: true },
+        });
+        return (candidates.find((topic) => (0, topics_service_1.normalizeTopicNameForMatch)(topic.topicName) === normalized) ?? null);
+    }
+    mergeTopicKeywords(existingKeywords, newKeywords) {
+        const merged = [];
+        const addKeyword = (keyword) => {
+            const value = String(keyword).trim();
+            if (value &&
+                !merged.some((item) => (0, topics_service_1.normalizeTopicNameForMatch)(item) ===
+                    (0, topics_service_1.normalizeTopicNameForMatch)(value))) {
+                merged.push(value);
+            }
+        };
+        if (Array.isArray(existingKeywords)) {
+            existingKeywords.forEach(addKeyword);
+        }
+        newKeywords.forEach(addKeyword);
+        return merged.slice(0, 20);
     }
     async updateReviews(nlpResult, reviewIds, savedTopicIds) {
         if (!Array.isArray(nlpResult.results))
@@ -110,8 +148,8 @@ let NlpResultStorageService = NlpResultStorageService_1 = class NlpResultStorage
             const realReviewId = review.review_id ?? reviewIds[index];
             if (!realReviewId)
                 continue;
-            const safeTopicId = review.topic_id != null && savedTopicIds.has(review.topic_id)
-                ? review.topic_id
+            const safeTopicId = review.topic_id != null
+                ? (savedTopicIds.get(review.topic_id) ?? null)
                 : null;
             await this.prisma.review.update({
                 where: { id: realReviewId },
@@ -170,6 +208,9 @@ let NlpResultStorageService = NlpResultStorageService_1 = class NlpResultStorage
         });
     }
     async updateDestinationTopics(destinationId) {
+        await this.prisma.destinationTopic.deleteMany({
+            where: { destinationId },
+        });
         const reviews = await this.prisma.review.findMany({
             where: { destinationId, topicId: { not: null } },
             select: { topicId: true },
@@ -200,6 +241,9 @@ let NlpResultStorageService = NlpResultStorageService_1 = class NlpResultStorage
         }
     }
     async updateSentimentTrends(destinationId) {
+        await this.prisma.sentimentTrend.deleteMany({
+            where: { destinationId },
+        });
         const reviews = await this.prisma.review.findMany({
             where: { destinationId, reviewDate: { not: null } },
             select: { reviewDate: true, sentiment: true },

@@ -19,6 +19,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { TopicsModule } from './modules/topics/topics.module';
+import { RoutesModule } from './modules/routes/routes.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -71,6 +72,9 @@ import { join } from 'path';
 
     // Memuat fitur topik.
     TopicsModule,
+
+    // Memuat fitur rute wisata.
+    RoutesModule,
 
     // Menyajikan file statis.
     ServeStaticModule.forRoot({

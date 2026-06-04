@@ -11,6 +11,7 @@ Backend dipakai untuk:
 - menyimpan embedding pgvector untuk semantic search;
 - mengatur login, profile, role user, dan admin;
 - mengelola destinasi, foto, kategori, galeri, dan maps;
+- mengelola route wisata shareable, saved route, progress kunjungan route, dan curated route admin;
 - mengelola review user dan scraped review;
 - memanggil Python Model service untuk NLP;
 - menyimpan hasil sentiment, confidence, topic, embedding, dan analytics;
@@ -196,8 +197,9 @@ GET http://localhost:3000/api/docs
 | `src/modules/admin/` | Controller admin lintas domain seperti user dan moderation. |
 | `src/modules/destinations/` | Public/admin destination, kategori, CRUD, media, detail, dan topic aggregation. |
 | `src/modules/search/` | Keyword/semantic search, history, filter kota/kategori/topic/sentimen. |
+| `src/modules/routes/` | Route wisata shareable, route pribadi user, saved route, progress kunjungan, auto-sort jarak, dan curated route admin. |
 | `src/modules/vector/` | Query pgvector dan normalisasi embedding. |
-| `src/modules/nlp/` | Integrasi Python Model, penyimpanan hasil NLP, AI naming topic. |
+| `src/modules/nlp/` | Integrasi Python Model, preflight/dedup review, history proses NLP, penyimpanan hasil NLP, AI naming topic. |
 | `src/modules/topics/` | Topic, topic group, visibility, rename, dan destination-topic query. |
 | `src/modules/reviews/` | Review user dan admin review management. |
 | `src/modules/favorites/` | Favorite destination user. |
@@ -245,6 +247,26 @@ Beberapa endpoint sengaja dipertahankan walau tidak semua dipakai UI:
 - Endpoint moderation khusus seperti `DELETE /api/admin/moderation/reviews/:id`.
 
 Endpoint ini tidak wajib dipasang ke frontend jika belum ada kebutuhan produk langsung.
+
+## Catatan Admin Topic Management
+
+Admin topic mendukung merge taxonomy agar nama topik tidak duplikat:
+
+1. `POST /api/topics/merge` memindahkan review dan relasi destinasi dari topic source ke topic target.
+2. `PUT /api/topics/:id/rename` otomatis merge jika nama baru sama dengan topic existing.
+3. `POST /api/topics/rename-ai` otomatis merge jika AI naming menghasilkan nama yang sudah ada.
+4. Penyimpanan hasil NLP memetakan topic baru ke topic existing jika nama AI-nya sama, sehingga upload review tidak membuat topik bermakna sama.
+
+## Catatan Admin NLP Processing
+
+Admin NLP memakai preflight dan history agar upload file review tidak membuat data duplikat:
+
+1. `POST /api/admin/nlp/preflight` membaca file, menghitung hash file/review, dan menampilkan jumlah review baru serta duplikat.
+2. `POST /api/admin/nlp/upload` menerima mode `skip_existing`, `reprocess_existing`, atau `replace_existing`.
+3. Default `skip_existing` hanya menyimpan review baru.
+4. Semua proses dicatat di tabel `nlp_processing_runs` dan bisa dibaca lewat `GET /api/admin/nlp/history`.
+5. Review scraped memiliki `review_hash` unik per destinasi/source agar file yang sama tidak menggandakan analisis.
+6. Upload NLP wajib memakai Python Model service aktif. Jika service mati atau pipeline tidak mengembalikan topik, run menjadi `failed` agar data ulasan tidak terlihat sukses tanpa analisis topik.
 
 ## Perintah Penting
 

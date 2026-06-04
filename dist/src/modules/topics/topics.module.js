@@ -17,7 +17,7 @@ exports.TopicsModule = TopicsModule;
 exports.TopicsModule = TopicsModule = __decorate([
     (0, common_1.Module)({
         imports: [nlp_module_1.NlpModule],
-        controllers: [topics_controller_1.TopicsController],
+        controllers: [topics_controller_1.TopicsController, topics_controller_1.AdminTopicsController],
         providers: [topics_service_1.TopicsService],
     })
 ], TopicsModule);

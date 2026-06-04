@@ -57,6 +57,10 @@ export class ScraperService {
       );
     }
 
+    const effectiveMaxReviews = dto.fetch_all_reviews
+      ? undefined
+      : dto.max_reviews;
+
     const job = await this.prisma.scrapingJob.create({
       data: {
         destinationId: destination.id,
@@ -71,11 +75,11 @@ export class ScraperService {
       destinationId: destination.id,
       destinationName: destination.name,
       url: finalMapsUrl,
-      maxReviews: dto.max_reviews,
+      maxReviews: effectiveMaxReviews,
     });
 
     this.logger.log(
-      `Scraping job #${job.id} queued for destination "${destination.name}" (target: ${dto.max_reviews ?? 'ALL'} text reviews)`,
+      `Scraping job #${job.id} queued for destination "${destination.name}" (target: ${effectiveMaxReviews ?? 'ALL'} text reviews)`,
     );
 
     return {

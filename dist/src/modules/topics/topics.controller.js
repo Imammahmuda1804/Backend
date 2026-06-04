@@ -12,7 +12,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TopicsController = void 0;
+exports.AdminTopicsController = exports.TopicsController = void 0;
 const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const topics_service_1 = require("./topics.service");
@@ -32,6 +32,18 @@ let TopicsController = class TopicsController {
     }
     async renameWithAi() {
         return this.topicsService.renameUnnamedTopics();
+    }
+    async mergeTopics(dto) {
+        return this.topicsService.mergeTopics(dto.targetTopicId, dto.sourceTopicIds);
+    }
+    async createGroup(dto) {
+        return this.topicsService.createGroup(dto);
+    }
+    async updateGroup(id, dto) {
+        return this.topicsService.updateGroup(id, dto);
+    }
+    async deleteGroup(id) {
+        return this.topicsService.deleteGroup(id);
     }
     async renameGroup(id, dto) {
         return this.topicsService.renameGroup(id, dto.groupName);
@@ -83,6 +95,63 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], TopicsController.prototype, "renameWithAi", null);
+__decorate([
+    (0, common_1.Post)('merge'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Gabungkan beberapa topic ke topic tujuan' }),
+    (0, swagger_1.ApiBody)({ type: topic_admin_dto_1.MergeTopicsDto }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Topic berhasil digabung' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Payload merge tidak valid' }),
+    (0, swagger_1.ApiResponse)({
+        status: 404,
+        description: 'Topic target atau sumber tidak ditemukan',
+    }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [topic_admin_dto_1.MergeTopicsDto]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "mergeTopics", null);
+__decorate([
+    (0, common_1.Post)('groups'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Buat topic group baru' }),
+    (0, swagger_1.ApiBody)({ type: topic_admin_dto_1.TopicGroupPayloadDto }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Topic group berhasil dibuat' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [topic_admin_dto_1.TopicGroupPayloadDto]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "createGroup", null);
+__decorate([
+    (0, common_1.Put)('groups/:id'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Update topic group' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic group ID' }),
+    (0, swagger_1.ApiBody)({ type: topic_admin_dto_1.TopicGroupPayloadDto }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Topic group berhasil diperbarui' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Topic group tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, topic_admin_dto_1.TopicGroupPayloadDto]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "updateGroup", null);
+__decorate([
+    (0, common_1.Delete)('groups/:id'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, swagger_1.ApiOperation)({ summary: 'Hapus topic group' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic group ID' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Topic group berhasil dihapus' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Topic group tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number]),
+    __metadata("design:returntype", Promise)
+], TopicsController.prototype, "deleteGroup", null);
 __decorate([
     (0, common_1.Put)('groups/:id/rename'),
     (0, swagger_1.ApiBearerAuth)(),
@@ -162,4 +231,44 @@ exports.TopicsController = TopicsController = __decorate([
     (0, common_1.Controller)('topics'),
     __metadata("design:paramtypes", [topics_service_1.TopicsService])
 ], TopicsController);
+let AdminTopicsController = class AdminTopicsController {
+    topicsService;
+    constructor(topicsService) {
+        this.topicsService = topicsService;
+    }
+    async findReviewsByTopic(id, sentiment, destinationId, page, limit) {
+        return this.topicsService.findReviewsByTopic(id, page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 10, sentiment, destinationId ? parseInt(destinationId, 10) : undefined);
+    }
+};
+exports.AdminTopicsController = AdminTopicsController;
+__decorate([
+    (0, common_1.Get)(':id/reviews'),
+    (0, swagger_1.ApiOperation)({ summary: 'List ulasan berdasarkan topic untuk admin' }),
+    (0, swagger_1.ApiParam)({ name: 'id', type: Number, description: 'Topic ID' }),
+    (0, swagger_1.ApiQuery)({
+        name: 'sentiment',
+        required: false,
+        enum: ['positive', 'neutral', 'negative'],
+    }),
+    (0, swagger_1.ApiQuery)({ name: 'destinationId', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number, example: 1 }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number, example: 10 }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Ulasan topic berhasil diambil' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Topic tidak ditemukan' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('sentiment')),
+    __param(2, (0, common_1.Query)('destinationId')),
+    __param(3, (0, common_1.Query)('page')),
+    __param(4, (0, common_1.Query)('limit')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, String, String, String, String]),
+    __metadata("design:returntype", Promise)
+], AdminTopicsController.prototype, "findReviewsByTopic", null);
+exports.AdminTopicsController = AdminTopicsController = __decorate([
+    (0, swagger_1.ApiTags)('Admin - Topics'),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, roles_decorator_1.Roles)('ADMIN'),
+    (0, common_1.Controller)('admin/topics'),
+    __metadata("design:paramtypes", [topics_service_1.TopicsService])
+], AdminTopicsController);
 //# sourceMappingURL=topics.controller.js.map

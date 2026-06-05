@@ -86,11 +86,13 @@ Flow seed:
 
 ### `backend/src/modules/auth`
 
-Posisi pada flow: login, register, refresh token, dan logout.
+Posisi pada flow: login, register, login Google, refresh token, dan logout.
 
 Kegunaan:
 - membuat JWT access token dan refresh token;
 - memvalidasi password dengan bcrypt;
+- memverifikasi Google ID token dengan `google-auth-library`;
+- melakukan auto-link akun Google berdasarkan `googleId` atau email Google yang sudah verified;
 - memastikan status akun aktif;
 - menyediakan strategy JWT untuk guard global.
 
@@ -99,6 +101,13 @@ Alur:
 2. `AuthController` meneruskan ke `AuthService`.
 3. `AuthService` cek user, password, status, lalu buat token.
 4. Token dipakai request berikutnya melalui header `Authorization`.
+
+Alur Google:
+1. Web/mobile memperoleh Google `idToken` dari OAuth client.
+2. Client mengirim `POST /api/auth/google` dengan body `{ "id_token": "..." }`.
+3. `AuthService` validasi audience dari `GOOGLE_CLIENT_IDS` atau `GOOGLE_WEB_CLIENT_ID`.
+4. Jika user belum ada, backend membuat akun role `USER`; jika email sudah ada, backend menautkan `googleId`.
+5. Backend mengembalikan response token yang sama seperti login biasa.
 
 ### `backend/src/modules/users`
 
@@ -456,10 +465,10 @@ Bagian ini memetakan file backend yang berpengaruh terhadap flow API, database, 
 
 | Path | Posisi pada flow | Kegunaan | Referensi baris utama |
 | --- | --- | --- | --- |
-| `backend/src/modules/auth/auth.controller.ts` | Endpoint auth | Menangani register, login, refresh token, dan logout. | `AuthController` `auth.controller.ts:10` |
-| `backend/src/modules/auth/auth.service.ts` | Logic auth | Validasi password, generate JWT, refresh token, dan response user. | `AuthService` `auth.service.ts:16` |
+| `backend/src/modules/auth/auth.controller.ts` | Endpoint auth | Menangani register, login password, login Google, refresh token, dan logout. | `AuthController` `auth.controller.ts:10` |
+| `backend/src/modules/auth/auth.service.ts` | Logic auth | Validasi password, verifikasi Google ID token, auto-link akun Google, generate JWT, refresh token, dan response user. | `AuthService` `auth.service.ts:16` |
 | `backend/src/modules/auth/strategies/jwt.strategy.ts` | JWT strategy | Membaca payload token dan memasukkan user ke request. | `JwtStrategy` `jwt.strategy.ts:9` |
-| `backend/src/modules/auth/dto/*.ts` | Validasi input auth | Menjaga bentuk request login/register/refresh sebelum masuk service. | `LoginDto` `login.dto.ts:5`, `RegisterDto` `register.dto.ts:11` |
+| `backend/src/modules/auth/dto/*.ts` | Validasi input auth | Menjaga bentuk request login/register/Google/refresh sebelum masuk service. | `LoginDto` `login.dto.ts:5`, `RegisterDto` `register.dto.ts:11`, `GoogleLoginDto` `google-login.dto.ts:4` |
 | `backend/src/modules/users/users.controller.ts` | Endpoint user | Menyediakan profile, update profile, upload avatar, dan data user login. | `UsersController` `users.controller.ts:27` |
 | `backend/src/modules/users/users.service.ts` | Logic user | Mengambil, memperbarui, dan memformat data user. | `UsersService` `users.service.ts:15` |
 | `backend/src/modules/admin/admin-users.controller.ts` | Admin user | CRUD dan manajemen user dari dashboard admin. | `AdminUsersController` `admin-users.controller.ts:30` |

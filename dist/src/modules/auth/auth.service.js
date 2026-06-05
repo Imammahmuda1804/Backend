@@ -48,12 +48,14 @@ const common_1 = require("@nestjs/common");
 const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const bcrypt = __importStar(require("bcrypt"));
+const google_auth_library_1 = require("google-auth-library");
 const prisma_service_1 = require("../../prisma/prisma.service");
 let AuthService = AuthService_1 = class AuthService {
     prisma;
     jwtService;
     configService;
     logger = new common_1.Logger(AuthService_1.name);
+    googleClient = new google_auth_library_1.OAuth2Client();
     constructor(prisma, jwtService, configService) {
         this.prisma = prisma;
         this.jwtService = jwtService;
@@ -90,7 +92,7 @@ let AuthService = AuthService_1 = class AuthService {
         const user = await this.prisma.user.findUnique({
             where: { email: dto.email },
         });
-        if (!user) {
+        if (!user || !user.password) {
             throw new common_1.UnauthorizedException('Email atau password salah');
         }
         if (user.status !== 'active') {
@@ -106,6 +108,43 @@ let AuthService = AuthService_1 = class AuthService {
             role: user.role,
         });
         this.logger.log(`User logged in: ${user.email}`);
+        return {
+            ...tokens,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                profilePicture: user.profilePicture,
+            },
+        };
+    }
+    async loginWithGoogle(dto) {
+        const payload = await this.verifyGoogleToken(dto.id_token);
+        const googleId = payload.sub;
+        const email = payload.email?.toLowerCase();
+        if (!googleId || !email || payload.email_verified !== true) {
+            throw new common_1.UnauthorizedException('Akun Google tidak valid');
+        }
+        const existingByGoogleId = await this.prisma.user.findUnique({
+            where: { googleId },
+        });
+        const user = existingByGoogleId ??
+            (await this.findOrCreateGoogleUser({
+                googleId,
+                email,
+                name: payload.name || email.split('@')[0],
+                picture: payload.picture,
+            }));
+        if (user.status !== 'active') {
+            throw new common_1.UnauthorizedException('Akun Anda telah dinonaktifkan');
+        }
+        const tokens = await this.generateTokens({
+            sub: user.id,
+            email: user.email,
+            role: user.role,
+        });
+        this.logger.log(`User logged in with Google: ${user.email}`);
         return {
             ...tokens,
             user: {
@@ -170,6 +209,73 @@ let AuthService = AuthService_1 = class AuthService {
         catch {
             throw new common_1.UnauthorizedException('Refresh token tidak valid');
         }
+    }
+    async verifyGoogleToken(idToken) {
+        const audience = this.getGoogleClientIds();
+        if (audience.length === 0) {
+            this.logger.error('Google login client ID belum dikonfigurasi');
+            throw new common_1.UnauthorizedException('Login Google belum dikonfigurasi');
+        }
+        try {
+            const ticket = await this.googleClient.verifyIdToken({
+                idToken,
+                audience,
+            });
+            const payload = ticket.getPayload();
+            if (!payload) {
+                throw new common_1.UnauthorizedException('Token Google tidak valid');
+            }
+            return payload;
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            this.logger.warn(`Google token verification failed: ${message}`);
+            throw new common_1.UnauthorizedException('Token Google tidak valid');
+        }
+    }
+    getGoogleClientIds() {
+        const clientIds = this.configService.get('GOOGLE_CLIENT_IDS');
+        const webClientId = this.configService.get('GOOGLE_WEB_CLIENT_ID');
+        return [
+            ...(clientIds?.split(',') ?? []),
+            ...(webClientId ? [webClientId] : []),
+        ]
+            .map((clientId) => clientId.trim())
+            .filter(Boolean);
+    }
+    async findOrCreateGoogleUser(input) {
+        const existingByEmail = await this.prisma.user.findFirst({
+            where: {
+                email: {
+                    equals: input.email,
+                    mode: 'insensitive',
+                },
+            },
+        });
+        if (existingByEmail) {
+            return this.prisma.user.update({
+                where: { id: existingByEmail.id },
+                data: {
+                    googleId: input.googleId,
+                    authProvider: existingByEmail.authProvider === 'local'
+                        ? 'local_google'
+                        : existingByEmail.authProvider,
+                    emailVerified: true,
+                    profilePicture: existingByEmail.profilePicture ?? input.picture,
+                },
+            });
+        }
+        return this.prisma.user.create({
+            data: {
+                name: input.name,
+                email: input.email,
+                password: null,
+                googleId: input.googleId,
+                authProvider: 'google',
+                emailVerified: true,
+                profilePicture: input.picture,
+            },
+        });
     }
 };
 exports.AuthService = AuthService;

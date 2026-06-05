@@ -29,6 +29,9 @@ let AuthController = class AuthController {
     async login(dto) {
         return this.authService.login(dto);
     }
+    async googleLogin(dto) {
+        return this.authService.loginWithGoogle(dto);
+    }
     async refresh(dto) {
         return this.authService.refreshToken(dto);
     }
@@ -71,6 +74,23 @@ __decorate([
     __metadata("design:paramtypes", [dto_1.LoginDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, public_decorator_1.Public)(),
+    (0, common_1.Post)('google'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Login atau register otomatis dengan Google' }),
+    (0, swagger_1.ApiBody)({ type: dto_1.GoogleLoginDto }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Login Google berhasil',
+        type: dto_1.LoginResponseDto,
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Token Google tidak valid' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.GoogleLoginDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "googleLogin", null);
 __decorate([
     (0, public_decorator_1.Public)(),
     (0, common_1.Post)('refresh'),

@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import {
   LoginDto,
   LoginResponseDto,
+  GoogleLoginDto,
   RefreshTokenDto,
   RegisterDto,
   RegisterResponseDto,
@@ -46,6 +47,22 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Email atau password salah' })
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  // Login atau daftar otomatis memakai Google ID token.
+  @Public()
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login atau register otomatis dengan Google' })
+  @ApiBody({ type: GoogleLoginDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Login Google berhasil',
+    type: LoginResponseDto,
+  })
+  @ApiResponse({ status: 401, description: 'Token Google tidak valid' })
+  async googleLogin(@Body() dto: GoogleLoginDto) {
+    return this.authService.loginWithGoogle(dto);
   }
 
   // Memperbarui access token.

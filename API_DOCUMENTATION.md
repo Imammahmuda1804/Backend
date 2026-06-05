@@ -112,6 +112,31 @@ Body:
 }
 ```
 
+### POST `/auth/google`
+
+Role: Public.
+
+Kegunaan: login atau daftar otomatis memakai Google ID token. Backend memverifikasi token Google, menolak email yang belum verified, lalu menerbitkan `access_token`, `refresh_token`, dan `user` dengan format yang sama seperti login biasa. Jika email Google sama dengan akun lokal yang sudah ada, backend melakukan auto-link ke akun tersebut.
+
+File:
+
+- `src/modules/auth/auth.controller.ts`
+- `src/modules/auth/auth.service.ts`
+- `src/modules/auth/dto/google-login.dto.ts`
+
+Body:
+
+```json
+{
+  "id_token": "google-id-token"
+}
+```
+
+Env yang diperlukan:
+
+- `GOOGLE_WEB_CLIENT_ID`: client ID OAuth web.
+- `GOOGLE_CLIENT_IDS`: daftar client ID yang valid dipisahkan koma, misalnya web dan Android.
+
 ### POST `/auth/refresh`
 
 Role: Public.

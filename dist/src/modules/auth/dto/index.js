@@ -18,4 +18,5 @@ __exportStar(require("./register.dto"), exports);
 __exportStar(require("./login.dto"), exports);
 __exportStar(require("./auth-response.dto"), exports);
 __exportStar(require("./refresh-token.dto"), exports);
+__exportStar(require("./google-login.dto"), exports);
 //# sourceMappingURL=index.js.map

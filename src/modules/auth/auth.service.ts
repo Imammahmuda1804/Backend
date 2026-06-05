@@ -7,14 +7,16 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import { PrismaService } from '../../prisma/prisma.service';
-import { RegisterDto, LoginDto, RefreshTokenDto } from './dto';
+import { RegisterDto, LoginDto, RefreshTokenDto, GoogleLoginDto } from './dto';
 import { JwtPayload } from '../../common/interfaces';
 
 // Mengelola registrasi, login, token, dan logout.
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
+  private readonly googleClient = new OAuth2Client();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -60,7 +62,7 @@ export class AuthService {
       where: { email: dto.email },
     });
 
-    if (!user) {
+    if (!user || !user.password) {
       throw new UnauthorizedException('Email atau password salah');
     }
 
@@ -80,6 +82,53 @@ export class AuthService {
     });
 
     this.logger.log(`User logged in: ${user.email}`);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profilePicture: user.profilePicture,
+      },
+    };
+  }
+
+  // Memverifikasi Google ID token, membuat atau menghubungkan akun, lalu membuat JWT aplikasi.
+  async loginWithGoogle(dto: GoogleLoginDto) {
+    const payload = await this.verifyGoogleToken(dto.id_token);
+    const googleId = payload.sub;
+    const email = payload.email?.toLowerCase();
+
+    if (!googleId || !email || payload.email_verified !== true) {
+      throw new UnauthorizedException('Akun Google tidak valid');
+    }
+
+    const existingByGoogleId = await this.prisma.user.findUnique({
+      where: { googleId },
+    });
+
+    const user =
+      existingByGoogleId ??
+      (await this.findOrCreateGoogleUser({
+        googleId,
+        email,
+        name: payload.name || email.split('@')[0],
+        picture: payload.picture,
+      }));
+
+    if (user.status !== 'active') {
+      throw new UnauthorizedException('Akun Anda telah dinonaktifkan');
+    }
+
+    const tokens = await this.generateTokens({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    this.logger.log(`User logged in with Google: ${user.email}`);
 
     return {
       ...tokens,
@@ -160,5 +209,84 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Refresh token tidak valid');
     }
+  }
+
+  private async verifyGoogleToken(idToken: string): Promise<TokenPayload> {
+    const audience = this.getGoogleClientIds();
+    if (audience.length === 0) {
+      this.logger.error('Google login client ID belum dikonfigurasi');
+      throw new UnauthorizedException('Login Google belum dikonfigurasi');
+    }
+
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken,
+        audience,
+      });
+      const payload = ticket.getPayload();
+      if (!payload) {
+        throw new UnauthorizedException('Token Google tidak valid');
+      }
+      return payload;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Google token verification failed: ${message}`);
+      throw new UnauthorizedException('Token Google tidak valid');
+    }
+  }
+
+  private getGoogleClientIds(): string[] {
+    const clientIds = this.configService.get<string>('GOOGLE_CLIENT_IDS');
+    const webClientId = this.configService.get<string>('GOOGLE_WEB_CLIENT_ID');
+
+    return [
+      ...(clientIds?.split(',') ?? []),
+      ...(webClientId ? [webClientId] : []),
+    ]
+      .map((clientId) => clientId.trim())
+      .filter(Boolean);
+  }
+
+  private async findOrCreateGoogleUser(input: {
+    googleId: string;
+    email: string;
+    name: string;
+    picture?: string;
+  }) {
+    const existingByEmail = await this.prisma.user.findFirst({
+      where: {
+        email: {
+          equals: input.email,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (existingByEmail) {
+      return this.prisma.user.update({
+        where: { id: existingByEmail.id },
+        data: {
+          googleId: input.googleId,
+          authProvider:
+            existingByEmail.authProvider === 'local'
+              ? 'local_google'
+              : existingByEmail.authProvider,
+          emailVerified: true,
+          profilePicture: existingByEmail.profilePicture ?? input.picture,
+        },
+      });
+    }
+
+    return this.prisma.user.create({
+      data: {
+        name: input.name,
+        email: input.email,
+        password: null,
+        googleId: input.googleId,
+        authProvider: 'google',
+        emailVerified: true,
+        profilePicture: input.picture,
+      },
+    });
   }
 }

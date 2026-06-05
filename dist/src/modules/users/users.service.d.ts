@@ -15,8 +15,11 @@ export declare class UsersService {
     findByEmail(email: string): Promise<{
         id: number;
         email: string;
+        googleId: string | null;
         name: string;
-        password: string;
+        password: string | null;
+        authProvider: string;
+        emailVerified: boolean;
         role: import("@prisma/client").$Enums.Role;
         status: string;
         profilePicture: string | null;

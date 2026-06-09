@@ -12,7 +12,10 @@ export class ApifyService {
 
   constructor() {
     this.client = new ApifyClient({
-      token: process.env.APIFY_API_TOKEN || 'apify_dummy_token',
+      token:
+        process.env.APIFY_API_TOKEN ||
+        process.env.APIFY_TOKEN ||
+        'apify_dummy_token',
     });
   }
 

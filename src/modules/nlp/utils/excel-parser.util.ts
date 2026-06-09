@@ -34,10 +34,12 @@ type CellStringifier = {
   stringify: (value: ExcelJS.CellValue | string) => string;
 };
 
-const COLUMN_ALIASES: Record<keyof ColumnMap, string[]> = {
+const RAW_COLUMN_ALIASES: Record<keyof ColumnMap, string[]> = {
   reviewText: [
     'teks_ulasan',
+    'teks ulasan',
     'review_text',
+    'review text',
     'reviewtext',
     'text',
     'content',
@@ -46,9 +48,12 @@ const COLUMN_ALIASES: Record<keyof ColumnMap, string[]> = {
   ],
   reviewDate: [
     'tanggal_ulasan',
+    'tanggal ulasan',
     'review_date',
+    'review date',
     'reviewdate',
     'published_at',
+    'published at',
     'publishedatdate',
     'date',
     'tanggal',
@@ -58,7 +63,9 @@ const COLUMN_ALIASES: Record<keyof ColumnMap, string[]> = {
   ],
   reviewerName: [
     'nama_pengulas',
+    'nama pengulas',
     'reviewer_name',
+    'reviewer name',
     'reviewername',
     'name',
     'author',
@@ -69,7 +76,9 @@ const COLUMN_ALIASES: Record<keyof ColumnMap, string[]> = {
   rating: ['rating', 'stars', 'star', 'score', 'bintang', 'nilai'],
   likesCount: [
     'jumlah_suka',
+    'jumlah suka',
     'likes_count',
+    'likes count',
     'likescount',
     'likes',
     'like',
@@ -79,12 +88,21 @@ const COLUMN_ALIASES: Record<keyof ColumnMap, string[]> = {
   ],
   ownerReply: [
     'balasan_pemilik',
+    'balasan pemilik',
     'owner_reply',
+    'owner reply',
     'responsefromownertext',
     'response',
     'balasan',
   ],
 };
+
+const COLUMN_ALIASES: Record<keyof ColumnMap, string[]> = Object.fromEntries(
+  Object.entries(RAW_COLUMN_ALIASES).map(([key, aliases]) => [
+    key,
+    aliases.map((alias) => normalizeHeaderText(alias)),
+  ]),
+) as Record<keyof ColumnMap, string[]>;
 
 const INDONESIAN_MONTHS: Record<string, string> = {
   jan: 'Jan',
@@ -158,6 +176,16 @@ function stringifyScalarCellValue(value: ExcelJS.CellValue | string) {
   return '';
 }
 
+function normalizeHeaderText(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+    .replace(/[^a-z0-9_]/g, '')
+    .replace(/_+/g, '_')
+    .replace(/^_|_$/g, '');
+}
+
 export class ExcelParserUtil {
   private static readonly logger = new Logger(ExcelParserUtil.name);
 
@@ -180,6 +208,7 @@ export class ExcelParserUtil {
   private static async parseExcel(buffer: Buffer): Promise<ParsedReview[]> {
     const sheet = await this.loadFirstWorksheet(buffer);
     const colMap = this.buildColumnMap(this.readExcelHeaders(sheet));
+    this.assertReviewTextColumnExists(colMap);
     const reviews: ParsedReview[] = [];
 
     sheet.eachRow((row, rowNumber) => {
@@ -256,11 +285,15 @@ export class ExcelParserUtil {
 
   private static parseCsv(buffer: Buffer): ParsedReview[] {
     const lines = this.getCsvLines(buffer);
-    const colMap = this.buildColumnMap(this.readCsvHeaders(lines[0]));
+    const delimiter = this.detectCsvDelimiter(lines[0]);
+    const colMap = this.buildColumnMap(
+      this.readCsvHeaders(lines[0], delimiter),
+    );
+    this.assertReviewTextColumnExists(colMap);
 
     return lines
       .slice(1)
-      .map((line) => this.parseCsvReviewLine(line, colMap))
+      .map((line) => this.parseCsvReviewLine(line, colMap, delimiter))
       .filter((review): review is ParsedReview => review !== null);
   }
 
@@ -276,10 +309,16 @@ export class ExcelParserUtil {
     return lines;
   }
 
-  private static readCsvHeaders(headerLine: string) {
+  private static detectCsvDelimiter(headerLine: string) {
+    const commaCount = (headerLine.match(/,/g) ?? []).length;
+    const semicolonCount = (headerLine.match(/;/g) ?? []).length;
+    return semicolonCount > commaCount ? ';' : ',';
+  }
+
+  private static readCsvHeaders(headerLine: string, delimiter: ',' | ';') {
     const headers: Record<number, string> = {};
 
-    this.parseCsvLine(headerLine).forEach((header, index) => {
+    this.parseCsvLine(headerLine, delimiter).forEach((header, index) => {
       headers[index + 1] = this.normalizeHeader(header);
     });
 
@@ -289,8 +328,9 @@ export class ExcelParserUtil {
   private static parseCsvReviewLine(
     line: string,
     colMap: ColumnMap,
+    delimiter: ',' | ';',
   ): ParsedReview | null {
-    const reader = this.createCsvRowReader(this.parseCsvLine(line));
+    const reader = this.createCsvRowReader(this.parseCsvLine(line, delimiter));
     const reviewText = reader.text(colMap.reviewText);
     if (!reviewText) return null;
 
@@ -342,6 +382,14 @@ export class ExcelParserUtil {
     };
   }
 
+  private static assertReviewTextColumnExists(colMap: ColumnMap) {
+    if (colMap.reviewText !== null) return;
+
+    throw new BadRequestException(
+      'Kolom teks ulasan tidak ditemukan. Gunakan header seperti "Teks Ulasan", "review_text", "review text", "text", "komentar", atau "review".',
+    );
+  }
+
   private static toHeaderEntries(headers: Record<number, string>) {
     return Object.entries(headers).map(([colStr, header]) => ({
       col: parseInt(colStr, 10),
@@ -350,7 +398,7 @@ export class ExcelParserUtil {
   }
 
   private static normalizeHeader(value: ExcelJS.CellValue | string) {
-    return this.stringifyCellValue(value).trim().toLowerCase();
+    return normalizeHeaderText(this.stringifyCellValue(value));
   }
 
   private static findColumnMatch(
@@ -396,13 +444,19 @@ export class ExcelParserUtil {
     return Number.isNaN(num) ? null : num;
   }
 
-  private static parseCsvLine(line: string): string[] {
+  private static parseCsvLine(line: string, delimiter: ',' | ';'): string[] {
     const result: string[] = [];
     let current = '';
     let inQuotes = false;
 
     for (let index = 0; index < line.length; index++) {
-      const state = this.readCsvCharacter(line, index, current, inQuotes);
+      const state = this.readCsvCharacter(
+        line,
+        index,
+        current,
+        inQuotes,
+        delimiter,
+      );
       current = state.current;
       inQuotes = state.inQuotes;
       index = state.index;
@@ -422,6 +476,7 @@ export class ExcelParserUtil {
     index: number,
     current: string,
     inQuotes: boolean,
+    delimiter: ',' | ';',
   ) {
     const ch = line[index];
 
@@ -429,7 +484,7 @@ export class ExcelParserUtil {
       return this.readCsvQuote(line, index, current, inQuotes);
     }
 
-    if (ch === ',' && !inQuotes) {
+    if (ch === delimiter && !inQuotes) {
       return { current, inQuotes, index, shouldFlush: true };
     }
 

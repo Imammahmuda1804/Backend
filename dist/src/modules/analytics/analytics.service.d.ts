@@ -1,55 +1,22 @@
-import { PrismaService } from '../../prisma/prisma.service';
-type CompareTopicSignal = {
-    topic_name: string;
-    total_reviews: number;
-    group_name?: string | null;
-};
-type CompareFactorKey = 'access' | 'cost_value' | 'cleanliness' | 'facilities' | 'crowd' | 'view_activity';
-type CompareDestinationSnapshot = {
-    id: number;
-    name: string;
-    slug: string;
-    city: string;
-    province: string;
-    category: string;
-    thumbnailUrl: string | null;
-    latitude: number | null;
-    longitude: number | null;
-    googleMapsUrl: string | null;
-    sentiment: {
-        positive: number;
-        neutral: number;
-        negative: number;
-    };
-    topics: CompareTopicSignal[];
-    top_topics: CompareTopicSignal[];
-    topic_groups: Array<{
-        group_name: string;
-        total_reviews: number;
-    }>;
-    rating: {
-        google: number | null;
-        user: number | null;
-    };
-    recommendation_score: number | null;
-    positive_ratio: number | null;
-    review_count: number;
-    travel_traits: Record<string, number>;
-    decision_factors: Record<CompareFactorKey, number>;
-    highlights: string[];
-    risks: string[];
-};
+import { AnalyticsExportService } from './analytics-export.service';
+import { AnalyticsRecalculationService } from './analytics-recalculation.service';
+import { AnalyticsPeriod } from './analytics.types';
+import { DashboardAnalyticsService } from './dashboard-analytics.service';
+import { DestinationAnalyticsService } from './destination-analytics.service';
+import { DestinationComparisonService } from './destination-comparison.service';
+import { PublicDashboardAnalyticsService } from './public-dashboard-analytics.service';
 export declare class AnalyticsService {
-    private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly dashboardAnalytics;
+    private readonly publicDashboard;
+    private readonly destinationAnalytics;
+    private readonly destinationComparison;
+    private readonly analyticsExport;
+    private readonly analyticsRecalculation;
+    constructor(dashboardAnalytics: DashboardAnalyticsService, publicDashboard: PublicDashboardAnalyticsService, destinationAnalytics: DestinationAnalyticsService, destinationComparison: DestinationComparisonService, analyticsExport: AnalyticsExportService, analyticsRecalculation: AnalyticsRecalculationService);
     getPublicDashboard(): Promise<{
         total_destinations: number;
         total_reviews: number;
-        sentiment_distribution: {
-            positive: number;
-            negative: number;
-            neutral: number;
-        };
+        sentiment_distribution: import("./analytics.types").SentimentDistribution;
         top_topics: {
             topic_name: string;
             count: number;
@@ -79,11 +46,7 @@ export declare class AnalyticsService {
         };
         total_scraping_jobs: number;
         scraping_jobs_breakdown: Record<string, number>;
-        sentiment_distribution: {
-            positive: number;
-            negative: number;
-            neutral: number;
-        };
+        sentiment_distribution: import("./analytics.types").SentimentDistribution;
         top_destinations: {
             id: number;
             name: string;
@@ -179,7 +142,7 @@ export declare class AnalyticsService {
         destination_quality_matrix: {
             id: number;
             name: string;
-            city: string;
+            city: string | null;
             google_rating: number | null;
             google_review_count: number | null;
             recommendation_score: number | null;
@@ -234,25 +197,22 @@ export declare class AnalyticsService {
             createdAt: Date;
         }[];
     }>;
-    getAdminTrends(period?: 'daily' | 'weekly' | 'monthly'): Promise<{
-        period: "daily" | "weekly" | "monthly";
-        trends: {
+    getAdminTrends(period?: AnalyticsPeriod): Promise<{
+        period: AnalyticsPeriod;
+        trends: ({
+            date: string;
+        } & {
             positive: number;
             negative: number;
             neutral: number;
             total: number;
-            date: string;
-        }[];
+        })[];
     }>;
     getDestinationAnalytics(destinationId: number): Promise<{
         destination_id: number;
         destination_name: string;
         total_reviews: number;
-        sentiment_distribution: {
-            positive: number;
-            negative: number;
-            neutral: number;
-        };
+        sentiment_distribution: import("./analytics.types").SentimentDistribution;
         average_rating: number | null;
         positive_ratio: number | null;
         recommendation_score: number | null;
@@ -264,17 +224,18 @@ export declare class AnalyticsService {
             percentage: number;
         }[];
     }>;
-    getDestinationTrends(destinationId: number, period?: 'daily' | 'weekly' | 'monthly'): Promise<{
-        trends: {
+    getDestinationTrends(destinationId: number, period?: AnalyticsPeriod): Promise<{
+        trends: ({
+            date: string;
+        } & {
             positive: number;
             negative: number;
             neutral: number;
-            date: string;
-        }[];
+        })[];
     }>;
-    compareDestinations(id1: number, id2: number): Promise<{
-        destination1: CompareDestinationSnapshot;
-        destination2: CompareDestinationSnapshot;
+    compareDestinations(destination1Id: number, destination2Id: number): Promise<{
+        destination1: import("./analytics.types").CompareDestinationSnapshot;
+        destination2: import("./analytics.types").CompareDestinationSnapshot;
         comparison: {
             sentiment_winner: number;
             rating_winner: number;
@@ -306,21 +267,4 @@ export declare class AnalyticsService {
         total_reviews: number;
         topics_count: number;
     }>;
-    private buildSentimentDist;
-    private getPeriodKey;
-    private getDestinationSnapshot;
-    private buildTopicGroups;
-    private buildTravelTraits;
-    private buildDecisionFactors;
-    private pickTopicSignals;
-    private pickRecommendedDestination;
-    private buildCompareInsights;
-    private buildScoreCard;
-    private topicText;
-    private scoreKeywords;
-    private keywordDelta;
-    private clampScore;
-    private cleanTopicName;
-    private traitLabel;
 }
-export {};

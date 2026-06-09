@@ -1,15 +1,13 @@
+import { Queue } from 'bullmq';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ApifyService } from './apify.service';
-import { CsvService } from './csv.service';
-import { Queue } from 'bullmq';
 import { StartScrapingDto } from './dto';
 export declare class ScraperService {
     private readonly prisma;
     private readonly apifyService;
-    private readonly csvService;
     private readonly scrapingQueue;
     private readonly logger;
-    constructor(prisma: PrismaService, apifyService: ApifyService, csvService: CsvService, scrapingQueue: Queue);
+    constructor(prisma: PrismaService, apifyService: ApifyService, scrapingQueue: Queue);
     searchMaps(query: string): Promise<{
         title: string | undefined;
         address: string | undefined;
@@ -25,6 +23,13 @@ export declare class ScraperService {
         maps_url: string;
         message: string;
     }>;
+    private findScraperDestination;
+    private resolveMapsUrl;
+    private resolveMaxReviews;
+    private createPendingScrapingJob;
+    private enqueueScrapingJob;
+    private logQueuedJob;
+    private buildStartScrapingResponse;
     getJobStatus(jobId: number): Promise<{
         destination: {
             name: string;
@@ -48,6 +53,7 @@ export declare class ScraperService {
             destination: {
                 name: string;
                 city: string;
+                province: string;
             };
         } & {
             id: number;
@@ -106,4 +112,9 @@ export declare class ScraperService {
         filePath: string;
         filename: string;
     }>;
+    private findCompletedScrapingJob;
+    private resolveScrapedExcelPath;
+    private buildDownloadExcelFileName;
+    private toSafeFileName;
+    private toDownloadDate;
 }

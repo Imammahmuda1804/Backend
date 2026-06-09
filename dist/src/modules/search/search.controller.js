@@ -21,6 +21,7 @@ const dto_1 = require("./dto");
 const public_decorator_1 = require("../../common/decorators/public.decorator");
 const optional_jwt_auth_guard_1 = require("../../common/guards/optional-jwt-auth.guard");
 const current_user_decorator_1 = require("../../common/decorators/current-user.decorator");
+const pagination_util_1 = require("../../common/utils/pagination.util");
 let SearchController = SearchController_1 = class SearchController {
     searchService;
     logger = new common_1.Logger(SearchController_1.name);
@@ -35,10 +36,11 @@ let SearchController = SearchController_1 = class SearchController {
         this.logger.log(`   userId extracted: ${userId}`);
         return this.searchService.semanticSearch(dto, userId);
     }
-    async getHistory(userId, page, limit) {
-        const parsedPage = page ? parseInt(page, 10) : 1;
-        const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20;
-        return this.searchService.getHistory(userId, parsedPage, parsedLimit);
+    async getHistory(userId, query) {
+        const pagination = (0, pagination_util_1.parsePaginationQuery)(query.page, query.limit, {
+            defaultLimit: 20,
+        });
+        return this.searchService.getHistory(userId, pagination.page, pagination.limit);
     }
     async clearHistory(userId) {
         return this.searchService.clearHistory(userId);
@@ -82,10 +84,9 @@ __decorate([
     }),
     (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
     __param(0, (0, current_user_decorator_1.CurrentUser)('id')),
-    __param(1, (0, common_1.Query)('page')),
-    __param(2, (0, common_1.Query)('limit')),
+    __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, String, String]),
+    __metadata("design:paramtypes", [Number, Object]),
     __metadata("design:returntype", Promise)
 ], SearchController.prototype, "getHistory", null);
 __decorate([

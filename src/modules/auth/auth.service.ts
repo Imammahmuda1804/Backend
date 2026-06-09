@@ -12,6 +12,31 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto, LoginDto, RefreshTokenDto, GoogleLoginDto } from './dto';
 import { JwtPayload } from '../../common/interfaces';
 
+type AuthenticatedUser = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  profilePicture: string | null;
+};
+
+type GoogleProfile = {
+  googleId: string;
+  email: string;
+  name: string;
+  picture?: string;
+};
+
+type LoginCandidate = AuthenticatedUser & {
+  password: string | null;
+  status: string;
+};
+
+type PasswordLoginCandidate = AuthenticatedUser & {
+  password: string;
+  status: string;
+};
+
 // Mengelola registrasi, login, token, dan logout.
 @Injectable()
 export class AuthService {
@@ -58,88 +83,92 @@ export class AuthService {
 
   // Memvalidasi kredensial dan membuat token.
   async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-    });
-
-    if (!user || !user.password) {
-      throw new UnauthorizedException('Email atau password salah');
-    }
-
-    // Memastikan akun masih aktif.
-    if (user.status !== 'active') {
-      throw new UnauthorizedException('Akun Anda telah dinonaktifkan');
-    }
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Email atau password salah');
-    }
-    const tokens = await this.generateTokens({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    });
+    const user = await this.findPasswordLoginCandidate(dto.email);
+    this.assertPasswordLoginAllowed(user);
+    await this.assertPasswordMatches(dto.password, user.password);
 
     this.logger.log(`User logged in: ${user.email}`);
 
-    return {
-      ...tokens,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        profilePicture: user.profilePicture,
-      },
-    };
+    return this.buildLoginResponse(user);
+  }
+
+  private findPasswordLoginCandidate(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  private assertPasswordLoginAllowed(
+    user: LoginCandidate | null,
+  ): asserts user is PasswordLoginCandidate {
+    if (!user?.password) this.throwInvalidPasswordLogin();
+    this.assertActiveUser(user.status);
+  }
+
+  private async assertPasswordMatches(
+    plainPassword: string,
+    hashedPassword: string,
+  ) {
+    const isPasswordValid = await bcrypt.compare(plainPassword, hashedPassword);
+    if (!isPasswordValid) this.throwInvalidPasswordLogin();
+  }
+
+  private throwInvalidPasswordLogin(): never {
+    throw new UnauthorizedException('Email atau password salah');
   }
 
   // Memverifikasi Google ID token, membuat atau menghubungkan akun, lalu membuat JWT aplikasi.
   async loginWithGoogle(dto: GoogleLoginDto) {
     const payload = await this.verifyGoogleToken(dto.id_token);
-    const googleId = payload.sub;
-    const email = payload.email?.toLowerCase();
-
-    if (!googleId || !email || payload.email_verified !== true) {
-      throw new UnauthorizedException('Akun Google tidak valid');
-    }
-
-    const existingByGoogleId = await this.prisma.user.findUnique({
-      where: { googleId },
-    });
+    const googleProfile = this.toVerifiedGoogleProfile(payload);
+    const existingByGoogleId = await this.findUserByGoogleId(
+      googleProfile.googleId,
+    );
 
     const user =
-      existingByGoogleId ??
-      (await this.findOrCreateGoogleUser({
-        googleId,
-        email,
-        name: payload.name || email.split('@')[0],
-        picture: payload.picture,
-      }));
+      existingByGoogleId ?? (await this.findOrCreateGoogleUser(googleProfile));
 
-    if (user.status !== 'active') {
-      throw new UnauthorizedException('Akun Anda telah dinonaktifkan');
-    }
-
-    const tokens = await this.generateTokens({
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    });
+    this.assertActiveUser(user.status);
 
     this.logger.log(`User logged in with Google: ${user.email}`);
 
+    return this.buildLoginResponse(user);
+  }
+
+  private toVerifiedGoogleProfile(payload: TokenPayload): GoogleProfile {
+    this.assertGooglePayloadVerified(payload);
+    const email = payload.email.toLowerCase();
+
     return {
-      ...tokens,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        profilePicture: user.profilePicture,
-      },
+      googleId: payload.sub,
+      email,
+      name: this.resolveGoogleProfileName(payload, email),
+      picture: payload.picture,
     };
+  }
+
+  private assertGooglePayloadVerified(
+    payload: TokenPayload,
+  ): asserts payload is TokenPayload & { sub: string; email: string } {
+    if (!payload.sub) this.throwInvalidGoogleAccount();
+    if (!payload.email) this.throwInvalidGoogleAccount();
+    if (payload.email_verified !== true) this.throwInvalidGoogleAccount();
+  }
+
+  private resolveGoogleProfileName(payload: TokenPayload, email: string) {
+    return payload.name ?? email.split('@')[0];
+  }
+
+  private throwInvalidGoogleAccount(): never {
+    throw new UnauthorizedException('Akun Google tidak valid');
+  }
+
+  private assertActiveUser(status: string) {
+    if (status !== 'active') {
+      throw new UnauthorizedException('Akun Anda telah dinonaktifkan');
+    }
+  }
+
+  private findUserByGoogleId(googleId: string) {
+    return this.prisma.user.findUnique({ where: { googleId } });
   }
 
   // Membuat access token dan refresh token.
@@ -213,26 +242,33 @@ export class AuthService {
 
   private async verifyGoogleToken(idToken: string): Promise<TokenPayload> {
     const audience = this.getGoogleClientIds();
-    if (audience.length === 0) {
-      this.logger.error('Google login client ID belum dikonfigurasi');
-      throw new UnauthorizedException('Login Google belum dikonfigurasi');
-    }
+    this.assertGoogleLoginConfigured(audience);
 
     try {
-      const ticket = await this.googleClient.verifyIdToken({
-        idToken,
-        audience,
-      });
-      const payload = ticket.getPayload();
-      if (!payload) {
-        throw new UnauthorizedException('Token Google tidak valid');
-      }
-      return payload;
+      return await this.readGoogleTokenPayload(idToken, audience);
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.warn(`Google token verification failed: ${message}`);
-      throw new UnauthorizedException('Token Google tidak valid');
+      return this.rejectInvalidGoogleToken(error);
     }
+  }
+
+  private assertGoogleLoginConfigured(audience: string[]) {
+    if (audience.length > 0) return;
+
+    this.logger.error('Google login client ID belum dikonfigurasi');
+    throw new UnauthorizedException('Login Google belum dikonfigurasi');
+  }
+
+  private async readGoogleTokenPayload(idToken: string, audience: string[]) {
+    const ticket = await this.googleClient.verifyIdToken({ idToken, audience });
+    const payload = ticket.getPayload();
+    if (!payload) throw new UnauthorizedException('Token Google tidak valid');
+    return payload;
+  }
+
+  private rejectInvalidGoogleToken(error: unknown): never {
+    const message = error instanceof Error ? error.message : String(error);
+    this.logger.warn(`Google token verification failed: ${message}`);
+    throw new UnauthorizedException('Token Google tidak valid');
   }
 
   private getGoogleClientIds(): string[] {
@@ -247,12 +283,7 @@ export class AuthService {
       .filter(Boolean);
   }
 
-  private async findOrCreateGoogleUser(input: {
-    googleId: string;
-    email: string;
-    name: string;
-    picture?: string;
-  }) {
+  private async findOrCreateGoogleUser(input: GoogleProfile) {
     const existingByEmail = await this.prisma.user.findFirst({
       where: {
         email: {
@@ -288,5 +319,28 @@ export class AuthService {
         profilePicture: input.picture,
       },
     });
+  }
+
+  private async buildLoginResponse(user: AuthenticatedUser) {
+    const tokens = await this.generateTokens({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    return {
+      ...tokens,
+      user: this.toPublicAuthUser(user),
+    };
+  }
+
+  private toPublicAuthUser(user: AuthenticatedUser) {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePicture: user.profilePicture,
+    };
   }
 }

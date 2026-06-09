@@ -22,17 +22,36 @@ export class SearchService {
     private readonly vectorService: VectorService,
   ) {}
 
-  // Menjalankan search semantik dan menyimpan riwayat user.
+  // Menjalankan search semantik, menambahkan topik, lalu menyimpan riwayat user.
   async semanticSearch(dto: SearchQueryDto, userId?: number) {
     const limit = Math.min(dto.limit ?? 10, 50);
 
-    // Log request pencarian.
     this.logger.log(
       `Search request: "${dto.query}" by user ${userId || 'guest'}`,
     );
-    let embedding: number[];
+
+    const embedding = await this.getSearchEmbedding(dto.query);
+    const results = await this.vectorService.hybridSearch(
+      embedding,
+      limit,
+      dto.sort,
+      this.buildSearchFilters(dto),
+    );
+    const enrichedResults = await this.attachTopTopics(results);
+
+    await this.saveSearchHistory(dto.query, userId);
+
+    this.logger.log(
+      `Semantic search: "${dto.query}" -> ${results.length} results` +
+        (userId ? ` (user ${userId})` : ' (guest)'),
+    );
+
+    return enrichedResults;
+  }
+
+  private async getSearchEmbedding(query: string): Promise<number[]> {
     try {
-      embedding = await this.nlpService.embedQuery(dto.query);
+      return await this.nlpService.embedQuery(query);
     } catch (error) {
       if (error instanceof NlpServiceUnavailableException) {
         throw new ServiceUnavailableException(
@@ -41,45 +60,35 @@ export class SearchService {
       }
       throw error;
     }
-    const topicIds = dto.topicIds ?? dto.topic_ids;
-    const minRating = dto.minRating ?? dto.min_rating;
-    const results = await this.vectorService.hybridSearch(
-      embedding,
-      limit,
-      dto.sort,
-      {
-        city: dto.city,
-        category: dto.category,
-        topicIds,
-        minRating,
-        sentiment: dto.sentiment,
-      },
-    );
-    const enrichedResults = await this.attachTopTopics(results);
-    if (userId) {
-      try {
-        await this.prisma.searchLog.create({
-          data: { userId, keyword: dto.query },
-        });
-        this.logger.log(
-          `✅ Search history saved for user ${userId}: "${dto.query}"`,
-        );
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        this.logger.error(
-          `❌ Failed to save search log for user ${userId}: ${message}`,
-        );
-      }
-    } else {
-      this.logger.log(`ℹ️ No userId provided - search history not saved`);
+  }
+
+  private buildSearchFilters(dto: SearchQueryDto) {
+    return {
+      city: dto.city,
+      category: dto.category,
+      topicIds: dto.topicIds ?? dto.topic_ids,
+      minRating: dto.minRating ?? dto.min_rating,
+      sentiment: dto.sentiment,
+    };
+  }
+
+  private async saveSearchHistory(query: string, userId?: number) {
+    if (!userId) {
+      this.logger.log('No userId provided - search history not saved');
+      return;
     }
 
-    this.logger.log(
-      `Semantic search: "${dto.query}" → ${results.length} results` +
-        (userId ? ` (user ${userId})` : ' (guest)'),
-    );
-
-    return enrichedResults;
+    try {
+      await this.prisma.searchLog.create({
+        data: { userId, keyword: query },
+      });
+      this.logger.log(`Search history saved for user ${userId}: "${query}"`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.error(
+        `Failed to save search log for user ${userId}: ${message}`,
+      );
+    }
   }
 
   // Menambahkan tiga topik dominan pada setiap hasil destinasi.

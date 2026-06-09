@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom, catchError } from 'rxjs';
-import { AxiosError } from 'axios';
+import { catchError, firstValueFrom, Observable } from 'rxjs';
+import { AxiosError, AxiosResponse } from 'axios';
 import FormData from 'form-data';
 import { NlpPipelineResult } from './interfaces/nlp-pipeline-result.interface';
 import { NlpServiceUnavailableException } from './exceptions/nlp-unavailable.exception';
@@ -31,81 +31,43 @@ export class NlpService {
     const formData = new FormData();
     formData.append('file', csvBuffer, { filename });
 
-    try {
-      const response = await firstValueFrom(
-        this.httpService
-          .post<NlpPipelineResult>(
-            `${this.nlpBaseUrl}/pipeline/process`,
-            formData,
-            {
-              headers: formData.getHeaders(),
-              timeout: 300000, // 5 minutes timeout
-            },
-          )
-          .pipe(
-            catchError((error: AxiosError) => {
-              this.handleAxiosError(error);
-              throw error;
-            }),
-          ),
-      );
+    const data = await this.requestFastApi(
+      () =>
+        this.httpService.post<NlpPipelineResult>(
+          `${this.nlpBaseUrl}/pipeline/process`,
+          formData,
+          {
+            headers: formData.getHeaders(),
+            timeout: 300000,
+          },
+        ),
+      'NLP pipeline',
+      'Unexpected error occurred during NLP processing',
+    );
 
-      this.logger.log(
-        `✅ FastAPI response received. Keys: ${Object.keys(response.data).join(', ')}`,
-      );
-      this.logger.log(
-        `📊 Results count: ${response.data.results?.length || 'undefined'}`,
-      );
-      this.logger.log(
-        `📊 Topics count: ${response.data.topics?.length || 'undefined'}`,
-      );
+    this.logger.log(
+      `FastAPI response received. Keys: ${Object.keys(data).join(', ')}`,
+    );
+    this.logger.log(`Results count: ${data.results?.length || 'undefined'}`);
+    this.logger.log(`Topics count: ${data.topics?.length || 'undefined'}`);
 
-      return response.data;
-    } catch (error: unknown) {
-      if (
-        error instanceof NlpServiceUnavailableException ||
-        error instanceof NlpProcessingException
-      ) {
-        throw error;
-      }
-      const msg = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Unexpected error during NLP pipeline: ${msg}`);
-      throw new NlpProcessingException(
-        'Unexpected error occurred during NLP processing',
-      );
-    }
+    return data;
   }
 
   // Meminta embedding query ke FastAPI untuk semantic search.
   async embedQuery(text: string): Promise<number[]> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService
-          .post<{ embedding: number[] }>(
-            `${this.nlpBaseUrl}/embed`,
-            { text },
-            { timeout: 30000 }, // 30 seconds timeout
-          )
-          .pipe(
-            catchError((error: AxiosError) => {
-              this.handleAxiosError(error);
-              throw error;
-            }),
-          ),
-      );
+    const data = await this.requestFastApi(
+      () =>
+        this.httpService.post<{ embedding: number[] }>(
+          `${this.nlpBaseUrl}/embed`,
+          { text },
+          { timeout: 30000 },
+        ),
+      'embedding generation',
+      'Failed to generate embedding',
+    );
 
-      return response.data.embedding;
-    } catch (error: unknown) {
-      if (
-        error instanceof NlpServiceUnavailableException ||
-        error instanceof NlpProcessingException
-      ) {
-        throw error;
-      }
-      const msg = error instanceof Error ? error.message : String(error);
-      this.logger.error(`Unexpected error generating embedding: ${msg}`);
-      throw new NlpProcessingException('Failed to generate embedding');
-    }
+    return data.embedding;
   }
 
   // Mengecek kesehatan service FastAPI Model.
@@ -118,6 +80,35 @@ export class NlpService {
     } catch {
       this.logger.warn('FastAPI health check failed');
       return false;
+    }
+  }
+
+  private async requestFastApi<T>(
+    requestFactory: () => Observable<AxiosResponse<T>>,
+    operation: string,
+    unexpectedMessage: string,
+  ): Promise<T> {
+    try {
+      const response = await firstValueFrom(
+        requestFactory().pipe(
+          catchError((error: AxiosError) => {
+            this.handleAxiosError(error);
+            throw error;
+          }),
+        ),
+      );
+
+      return response.data;
+    } catch (error: unknown) {
+      if (
+        error instanceof NlpServiceUnavailableException ||
+        error instanceof NlpProcessingException
+      ) {
+        throw error;
+      }
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Unexpected error during ${operation}: ${message}`);
+      throw new NlpProcessingException(unexpectedMessage);
     }
   }
 
@@ -136,39 +127,50 @@ export class NlpService {
     }
 
     if (error.response) {
-      const status = error.response.status;
-      const data = error.response.data;
-      this.logger.error(
-        `FastAPI returned status ${status}: ${JSON.stringify(data)}`,
-      );
-
-      if (status === 422) {
-        throw new NlpProcessingException(
-          'Invalid input format to NLP Service (422)',
-        );
-      }
-      if (status === 429) {
-        const headers = error.response.headers as Record<
-          string,
-          string | string[] | undefined
-        >;
-        const retryAfterHeader = headers['retry-after'];
-        const retryAfter = Array.isArray(retryAfterHeader)
-          ? retryAfterHeader[0]
-          : retryAfterHeader;
-        const retryMsg = retryAfter
-          ? ` (Coba lagi dalam ${retryAfter} detik)`
-          : '';
-        throw new NlpServiceUnavailableException(
-          `Terlalu banyak permintaan ke layanan AI (429)${retryMsg}`,
-        );
-      }
-      if (status >= 500) {
-        throw new NlpProcessingException('NLP Service internal error');
-      }
+      this.handleResponseError(error);
     }
 
     this.logger.error(`FastAPI communication error: ${error.message}`);
     throw new NlpProcessingException('Error communicating with NLP Service');
+  }
+
+  private handleResponseError(error: AxiosError): never {
+    const status = error.response?.status;
+    const data = error.response?.data;
+    this.logger.error(
+      `FastAPI returned status ${status}: ${JSON.stringify(data)}`,
+    );
+
+    if (status === 422) {
+      throw new NlpProcessingException(
+        'Invalid input format to NLP Service (422)',
+      );
+    }
+
+    if (status === 429) {
+      throw new NlpServiceUnavailableException(
+        `Terlalu banyak permintaan ke layanan AI (429)${this.getRetryMessage(
+          error,
+        )}`,
+      );
+    }
+
+    if (status && status >= 500) {
+      throw new NlpProcessingException('NLP Service internal error');
+    }
+
+    throw new NlpProcessingException('Error communicating with NLP Service');
+  }
+
+  private getRetryMessage(error: AxiosError) {
+    const headers = error.response?.headers as
+      | Record<string, string | string[] | undefined>
+      | undefined;
+    const retryAfterHeader = headers?.['retry-after'];
+    const retryAfter = Array.isArray(retryAfterHeader)
+      ? retryAfterHeader[0]
+      : retryAfterHeader;
+
+    return retryAfter ? ` (Coba lagi dalam ${retryAfter} detik)` : '';
   }
 }

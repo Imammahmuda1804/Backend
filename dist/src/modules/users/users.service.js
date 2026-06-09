@@ -46,6 +46,23 @@ exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
 const bcrypt = __importStar(require("bcrypt"));
 const prisma_service_1 = require("../../prisma/prisma.service");
+const USER_PUBLIC_SELECT = {
+    id: true,
+    name: true,
+    email: true,
+    role: true,
+    status: true,
+    profilePicture: true,
+    createdAt: true,
+};
+const USER_PROFILE_SELECT = {
+    id: true,
+    name: true,
+    email: true,
+    role: true,
+    profilePicture: true,
+    createdAt: true,
+};
 let UsersService = class UsersService {
     prisma;
     constructor(prisma) {
@@ -54,15 +71,7 @@ let UsersService = class UsersService {
     async findById(id) {
         const user = await this.prisma.user.findUnique({
             where: { id },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                status: true,
-                profilePicture: true,
-                createdAt: true,
-            },
+            select: USER_PUBLIC_SELECT,
         });
         if (!user) {
             throw new common_1.NotFoundException('User tidak ditemukan');
@@ -75,36 +84,12 @@ let UsersService = class UsersService {
         });
     }
     async updateProfile(userId, dto) {
-        if (dto.email) {
-            const existingUser = await this.prisma.user.findUnique({
-                where: { email: dto.email },
-            });
-            if (existingUser && existingUser.id !== userId) {
-                throw new common_1.ConflictException('Email sudah digunakan oleh pengguna lain');
-            }
-        }
-        let hashedPassword = undefined;
-        if (dto.password) {
-            hashedPassword = await bcrypt.hash(dto.password, 10);
-        }
+        await this.assertEmailAvailable(dto.email, userId);
+        const hashedPassword = await this.hashPasswordIfProvided(dto.password);
         const updatedUser = await this.prisma.user.update({
             where: { id: userId },
-            data: {
-                ...(dto.name && { name: dto.name }),
-                ...(dto.email && { email: dto.email }),
-                ...(hashedPassword && { password: hashedPassword }),
-                ...(dto.profilePicture !== undefined && {
-                    profilePicture: dto.profilePicture,
-                }),
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                profilePicture: true,
-                createdAt: true,
-            },
+            data: this.buildProfileUpdateData(dto, hashedPassword),
+            select: USER_PROFILE_SELECT,
         });
         return updatedUser;
     }
@@ -124,15 +109,7 @@ let UsersService = class UsersService {
                 skip,
                 take: limit,
                 orderBy: { createdAt: 'desc' },
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    role: true,
-                    status: true,
-                    profilePicture: true,
-                    createdAt: true,
-                },
+                select: USER_PUBLIC_SELECT,
             }),
             this.prisma.user.count({ where: whereCondition }),
         ]);
@@ -211,50 +188,19 @@ let UsersService = class UsersService {
                 role: dto.role,
                 status: dto.status,
             },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                status: true,
-                profilePicture: true,
-                createdAt: true,
-            },
+            select: USER_PUBLIC_SELECT,
         });
     }
     async adminUpdate(id, dto) {
         const user = await this.prisma.user.findUnique({ where: { id } });
         if (!user)
             throw new common_1.NotFoundException('User tidak ditemukan');
-        if (dto.email && dto.email !== user.email) {
-            const existing = await this.prisma.user.findUnique({
-                where: { email: dto.email },
-            });
-            if (existing)
-                throw new common_1.ConflictException('Email sudah digunakan');
-        }
-        let hashedPassword;
-        if (dto.password) {
-            hashedPassword = await bcrypt.hash(dto.password, 10);
-        }
+        await this.assertEmailAvailable(dto.email, id, 'Email sudah digunakan');
+        const hashedPassword = await this.hashPasswordIfProvided(dto.password);
         return this.prisma.user.update({
             where: { id },
-            data: {
-                ...(dto.name && { name: dto.name }),
-                ...(dto.email && { email: dto.email }),
-                ...(hashedPassword && { password: hashedPassword }),
-                ...(dto.role && { role: dto.role }),
-                ...(dto.status && { status: dto.status }),
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-                status: true,
-                profilePicture: true,
-                createdAt: true,
-            },
+            data: this.buildAdminUpdateData(dto, hashedPassword),
+            select: USER_PUBLIC_SELECT,
         });
     }
     async softDelete(id) {
@@ -266,6 +212,47 @@ let UsersService = class UsersService {
             data: { status: 'suspended' },
             select: { id: true, status: true },
         });
+    }
+    async assertEmailAvailable(email, currentUserId, message = 'Email sudah digunakan oleh pengguna lain') {
+        if (!email)
+            return;
+        const existingUser = await this.prisma.user.findUnique({
+            where: { email },
+        });
+        if (existingUser && existingUser.id !== currentUserId) {
+            throw new common_1.ConflictException(message);
+        }
+    }
+    async hashPasswordIfProvided(password) {
+        return password ? bcrypt.hash(password, 10) : undefined;
+    }
+    buildProfileUpdateData(dto, hashedPassword) {
+        const data = this.buildIdentityUpdateData(dto, hashedPassword);
+        this.assignWhenDefined(data, 'profilePicture', dto.profilePicture);
+        return data;
+    }
+    buildAdminUpdateData(dto, hashedPassword) {
+        const data = this.buildIdentityUpdateData(dto, hashedPassword);
+        this.assignWhenPresent(data, 'role', dto.role);
+        this.assignWhenPresent(data, 'status', dto.status);
+        return data;
+    }
+    buildIdentityUpdateData(dto, hashedPassword) {
+        const data = {};
+        this.assignWhenPresent(data, 'name', dto.name);
+        this.assignWhenPresent(data, 'email', dto.email);
+        this.assignWhenPresent(data, 'password', hashedPassword);
+        return data;
+    }
+    assignWhenPresent(data, key, value) {
+        if (value !== undefined && value !== '') {
+            data[key] = value;
+        }
+    }
+    assignWhenDefined(data, key, value) {
+        if (value !== undefined) {
+            data[key] = value;
+        }
     }
 };
 exports.UsersService = UsersService;

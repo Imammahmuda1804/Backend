@@ -1,22 +1,16 @@
-import { PrismaService } from '../../prisma/prisma.service';
-import { VectorService } from '../vector/vector.service';
-import { AiNamingService } from './ai-naming.service';
+import { NlpDestinationAnalyticsStorageService } from './nlp-destination-analytics-storage.service';
 import { NlpPipelineResult } from './interfaces/nlp-pipeline-result.interface';
+import { NlpReviewStorageService } from './nlp-review-storage.service';
+import { NlpTopicStorageService } from './nlp-topic-storage.service';
 export declare class NlpResultStorageService {
-    private readonly prisma;
-    private readonly vectorService;
-    private readonly aiNamingService;
+    private readonly topicStorage;
+    private readonly reviewStorage;
+    private readonly destinationAnalytics;
     private readonly logger;
-    constructor(prisma: PrismaService, vectorService: VectorService, aiNamingService: AiNamingService);
+    constructor(topicStorage: NlpTopicStorageService, reviewStorage: NlpReviewStorageService, destinationAnalytics: NlpDestinationAnalyticsStorageService);
     saveNlpResults(destinationId: number, nlpResult: NlpPipelineResult, reviewIds: number[]): Promise<void>;
     private logPipelineResult;
-    private saveTopics;
-    private findTopicByNormalizedName;
-    private mergeTopicKeywords;
-    private updateReviews;
-    private saveReviewEmbeddings;
-    private saveDestinationEmbedding;
-    private calculateRecommendationScore;
-    private updateDestinationTopics;
-    private updateSentimentTrends;
+    private logDiscoveredTopics;
+    private logPipelineWarning;
+    private logModelMetadata;
 }

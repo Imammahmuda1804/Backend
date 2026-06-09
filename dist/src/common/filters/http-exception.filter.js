@@ -12,29 +12,43 @@ const common_1 = require("@nestjs/common");
 let HttpExceptionFilter = HttpExceptionFilter_1 = class HttpExceptionFilter {
     logger = new common_1.Logger(HttpExceptionFilter_1.name);
     catch(exception, host) {
-        const ctx = host.switchToHttp();
-        const response = ctx.getResponse();
-        const request = ctx.getRequest();
         const status = exception.getStatus();
+        const { request, response } = this.getHttpContext(host);
+        const message = this.getExceptionMessage(exception);
+        const errorResponse = this.buildErrorResponse(status, message, request);
+        this.logException(status, request, message, exception);
+        response.status(status).json(errorResponse);
+    }
+    getHttpContext(host) {
+        const ctx = host.switchToHttp();
+        return {
+            response: ctx.getResponse(),
+            request: ctx.getRequest(),
+        };
+    }
+    getExceptionMessage(exception) {
         const exceptionResponse = exception.getResponse();
-        const message = typeof exceptionResponse === 'string'
-            ? exceptionResponse
-            : exceptionResponse.message ||
-                exception.message;
-        const errorResponse = {
+        if (typeof exceptionResponse === 'string')
+            return exceptionResponse;
+        return (exceptionResponse.message ||
+            exception.message);
+    }
+    buildErrorResponse(status, message, request) {
+        return {
             statusCode: status,
             message: Array.isArray(message) ? message : [message],
             error: common_1.HttpStatus[status] || 'Error',
             timestamp: new Date().toISOString(),
             path: request.url,
         };
+    }
+    logException(status, request, message, exception) {
         if (status >= 500) {
             this.logger.error(`${request.method} ${request.url} - ${status}`, exception.stack);
         }
         else {
             this.logger.warn(`${request.method} ${request.url} - ${status}: ${JSON.stringify(message)}`);
         }
-        response.status(status).json(errorResponse);
     }
 };
 exports.HttpExceptionFilter = HttpExceptionFilter;

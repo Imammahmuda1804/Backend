@@ -1,8 +1,6 @@
 import { Role } from '@prisma/client';
-export declare class AdminUpdateUserDto {
-    name?: string;
-    email?: string;
-    password?: string;
+import { UserIdentityFieldsDto } from './user-identity-fields.dto';
+export declare class AdminUpdateUserDto extends UserIdentityFieldsDto {
     role?: Role;
     status?: string;
 }

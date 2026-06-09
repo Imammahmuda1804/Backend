@@ -13,43 +13,12 @@ exports.AdminUpdateUserDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 const client_1 = require("@prisma/client");
-class AdminUpdateUserDto {
-    name;
-    email;
-    password;
+const user_identity_fields_dto_1 = require("./user-identity-fields.dto");
+class AdminUpdateUserDto extends user_identity_fields_dto_1.UserIdentityFieldsDto {
     role;
     status;
 }
 exports.AdminUpdateUserDto = AdminUpdateUserDto;
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'Nama lengkap user',
-        example: 'John Updated',
-    }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(2, { message: 'Nama minimal 2 karakter' }),
-    __metadata("design:type", String)
-], AdminUpdateUserDto.prototype, "name", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'Email user',
-        example: 'john@mail.com',
-    }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEmail)({}, { message: 'Format email tidak valid' }),
-    __metadata("design:type", String)
-], AdminUpdateUserDto.prototype, "email", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'Password baru',
-        example: 'newpassword123',
-    }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(6, { message: 'Password minimal 6 karakter' }),
-    __metadata("design:type", String)
-], AdminUpdateUserDto.prototype, "password", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'Role user',

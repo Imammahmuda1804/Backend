@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { TopicGroupClassifierService } from './topic-group-classifier.service';
+import type { TopicGroupCandidate } from './topic-group-classifier.service';
+import { TopicNamePolicyService } from './topic-name-policy.service';
 
-// Urutan model Gemini untuk fallback penamaan topik.
+export type { TopicGroupCandidate } from './topic-group-classifier.service';
+
 const GEMINI_MODELS = [
   'gemini-2.5-flash',
   'gemini-2.5-flash-lite',
@@ -11,16 +15,9 @@ const GEMINI_MODELS = [
   'gemini-3.1-flash-lite',
 ];
 
-// Jeda antar request Gemini.
-const DELAY_BETWEEN_REQUESTS_MS = 4000; // 4 detik = maks 15 request/menit
-
-// Jumlah retry saat rate limit.
+const DELAY_BETWEEN_REQUESTS_MS = 4000;
 const MAX_RETRIES = 1;
-
-// Jeda retry saat rate limit.
-const RETRY_DELAY_MS = 15000; // 15 detik
-
-// Durasi cooldown saat kuota harian habis.
+const RETRY_DELAY_MS = 15000;
 const DAILY_QUOTA_COOLDOWN_MS = 60 * 60 * 1000;
 
 interface AiProviderError {
@@ -28,31 +25,37 @@ interface AiProviderError {
   status?: number;
 }
 
-export interface TopicGroupCandidate {
-  id: number;
-  groupName: string;
+type TopicNameGenerationAttempt = {
+  topicId: number;
   keywords: string[];
-}
+  prompt: string;
+  modelName: string;
+  attempt: number;
+};
 
-// Mengambil pesan error aman dari error yang tipenya belum diketahui.
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-// Mengubah error provider AI menjadi informasi retry/cooldown.
 function getProviderError(error: unknown): AiProviderError {
-  if (typeof error === 'object' && error !== null) {
-    const message =
-      'message' in error && typeof error.message === 'string'
-        ? error.message
-        : undefined;
-    const status =
-      'status' in error && typeof error.status === 'number'
-        ? error.status
-        : undefined;
-    return { message, status };
-  }
-  return { message: String(error) };
+  if (!isObjectError(error)) return { message: String(error) };
+
+  return {
+    message: readStringProperty(error, 'message'),
+    status: readNumberProperty(error, 'status'),
+  };
+}
+
+function isObjectError(error: unknown): error is Record<string, unknown> {
+  return typeof error === 'object' && error !== null;
+}
+
+function readStringProperty(source: Record<string, unknown>, property: string) {
+  return typeof source[property] === 'string' ? source[property] : undefined;
+}
+
+function readNumberProperty(source: Record<string, unknown>, property: string) {
+  return typeof source[property] === 'number' ? source[property] : undefined;
 }
 
 @Injectable()
@@ -61,134 +64,24 @@ export class AiNamingService {
   private readonly logger = new Logger(AiNamingService.name);
   private genAI: GoogleGenerativeAI | null = null;
   private lastRequestTime = 0;
-
-  // Menyimpan model yang sedang cooldown.
   private exhaustedModels = new Map<string, number>();
 
-  constructor() {
+  constructor(
+    private readonly topicNamePolicy: TopicNamePolicyService,
+    private readonly groupClassifier: TopicGroupClassifierService,
+  ) {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (apiKey) {
-      this.genAI = new GoogleGenerativeAI(apiKey);
-      this.logger.log(
-        `Gemini AI initialized. Fallback chain: ${GEMINI_MODELS.join(' → ')}`,
-      );
-    } else {
+    if (!apiKey) {
       this.logger.warn(
         'GEMINI_API_KEY is not set. AI naming will be disabled.',
       );
-    }
-  }
-
-  // Mengecek cooldown model Gemini.
-  private isModelExhausted(modelName: string): boolean {
-    const blockedAt = this.exhaustedModels.get(modelName);
-    if (!blockedAt) return false;
-
-    const elapsed = Date.now() - blockedAt;
-    if (elapsed >= DAILY_QUOTA_COOLDOWN_MS) {
-      this.exhaustedModels.delete(modelName);
-      this.logger.log(`♻️ ${modelName} cooldown selesai, bisa dicoba lagi.`);
-      return false;
+      return;
     }
 
-    return true;
-  }
-
-  // Mengecek apakah error berasal dari kuota harian.
-  private isDailyQuotaExhausted(error: unknown): boolean {
-    const msg = getErrorMessage(error);
-    return msg.includes('PerDay') || msg.includes('limit: 0');
-  }
-
-  // Membatasi laju request ke Gemini.
-  private async throttle(): Promise<void> {
-    const now = Date.now();
-    const elapsed = now - this.lastRequestTime;
-    if (elapsed < DELAY_BETWEEN_REQUESTS_MS) {
-      const waitMs = DELAY_BETWEEN_REQUESTS_MS - elapsed;
-      await new Promise((resolve) => setTimeout(resolve, waitMs));
-    }
-    this.lastRequestTime = Date.now();
-  }
-
-  // Mengambil model Gemini yang masih tersedia.
-  private getAvailableModels(): string[] {
-    return GEMINI_MODELS.filter((m) => !this.isModelExhausted(m));
-  }
-
-  private fallbackTopicName(topicId: number, keywords: string[]): string {
-    const usableKeywords = keywords
-      .map((keyword) => keyword.trim())
-      .filter((keyword) => keyword.length > 0)
-      .slice(0, 2);
-
-    return usableKeywords.length > 0
-      ? usableKeywords
-          .map((keyword) => keyword.charAt(0).toUpperCase() + keyword.slice(1))
-          .join(' ')
-      : `Topic ${topicId}`;
-  }
-
-  private sanitizeTopicName(value: string): string {
-    return value
-      .replace(/^["'`]|["'`]$/g, '')
-      .replace(/([a-z])([A-Z])/g, '$1 $2')
-      .replace(/^\d+[).\-\s]+/, '')
-      .replace(/\s+/g, ' ')
-      .replace(/[.,;:]+$/g, '')
-      .trim();
-  }
-
-  private extractValidTopicName(
-    value: string,
-    keywords: string[],
-  ): string | null {
-    const sanitized = this.sanitizeTopicName(value);
-    if (this.isValidTopicName(sanitized, keywords)) return sanitized;
-
-    const separatedCandidates = value
-      .split(/[\n\r,;|/]+/)
-      .map((candidate) => this.sanitizeTopicName(candidate))
-      .filter(Boolean);
-
-    for (const candidate of separatedCandidates) {
-      if (this.isValidTopicName(candidate, keywords)) return candidate;
-    }
-
-    const words = sanitized.split(/\s+/).filter(Boolean);
-    for (let size = 2; size <= 3; size++) {
-      for (let index = 0; index <= words.length - size; index++) {
-        const candidate = words.slice(index, index + size).join(' ');
-        if (this.isValidTopicName(candidate, keywords)) return candidate;
-      }
-    }
-
-    return null;
-  }
-
-  private isValidTopicName(value: string, keywords: string[]): boolean {
-    const name = this.sanitizeTopicName(value);
-    if (!name || name.length > 28) return false;
-    if (name.split(/\s+/).length > 3) return false;
-    if (/topic\s*\d+/i.test(name)) return false;
-    if (/[|/\\]|\n|\r/.test(name)) return false;
-    if ((name.match(/dan/gi) || []).length > 1) return false;
-
-    const normalizedName = name.toLowerCase();
-    const keywordSet = new Set(
-      keywords.map((keyword) => keyword.toLowerCase()),
+    this.genAI = new GoogleGenerativeAI(apiKey);
+    this.logger.log(
+      `Gemini AI initialized. Fallback chain: ${GEMINI_MODELS.join(' -> ')}`,
     );
-    if (keywordSet.has(normalizedName) && keywords.length > 1) return false;
-
-    const genericNames = new Set([
-      'wisata',
-      'tempat wisata',
-      'pengalaman wisata',
-      'destinasi',
-      'ulasan',
-      'perjalanan',
-    ]);
-    return !genericNames.has(normalizedName);
   }
 
   async generateTopicName(
@@ -196,115 +89,33 @@ export class AiNamingService {
     keywords: string[],
     representativeDocs: string[] = [],
   ): Promise<string> {
-    const fallback = this.fallbackTopicName(topicId, keywords);
+    const fallback = this.topicNamePolicy.createFallbackName(topicId, keywords);
 
-    if (!this.genAI) {
-      return fallback;
-    }
-
-    const exampleReviews = representativeDocs.length
-      ? `\nContoh ulasan:\n${representativeDocs
-          .slice(0, 3)
-          .map((doc) => `- ${doc}`)
-          .join('\n')}\n`
-      : '';
-
-    const prompt = `Tugas Anda adalah memberi LABEL KATEGORI untuk filter ulasan pariwisata berdasarkan kumpulan kata kunci dan contoh ulasan berikut:
-[ ${keywords.join(', ')} ]
-${exampleReviews}
-
-Aturan ketat:
-1. Bahasa Indonesia, ramah untuk user, dan cocok sebagai label UI.
-2. Maksimal 3 kata dan maksimal 28 karakter.
-3. Label harus spesifik dan langsung, contoh: Tiket mahal, Akses susah, Toilet kotor, Spot foto bagus.
-4. Gunakan contoh ulasan untuk memahami konteks, jangan hanya menyalin keyword mentah.
-5. JANGAN gabungkan beberapa label menjadi satu.
-6. JANGAN gunakan awalan seperti "Tentang", "Keluhan", "Masalah", atau "Kondisi".
-7. Outputkan nama label saja, tanpa tanda kutip, titik, atau penjelasan.`;
+    if (!this.genAI) return fallback;
 
     const availableModels = this.getAvailableModels();
-
     if (availableModels.length === 0) {
       this.logger.error(
-        `❌ Semua ${GEMINI_MODELS.length} model Gemini sedang dalam cooldown. ` +
-          `Menggunakan nama keyword-based untuk topic ${topicId}.`,
+        `All Gemini models are cooling down. Using keyword fallback for topic ${topicId}.`,
       );
       return fallback;
     }
 
-    // Coba setiap model yang masih available secara berurutan
-    for (const modelName of availableModels) {
-      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-        try {
-          // Throttle: pastikan ada jeda antar request
-          await this.throttle();
+    const prompt = this.topicNamePolicy.buildPrompt(
+      keywords,
+      representativeDocs,
+    );
+    const topicName = await this.tryGenerateTopicName(
+      topicId,
+      keywords,
+      prompt,
+      availableModels,
+    );
 
-          const model = this.genAI.getGenerativeModel({ model: modelName });
-          const result = await model.generateContent(prompt);
-          const response = result.response;
-          const rawText = response.text();
-          const text = this.extractValidTopicName(rawText, keywords);
+    if (topicName) return topicName;
 
-          if (!text) {
-            this.logger.warn(
-              `Invalid AI topic name for topic ${topicId}: "${this.sanitizeTopicName(rawText)}". Trying fallback chain.`,
-            );
-            break;
-          }
-
-          this.logger.log(
-            `✅ Topic ${topicId} named by ${modelName}: "${text}"`,
-          );
-          return text;
-        } catch (error) {
-          const providerError = getProviderError(error);
-          const errorMessage = getErrorMessage(error);
-          const isRateLimit =
-            providerError.status === 429 || errorMessage.includes('429');
-
-          if (isRateLimit) {
-            if (this.isDailyQuotaExhausted(error)) {
-              // Daily quota habis — langsung skip ke model berikutnya
-              this.exhaustedModels.set(modelName, Date.now());
-              const remaining = this.getAvailableModels().length;
-              this.logger.warn(
-                `🚫 ${modelName} daily quota habis untuk topic ${topicId}. ` +
-                  `Cooldown 1 jam. Sisa model tersedia: ${remaining}/${GEMINI_MODELS.length}`,
-              );
-              break; // keluar dari retry loop, lanjut ke model berikutnya
-            }
-
-            if (attempt < MAX_RETRIES) {
-              // Rate limit per menit, tunggu lalu coba ulang.
-              this.logger.warn(
-                `⏳ Rate limited on ${modelName} for topic ${topicId}. ` +
-                  `Retrying in ${RETRY_DELAY_MS / 1000}s (attempt ${attempt + 1}/${MAX_RETRIES})...`,
-              );
-              await new Promise((resolve) =>
-                setTimeout(resolve, RETRY_DELAY_MS),
-              );
-              continue;
-            }
-
-            // Retry habis tapi bukan daily — skip ke model berikutnya
-            this.logger.warn(
-              `⚠️ ${modelName} retry habis untuk topic ${topicId}. Pindah ke model berikutnya.`,
-            );
-            break;
-          }
-
-          // Error non-429 (misalnya model tidak tersedia, network error)
-          this.logger.warn(
-            `⚠️ ${modelName} failed for topic ${topicId}: ${errorMessage}`,
-          );
-          break;
-        }
-      }
-    }
-
-    // Semua model gagal — gunakan fallback manual
     this.logger.error(
-      `❌ All Gemini models failed for topic ${topicId}. Using keyword-based name.`,
+      `All Gemini models failed for topic ${topicId}. Using keyword fallback.`,
     );
     return fallback;
   }
@@ -315,33 +126,205 @@ Aturan ketat:
     representativeDocs: string[] = [],
     groups: TopicGroupCandidate[],
   ): number | null {
-    if (groups.length === 0) return null;
+    return this.groupClassifier.classify(
+      topicName,
+      keywords,
+      representativeDocs,
+      groups,
+    );
+  }
 
-    const corpus = [topicName, ...keywords, ...representativeDocs]
-      .join(' ')
-      .toLowerCase();
+  private async tryGenerateTopicName(
+    topicId: number,
+    keywords: string[],
+    prompt: string,
+    modelNames: string[],
+  ): Promise<string | null> {
+    for (const modelName of modelNames) {
+      const topicName = await this.tryGenerateTopicNameWithModel(
+        topicId,
+        keywords,
+        prompt,
+        modelName,
+      );
 
-    let bestGroup: TopicGroupCandidate | null = null;
-    let bestScore = -1;
-
-    for (const group of groups) {
-      const score = group.keywords.reduce((total, keyword) => {
-        const normalized = keyword.toLowerCase();
-        return corpus.includes(normalized) ? total + 1 : total;
-      }, 0);
-
-      if (score > bestScore) {
-        bestScore = score;
-        bestGroup = group;
-      }
+      if (topicName) return topicName;
     }
 
-    if (bestGroup && bestScore > 0) return bestGroup.id;
+    return null;
+  }
 
-    const fallback = groups.find((group) =>
-      group.groupName.toLowerCase().includes('lain'),
+  private async tryGenerateTopicNameWithModel(
+    topicId: number,
+    keywords: string[],
+    prompt: string,
+    modelName: string,
+  ): Promise<string | null> {
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      const topicName = await this.tryOneTopicNameGeneration({
+        topicId,
+        keywords,
+        prompt,
+        modelName,
+        attempt,
+      });
+
+      if (topicName) return topicName;
+      if (topicName === null) return null;
+    }
+
+    return null;
+  }
+
+  private async tryOneTopicNameGeneration(
+    input: TopicNameGenerationAttempt,
+  ): Promise<string | null | undefined> {
+    try {
+      await this.throttle();
+      return await this.generateTopicNameFromModel(input);
+    } catch (error) {
+      const shouldRetry = await this.handleModelError(
+        error,
+        input.topicId,
+        input.modelName,
+        input.attempt,
+      );
+
+      return shouldRetry ? undefined : null;
+    }
+  }
+
+  private async generateTopicNameFromModel(
+    input: TopicNameGenerationAttempt,
+  ): Promise<string | null> {
+    const rawText = await this.requestTopicNameText(
+      input.modelName,
+      input.prompt,
+    );
+    const topicName = this.topicNamePolicy.extractValidName(
+      rawText,
+      input.keywords,
     );
 
-    return fallback?.id ?? groups[groups.length - 1]?.id ?? null;
+    if (!topicName) {
+      this.logger.warn(
+        `Invalid AI topic name for topic ${input.topicId}: "${this.topicNamePolicy.sanitize(rawText)}". Trying next model.`,
+      );
+      return null;
+    }
+
+    this.logger.log(
+      `Topic ${input.topicId} named by ${input.modelName}: "${topicName}"`,
+    );
+    return topicName;
+  }
+
+  private async requestTopicNameText(modelName: string, prompt: string) {
+    const model = this.genAI?.getGenerativeModel({ model: modelName });
+    const result = await model?.generateContent(prompt);
+    return result?.response.text() ?? '';
+  }
+
+  private async handleModelError(
+    error: unknown,
+    topicId: number,
+    modelName: string,
+    attempt: number,
+  ): Promise<boolean> {
+    const providerError = getProviderError(error);
+    const errorMessage = getErrorMessage(error);
+    const isRateLimit = this.isRateLimitError(providerError, errorMessage);
+
+    if (!isRateLimit) {
+      this.warnModelFailure(modelName, topicId, errorMessage);
+      return false;
+    }
+
+    if (this.handleDailyQuotaExhaustion(error, modelName, topicId)) {
+      return false;
+    }
+
+    if (attempt >= MAX_RETRIES) {
+      this.warnRetryLimitReached(modelName, topicId);
+      return false;
+    }
+
+    await this.waitBeforeRetry(modelName, topicId);
+    return true;
+  }
+
+  private isRateLimitError(
+    providerError: AiProviderError,
+    errorMessage: string,
+  ) {
+    return providerError.status === 429 || errorMessage.includes('429');
+  }
+
+  private warnModelFailure(
+    modelName: string,
+    topicId: number,
+    errorMessage: string,
+  ) {
+    this.logger.warn(
+      `${modelName} failed for topic ${topicId}: ${errorMessage}`,
+    );
+  }
+
+  private handleDailyQuotaExhaustion(
+    error: unknown,
+    modelName: string,
+    topicId: number,
+  ) {
+    if (!this.isDailyQuotaExhausted(error)) return false;
+
+    this.exhaustedModels.set(modelName, Date.now());
+    this.logger.warn(
+      `${modelName} daily quota exhausted for topic ${topicId}. Moving to next model.`,
+    );
+    return true;
+  }
+
+  private warnRetryLimitReached(modelName: string, topicId: number) {
+    this.logger.warn(
+      `${modelName} retry limit reached for topic ${topicId}. Moving to next model.`,
+    );
+  }
+
+  private async waitBeforeRetry(modelName: string, topicId: number) {
+    this.logger.warn(
+      `Rate limited on ${modelName} for topic ${topicId}. Retrying in ${RETRY_DELAY_MS / 1000}s.`,
+    );
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+  }
+
+  private isModelExhausted(modelName: string): boolean {
+    const blockedAt = this.exhaustedModels.get(modelName);
+    if (!blockedAt) return false;
+
+    const elapsed = Date.now() - blockedAt;
+    if (elapsed < DAILY_QUOTA_COOLDOWN_MS) return true;
+
+    this.exhaustedModels.delete(modelName);
+    this.logger.log(`${modelName} cooldown finished, model can be retried.`);
+    return false;
+  }
+
+  private isDailyQuotaExhausted(error: unknown): boolean {
+    const message = getErrorMessage(error);
+    return message.includes('PerDay') || message.includes('limit: 0');
+  }
+
+  private async throttle(): Promise<void> {
+    const elapsed = Date.now() - this.lastRequestTime;
+    if (elapsed < DELAY_BETWEEN_REQUESTS_MS) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, DELAY_BETWEEN_REQUESTS_MS - elapsed),
+      );
+    }
+    this.lastRequestTime = Date.now();
+  }
+
+  private getAvailableModels(): string[] {
+    return GEMINI_MODELS.filter((model) => !this.isModelExhausted(model));
   }
 }

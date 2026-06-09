@@ -6,11 +6,7 @@ export declare class AnalyticsController {
     getDashboard(): Promise<{
         total_destinations: number;
         total_reviews: number;
-        sentiment_distribution: {
-            positive: number;
-            negative: number;
-            neutral: number;
-        };
+        sentiment_distribution: import("./analytics.types").SentimentDistribution;
         top_topics: {
             topic_name: string;
             count: number;
@@ -29,11 +25,7 @@ export declare class AnalyticsController {
         destination_id: number;
         destination_name: string;
         total_reviews: number;
-        sentiment_distribution: {
-            positive: number;
-            negative: number;
-            neutral: number;
-        };
+        sentiment_distribution: import("./analytics.types").SentimentDistribution;
         average_rating: number | null;
         positive_ratio: number | null;
         recommendation_score: number | null;
@@ -46,98 +38,17 @@ export declare class AnalyticsController {
         }[];
     }>;
     getDestinationTrends(id: number, query: TrendsQueryDto): Promise<{
-        trends: {
+        trends: ({
+            date: string;
+        } & {
             positive: number;
             negative: number;
             neutral: number;
-            date: string;
-        }[];
+        })[];
     }>;
     compareDestinations(query: CompareQueryDto): Promise<{
-        destination1: {
-            id: number;
-            name: string;
-            slug: string;
-            city: string;
-            province: string;
-            category: string;
-            thumbnailUrl: string | null;
-            latitude: number | null;
-            longitude: number | null;
-            googleMapsUrl: string | null;
-            sentiment: {
-                positive: number;
-                neutral: number;
-                negative: number;
-            };
-            topics: {
-                topic_name: string;
-                total_reviews: number;
-                group_name?: string | null;
-            }[];
-            top_topics: {
-                topic_name: string;
-                total_reviews: number;
-                group_name?: string | null;
-            }[];
-            topic_groups: Array<{
-                group_name: string;
-                total_reviews: number;
-            }>;
-            rating: {
-                google: number | null;
-                user: number | null;
-            };
-            recommendation_score: number | null;
-            positive_ratio: number | null;
-            review_count: number;
-            travel_traits: Record<string, number>;
-            decision_factors: Record<"access" | "cost_value" | "cleanliness" | "facilities" | "crowd" | "view_activity", number>;
-            highlights: string[];
-            risks: string[];
-        };
-        destination2: {
-            id: number;
-            name: string;
-            slug: string;
-            city: string;
-            province: string;
-            category: string;
-            thumbnailUrl: string | null;
-            latitude: number | null;
-            longitude: number | null;
-            googleMapsUrl: string | null;
-            sentiment: {
-                positive: number;
-                neutral: number;
-                negative: number;
-            };
-            topics: {
-                topic_name: string;
-                total_reviews: number;
-                group_name?: string | null;
-            }[];
-            top_topics: {
-                topic_name: string;
-                total_reviews: number;
-                group_name?: string | null;
-            }[];
-            topic_groups: Array<{
-                group_name: string;
-                total_reviews: number;
-            }>;
-            rating: {
-                google: number | null;
-                user: number | null;
-            };
-            recommendation_score: number | null;
-            positive_ratio: number | null;
-            review_count: number;
-            travel_traits: Record<string, number>;
-            decision_factors: Record<"access" | "cost_value" | "cleanliness" | "facilities" | "crowd" | "view_activity", number>;
-            highlights: string[];
-            risks: string[];
-        };
+        destination1: import("./analytics.types").CompareDestinationSnapshot;
+        destination2: import("./analytics.types").CompareDestinationSnapshot;
         comparison: {
             sentiment_winner: number;
             rating_winner: number;

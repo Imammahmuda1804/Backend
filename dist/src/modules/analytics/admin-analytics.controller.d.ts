@@ -19,11 +19,7 @@ export declare class AdminAnalyticsController {
         };
         total_scraping_jobs: number;
         scraping_jobs_breakdown: Record<string, number>;
-        sentiment_distribution: {
-            positive: number;
-            negative: number;
-            neutral: number;
-        };
+        sentiment_distribution: import("./analytics.types").SentimentDistribution;
         top_destinations: {
             id: number;
             name: string;
@@ -119,7 +115,7 @@ export declare class AdminAnalyticsController {
         destination_quality_matrix: {
             id: number;
             name: string;
-            city: string;
+            city: string | null;
             google_rating: number | null;
             google_review_count: number | null;
             recommendation_score: number | null;
@@ -175,14 +171,15 @@ export declare class AdminAnalyticsController {
         }[];
     }>;
     getAdminTrends(query: TrendsQueryDto): Promise<{
-        period: "daily" | "weekly" | "monthly";
-        trends: {
+        period: import("./analytics.types").AnalyticsPeriod;
+        trends: ({
+            date: string;
+        } & {
             positive: number;
             negative: number;
             neutral: number;
             total: number;
-            date: string;
-        }[];
+        })[];
     }>;
     exportCsv(destinationId: number, res: Response): Promise<void>;
 }

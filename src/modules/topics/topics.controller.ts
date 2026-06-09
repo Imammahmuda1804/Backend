@@ -21,6 +21,7 @@ import {
 import { TopicsService } from './topics.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { parsePaginationQuery } from '../../common/utils/pagination.util';
 import {
   RenameTopicDto,
   RenameTopicGroupDto,
@@ -192,12 +193,11 @@ export class TopicsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    const parsedPage = page ? parseInt(page, 10) : 1;
-    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 10;
+    const pagination = parsePaginationQuery(page, limit, { defaultLimit: 10 });
     return this.topicsService.findDestinationsByTopic(
       id,
-      parsedPage,
-      parsedLimit,
+      pagination.page,
+      pagination.limit,
     );
   }
 }
@@ -229,10 +229,11 @@ export class AdminTopicsController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
+    const pagination = parsePaginationQuery(page, limit, { defaultLimit: 10 });
     return this.topicsService.findReviewsByTopic(
       id,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 10,
+      pagination.page,
+      pagination.limit,
       sentiment,
       destinationId ? parseInt(destinationId, 10) : undefined,
     );

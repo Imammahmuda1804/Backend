@@ -1,95 +1,150 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { PrismaService } from './prisma/prisma.service';
-import { AiNamingService } from './modules/nlp/ai-naming.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import { AppModule } from './app.module';
+import { AiNamingService } from './modules/nlp/ai-naming.service';
+import { PrismaService } from './prisma/prisma.service';
 
 interface TrainingMetadata {
   topic_keywords?: Record<string, string[]>;
 }
 
+type SyncDependencies = {
+  prisma: PrismaService;
+  aiNaming: AiNamingService;
+};
+
+type SyncSummary = {
+  newTopicsCount: number;
+  updatedTopicsCount: number;
+};
+
 async function bootstrap() {
-  console.log('🔄 Memulai sinkronisasi topik dari metadata BERTopic...');
+  console.log('Starting BERTopic metadata topic sync...');
   const app = await NestFactory.createApplicationContext(AppModule);
 
-  const prisma = app.get(PrismaService);
-  const aiNaming = app.get(AiNamingService);
+  try {
+    const summary = await syncTopicsFromMetadata({
+      prisma: app.get(PrismaService),
+      aiNaming: app.get(AiNamingService),
+    });
+    logSummary(summary);
+  } finally {
+    await app.close();
+  }
+}
 
-  // __dirname akan berada di backend/src saat dijalankan dengan ts-node
-  const metadataPath = path.join(
+async function syncTopicsFromMetadata(
+  dependencies: SyncDependencies,
+): Promise<SyncSummary> {
+  const metadataPath = getTrainingMetadataPath();
+  const topicKeywords = readTopicKeywords(metadataPath);
+  const topicIds = getTopicIds(topicKeywords);
+  const summary: SyncSummary = { newTopicsCount: 0, updatedTopicsCount: 0 };
+
+  console.log(`Found ${topicIds.length} topics in metadata.`);
+
+  for (const topicId of topicIds) {
+    const status = await syncOneTopic(topicId, topicKeywords, dependencies);
+    summary[status === 'created' ? 'newTopicsCount' : 'updatedTopicsCount']++;
+  }
+
+  return summary;
+}
+
+function getTrainingMetadataPath() {
+  return path.join(
     __dirname,
     '../../Model/app/models/bertopic/training_metadata.json',
   );
+}
 
-  if (!fs.existsSync(metadataPath)) {
-    console.error(`❌ File metadata tidak ditemukan di: ${metadataPath}`);
-    console.error(`Pastikan Anda sudah menjalankan script training BERTopic.`);
-    await app.close();
-    process.exit(1);
-  }
+function readTopicKeywords(metadataPath: string) {
+  assertMetadataFileExists(metadataPath);
 
-  console.log(`📂 Membaca file: ${metadataPath}`);
+  console.log(`Reading file: ${metadataPath}`);
   const metadata = JSON.parse(
     fs.readFileSync(metadataPath, 'utf-8'),
   ) as TrainingMetadata;
-  const topicKeywords = metadata.topic_keywords ?? {};
 
-  // Ambil semua ID kecuali outlier (-1)
-  const topicIds = Object.keys(topicKeywords)
-    .map((id) => parseInt(id, 10))
-    .filter((id) => id !== -1);
-
-  console.log(`📦 Menemukan ${topicIds.length} topik dalam metadata.`);
-
-  let newTopicsCount = 0;
-  let updatedTopicsCount = 0;
-
-  for (const topicId of topicIds) {
-    const keywords = topicKeywords[String(topicId)] ?? [];
-
-    // Cek apakah topik sudah ada di database
-    const existing = await prisma.topic.findUnique({
-      where: { id: topicId },
-    });
-
-    let topicName = existing?.topicName;
-
-    if (!existing) {
-      console.log(`\n🤖 Generate nama AI untuk Topik ID ${topicId}...`);
-      // Menamai topik memakai fallback Gemini.
-      topicName = await aiNaming.generateTopicName(topicId, keywords);
-
-      await prisma.topic.create({
-        data: {
-          id: topicId,
-          topicName: topicName,
-          keywords: keywords,
-        },
-      });
-      newTopicsCount++;
-      console.log(`✅ Berhasil membuat Topik [${topicId}]: ${topicName}`);
-    } else {
-      await prisma.topic.update({
-        where: { id: topicId },
-        data: { keywords: keywords },
-      });
-      updatedTopicsCount++;
-      console.log(
-        `🔄 Update kata kunci untuk Topik [${topicId}] yang sudah ada: ${topicName}`,
-      );
-    }
-  }
-
-  console.log(`\n🎉 Proses Sinkronisasi Selesai!`);
-  console.log(`- Topik baru (digenerate oleh AI): ${newTopicsCount}`);
-  console.log(`- Topik lama (diupdate kata kuncinya): ${updatedTopicsCount}`);
-
-  await app.close();
-  process.exit(0);
+  return metadata.topic_keywords ?? {};
 }
 
-bootstrap().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+function assertMetadataFileExists(metadataPath: string) {
+  if (fs.existsSync(metadataPath)) return;
+
+  throw new Error(
+    `Metadata file not found at ${metadataPath}. Run BERTopic training first.`,
+  );
+}
+
+function getTopicIds(topicKeywords: Record<string, string[]>) {
+  return Object.keys(topicKeywords)
+    .map((id) => parseInt(id, 10))
+    .filter((id) => id !== -1);
+}
+
+async function syncOneTopic(
+  topicId: number,
+  topicKeywords: Record<string, string[]>,
+  dependencies: SyncDependencies,
+) {
+  const keywords = topicKeywords[String(topicId)] ?? [];
+  const existing = await dependencies.prisma.topic.findUnique({
+    where: { id: topicId },
+  });
+
+  if (!existing) {
+    await createTopic(topicId, keywords, dependencies);
+    return 'created';
+  }
+
+  await updateTopicKeywords(topicId, keywords, dependencies.prisma);
+  return 'updated';
+}
+
+async function createTopic(
+  topicId: number,
+  keywords: string[],
+  dependencies: SyncDependencies,
+) {
+  console.log(`Generating AI name for topic ${topicId}...`);
+  const topicName = await dependencies.aiNaming.generateTopicName(
+    topicId,
+    keywords,
+  );
+
+  await dependencies.prisma.topic.create({
+    data: {
+      id: topicId,
+      topicName,
+      keywords,
+    },
+  });
+  console.log(`Created topic [${topicId}]: ${topicName}`);
+}
+
+async function updateTopicKeywords(
+  topicId: number,
+  keywords: string[],
+  prisma: PrismaService,
+) {
+  await prisma.topic.update({
+    where: { id: topicId },
+    data: { keywords },
+  });
+  console.log(`Updated keywords for topic [${topicId}]`);
+}
+
+function logSummary(summary: SyncSummary) {
+  console.log('Topic sync completed.');
+  console.log(`- New topics generated by AI: ${summary.newTopicsCount}`);
+  console.log(`- Existing topics updated: ${summary.updatedTopicsCount}`);
+}
+
+bootstrap()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });

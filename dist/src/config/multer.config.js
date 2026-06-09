@@ -40,12 +40,17 @@ const multer_1 = require("multer");
 const fs = __importStar(require("fs"));
 const uploadDir = './uploads/destinations';
 const profileDir = './uploads/profiles';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-if (!fs.existsSync(profileDir)) {
-    fs.mkdirSync(profileDir, { recursive: true });
-}
+const ensureDirectory = (path) => {
+    if (!fs.existsSync(path))
+        fs.mkdirSync(path, { recursive: true });
+};
+const createUniqueFileName = (prefix = '') => (req, file, callback) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = (0, path_1.extname)(file.originalname);
+    callback(null, `${prefix}${uniqueSuffix}${ext}`);
+};
+ensureDirectory(uploadDir);
+ensureDirectory(profileDir);
 const imageFileFilter = (req, file, callback) => {
     if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/i)) {
         return callback(new common_1.BadRequestException('Only image files are allowed'), false);
@@ -65,11 +70,7 @@ exports.multerImageOptions = {
     limits: { fileSize: 5 * 1024 * 1024 },
     storage: (0, multer_1.diskStorage)({
         destination: uploadDir,
-        filename: (req, file, callback) => {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-            const ext = (0, path_1.extname)(file.originalname);
-            callback(null, `${uniqueSuffix}${ext}`);
-        },
+        filename: createUniqueFileName(),
     }),
 };
 exports.multerCsvOptions = {
@@ -81,11 +82,7 @@ exports.multerProfileImageOptions = {
     limits: { fileSize: 5 * 1024 * 1024 },
     storage: (0, multer_1.diskStorage)({
         destination: profileDir,
-        filename: (req, file, callback) => {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-            const ext = (0, path_1.extname)(file.originalname);
-            callback(null, `avatar-${uniqueSuffix}${ext}`);
-        },
+        filename: createUniqueFileName('avatar-'),
     }),
 };
 //# sourceMappingURL=multer.config.js.map

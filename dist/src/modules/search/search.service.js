@@ -29,9 +29,17 @@ let SearchService = SearchService_1 = class SearchService {
     async semanticSearch(dto, userId) {
         const limit = Math.min(dto.limit ?? 10, 50);
         this.logger.log(`Search request: "${dto.query}" by user ${userId || 'guest'}`);
-        let embedding;
+        const embedding = await this.getSearchEmbedding(dto.query);
+        const results = await this.vectorService.hybridSearch(embedding, limit, dto.sort, this.buildSearchFilters(dto));
+        const enrichedResults = await this.attachTopTopics(results);
+        await this.saveSearchHistory(dto.query, userId);
+        this.logger.log(`Semantic search: "${dto.query}" -> ${results.length} results` +
+            (userId ? ` (user ${userId})` : ' (guest)'));
+        return enrichedResults;
+    }
+    async getSearchEmbedding(query) {
         try {
-            embedding = await this.nlpService.embedQuery(dto.query);
+            return await this.nlpService.embedQuery(query);
         }
         catch (error) {
             if (error instanceof nlp_unavailable_exception_1.NlpServiceUnavailableException) {
@@ -39,34 +47,31 @@ let SearchService = SearchService_1 = class SearchService {
             }
             throw error;
         }
-        const topicIds = dto.topicIds ?? dto.topic_ids;
-        const minRating = dto.minRating ?? dto.min_rating;
-        const results = await this.vectorService.hybridSearch(embedding, limit, dto.sort, {
+    }
+    buildSearchFilters(dto) {
+        return {
             city: dto.city,
             category: dto.category,
-            topicIds,
-            minRating,
+            topicIds: dto.topicIds ?? dto.topic_ids,
+            minRating: dto.minRating ?? dto.min_rating,
             sentiment: dto.sentiment,
-        });
-        const enrichedResults = await this.attachTopTopics(results);
-        if (userId) {
-            try {
-                await this.prisma.searchLog.create({
-                    data: { userId, keyword: dto.query },
-                });
-                this.logger.log(`✅ Search history saved for user ${userId}: "${dto.query}"`);
-            }
-            catch (err) {
-                const message = err instanceof Error ? err.message : String(err);
-                this.logger.error(`❌ Failed to save search log for user ${userId}: ${message}`);
-            }
+        };
+    }
+    async saveSearchHistory(query, userId) {
+        if (!userId) {
+            this.logger.log('No userId provided - search history not saved');
+            return;
         }
-        else {
-            this.logger.log(`ℹ️ No userId provided - search history not saved`);
+        try {
+            await this.prisma.searchLog.create({
+                data: { userId, keyword: query },
+            });
+            this.logger.log(`Search history saved for user ${userId}: "${query}"`);
         }
-        this.logger.log(`Semantic search: "${dto.query}" → ${results.length} results` +
-            (userId ? ` (user ${userId})` : ' (guest)'));
-        return enrichedResults;
+        catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            this.logger.error(`Failed to save search log for user ${userId}: ${message}`);
+        }
     }
     async attachTopTopics(results) {
         if (results.length === 0)

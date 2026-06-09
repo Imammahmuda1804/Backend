@@ -12,42 +12,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateProfileDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
-class UpdateProfileDto {
-    name;
-    email;
-    password;
+const user_identity_fields_dto_1 = require("./user-identity-fields.dto");
+class UpdateProfileDto extends user_identity_fields_dto_1.UserIdentityFieldsDto {
     profilePicture;
 }
 exports.UpdateProfileDto = UpdateProfileDto;
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'Nama lengkap user',
-        example: 'John Updated',
-    }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(2, { message: 'Nama minimal 2 karakter' }),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "name", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'Email user',
-        example: 'newemail@mail.com',
-    }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEmail)({}, { message: 'Format email tidak valid' }),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "email", void 0);
-__decorate([
-    (0, swagger_1.ApiPropertyOptional)({
-        description: 'Password baru',
-        example: 'newpassword123',
-    }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsString)(),
-    (0, class_validator_1.MinLength)(6, { message: 'Password minimal 6 karakter' }),
-    __metadata("design:type", String)
-], UpdateProfileDto.prototype, "password", void 0);
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'URL foto profil user',

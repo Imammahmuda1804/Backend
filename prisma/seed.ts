@@ -14,49 +14,57 @@ type SeededAdmin = {
 const TOPIC_GROUPS = [
   {
     groupName: 'Harga & Pengalaman',
-    description: 'Kelompok topik tentang biaya, tiket, nilai pengalaman, dan kepuasan kunjungan.',
+    description:
+      'Kelompok topik tentang biaya, tiket, nilai pengalaman, dan kepuasan kunjungan.',
     keywords: ['harga', 'tiket', 'biaya', 'pengalaman'],
     displayOrder: 1,
   },
   {
     groupName: 'Kebersihan & Kenyamanan',
-    description: 'Kelompok topik tentang kebersihan area, kenyamanan, toilet, dan perawatan tempat.',
+    description:
+      'Kelompok topik tentang kebersihan area, kenyamanan, toilet, dan perawatan tempat.',
     keywords: ['bersih', 'kotor', 'nyaman', 'terawat'],
     displayOrder: 2,
   },
   {
     groupName: 'Akses & Lokasi',
-    description: 'Kelompok topik tentang akses jalan, parkir, rute, dan kemudahan menuju lokasi.',
+    description:
+      'Kelompok topik tentang akses jalan, parkir, rute, dan kemudahan menuju lokasi.',
     keywords: ['akses', 'jalan', 'parkir', 'lokasi'],
     displayOrder: 3,
   },
   {
     groupName: 'Fasilitas',
-    description: 'Kelompok topik tentang fasilitas umum, toilet, mushola, tempat duduk, dan layanan.',
+    description:
+      'Kelompok topik tentang fasilitas umum, toilet, mushola, tempat duduk, dan layanan.',
     keywords: ['fasilitas', 'toilet', 'mushola', 'layanan'],
     displayOrder: 4,
   },
   {
     groupName: 'Keramaian',
-    description: 'Kelompok topik tentang kepadatan pengunjung, antrean, dan waktu kunjungan.',
+    description:
+      'Kelompok topik tentang kepadatan pengunjung, antrean, dan waktu kunjungan.',
     keywords: ['ramai', 'antre', 'pengunjung', 'padat'],
     displayOrder: 5,
   },
   {
     groupName: 'Pemandangan & Aktivitas',
-    description: 'Kelompok topik tentang pemandangan, spot foto, aktivitas, dan daya tarik wisata.',
+    description:
+      'Kelompok topik tentang pemandangan, spot foto, aktivitas, dan daya tarik wisata.',
     keywords: ['pemandangan', 'foto', 'aktivitas', 'indah'],
     displayOrder: 6,
   },
   {
     groupName: 'Keamanan & Pengelolaan',
-    description: 'Kelompok topik tentang keamanan, pungli, petugas, aturan, dan pengelolaan destinasi.',
+    description:
+      'Kelompok topik tentang keamanan, pungli, petugas, aturan, dan pengelolaan destinasi.',
     keywords: ['aman', 'pungli', 'petugas', 'pengelolaan'],
     displayOrder: 7,
   },
   {
     groupName: 'Lainnya',
-    description: 'Fallback untuk topic yang belum bisa dipetakan ke group utama.',
+    description:
+      'Fallback untuk topic yang belum bisa dipetakan ke group utama.',
     keywords: ['lainnya'],
     displayOrder: 99,
   },
@@ -68,20 +76,34 @@ function loadEnvFile() {
 
   const lines = readFileSync(envPath, 'utf8').split(/\r?\n/);
   for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-
-    const separatorIndex = trimmed.indexOf('=');
-    if (separatorIndex === -1) continue;
-
-    const key = trimmed.slice(0, separatorIndex).trim();
-    const rawValue = trimmed.slice(separatorIndex + 1).trim();
-    const value = rawValue.replace(/^["']|["']$/g, '');
-
-    if (key && process.env[key] === undefined) {
-      process.env[key] = value;
-    }
+    const entry = parseEnvLine(line);
+    if (entry) setEnvIfMissing(entry.key, entry.value);
   }
+}
+
+function parseEnvLine(line: string) {
+  const trimmed = line.trim();
+  if (shouldSkipEnvLine(trimmed)) return null;
+
+  const separatorIndex = trimmed.indexOf('=');
+  if (separatorIndex === -1) return null;
+
+  return {
+    key: trimmed.slice(0, separatorIndex).trim(),
+    value: unquoteEnvValue(trimmed.slice(separatorIndex + 1).trim()),
+  };
+}
+
+function shouldSkipEnvLine(line: string) {
+  return !line || line.startsWith('#');
+}
+
+function unquoteEnvValue(value: string) {
+  return value.replace(/^["']|["']$/g, '');
+}
+
+function setEnvIfMissing(key: string, value: string) {
+  if (key && process.env[key] === undefined) process.env[key] = value;
 }
 
 function getEnv(name: string, fallback: string) {
@@ -92,7 +114,9 @@ function getEnv(name: string, fallback: string) {
 function createPrismaClient() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    throw new Error('DATABASE_URL belum diatur. Isi backend/.env sebelum menjalankan seed.');
+    throw new Error(
+      'DATABASE_URL belum diatur. Isi backend/.env sebelum menjalankan seed.',
+    );
   }
 
   const pool = new Pool({ connectionString: databaseUrl });

@@ -5,6 +5,10 @@ export declare class FavoritesService {
     addFavorite(userId: number, destinationId: number): Promise<{
         message: string;
     }>;
+    private ensureDestinationExists;
+    private createFavoriteOrReturnExisting;
+    private isUniqueConstraintError;
+    private existingFavorite;
     getFavorites(userId: number, page: number, limit: number): Promise<{
         data: {
             id: number;

@@ -23,23 +23,33 @@ export declare class AuthService {
             id: number;
             name: string;
             email: string;
-            role: import("@prisma/client").$Enums.Role;
+            role: string;
             profilePicture: string | null;
         };
         access_token: string;
         refresh_token: string;
     }>;
+    private findPasswordLoginCandidate;
+    private assertPasswordLoginAllowed;
+    private assertPasswordMatches;
+    private throwInvalidPasswordLogin;
     loginWithGoogle(dto: GoogleLoginDto): Promise<{
         user: {
             id: number;
             name: string;
             email: string;
-            role: import("@prisma/client").$Enums.Role;
+            role: string;
             profilePicture: string | null;
         };
         access_token: string;
         refresh_token: string;
     }>;
+    private toVerifiedGoogleProfile;
+    private assertGooglePayloadVerified;
+    private resolveGoogleProfileName;
+    private throwInvalidGoogleAccount;
+    private assertActiveUser;
+    private findUserByGoogleId;
     generateTokens(payload: JwtPayload): Promise<{
         access_token: string;
         refresh_token: string;
@@ -52,6 +62,11 @@ export declare class AuthService {
         message: string;
     }>;
     private verifyGoogleToken;
+    private assertGoogleLoginConfigured;
+    private readGoogleTokenPayload;
+    private rejectInvalidGoogleToken;
     private getGoogleClientIds;
     private findOrCreateGoogleUser;
+    private buildLoginResponse;
+    private toPublicAuthUser;
 }

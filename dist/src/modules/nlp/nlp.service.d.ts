@@ -10,5 +10,8 @@ export declare class NlpService {
     processPipeline(csvBuffer: Buffer, filename: string): Promise<NlpPipelineResult>;
     embedQuery(text: string): Promise<number[]>;
     healthCheck(): Promise<boolean>;
+    private requestFastApi;
     private handleAxiosError;
+    private handleResponseError;
+    private getRetryMessage;
 }

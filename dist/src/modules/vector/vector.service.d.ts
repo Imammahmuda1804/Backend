@@ -19,5 +19,13 @@ export declare class VectorService {
     }>): Promise<void>;
     searchSimilarDestinations(queryEmbedding: number[], limit?: number): Promise<SimilarDestination[]>;
     hybridSearch(queryEmbedding: number[], limit?: number, sortType?: 'relevance' | 'hybrid', filters?: HybridSearchFilters): Promise<SimilarDestination[]>;
+    private buildHybridWhereClauses;
+    private addCityFilter;
+    private addCategoryFilter;
+    private addMinRatingFilter;
+    private addTopicFilter;
+    private addSentimentFilter;
+    private searchByRelevance;
+    private searchByHybridScore;
 }
 export {};

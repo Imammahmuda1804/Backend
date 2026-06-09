@@ -1,18 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateOffset = calculateOffset;
-exports.calculateTotalPages = calculateTotalPages;
-exports.buildOrderBy = buildOrderBy;
-const pagination_constant_1 = require("../constants/pagination.constant");
-function calculateOffset(page, limit) {
-    return (page - 1) * limit;
-}
-function calculateTotalPages(totalItems, limit) {
-    return Math.ceil(totalItems / limit);
-}
-function buildOrderBy(sort, order) {
-    const sortField = sort || 'createdAt';
-    const sortOrder = order || pagination_constant_1.PAGINATION.DEFAULT_ORDER;
-    return { [sortField]: sortOrder };
-}
+exports.parsePaginationQuery = void 0;
+const parsePaginationQuery = (page, limit, options = { defaultLimit: 20 }) => ({
+    page: page ? parseInt(page, 10) : 1,
+    limit: limit
+        ? Math.min(parseInt(limit, 10), options.maxLimit ?? 100)
+        : options.defaultLimit,
+});
+exports.parsePaginationQuery = parsePaginationQuery;
 //# sourceMappingURL=pagination.util.js.map

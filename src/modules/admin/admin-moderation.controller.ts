@@ -7,6 +7,7 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { ApiAdminAuthResponses } from '../../common/decorators/api-admin-auth-responses.decorator';
 import { ReviewsService } from '../reviews/reviews.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 
@@ -25,11 +26,11 @@ export class AdminModerationController {
   @ApiOperation({ summary: 'Hapus scraped review (moderasi)' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'Review berhasil dihapus' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
+  @ApiAdminAuthResponses()
   @ApiResponse({ status: 404, description: 'Review tidak ditemukan' })
   async deleteReview(@Param('id', ParseIntPipe) id: number) {
-    return this.reviewsService.deleteReview(id);
+    const deletedReview = await this.reviewsService.deleteReview(id);
+    return deletedReview;
   }
 
   // Menghapus user review lewat endpoint admin.
@@ -37,8 +38,7 @@ export class AdminModerationController {
   @ApiOperation({ summary: 'Hapus user review (moderasi)' })
   @ApiParam({ name: 'id', type: Number })
   @ApiResponse({ status: 200, description: 'User review berhasil dihapus' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
+  @ApiAdminAuthResponses()
   @ApiResponse({ status: 404, description: 'User review tidak ditemukan' })
   async deleteUserReview(@Param('id', ParseIntPipe) id: number) {
     return this.reviewsService.deleteUserReview(id);
@@ -54,8 +54,7 @@ export class AdminModerationController {
   })
   @ApiParam({ name: 'destinationId', type: Number })
   @ApiResponse({ status: 200, description: 'Analytics berhasil direcalculate' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
+  @ApiAdminAuthResponses()
   @ApiResponse({ status: 404, description: 'Destinasi tidak ditemukan' })
   async recalculateAnalytics(
     @Param('destinationId', ParseIntPipe) destinationId: number,

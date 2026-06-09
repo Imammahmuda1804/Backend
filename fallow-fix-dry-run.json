@@ -1,0 +1,58 @@
+{
+  "dry_run": true,
+  "fixes": [
+    {
+      "type": "remove_dependency",
+      "package": "csv-parser",
+      "location": "dependencies",
+      "file": "D:\\Kuliah\\Ta\\New folder\\backend\\package.json"
+    },
+    {
+      "type": "remove_dependency",
+      "package": "ioredis",
+      "location": "dependencies",
+      "file": "D:\\Kuliah\\Ta\\New folder\\backend\\package.json"
+    },
+    {
+      "type": "remove_dependency",
+      "package": "xlsx",
+      "location": "dependencies",
+      "file": "D:\\Kuliah\\Ta\\New folder\\backend\\package.json"
+    },
+    {
+      "type": "remove_dependency",
+      "package": "@eslint/eslintrc",
+      "location": "devDependencies",
+      "file": "D:\\Kuliah\\Ta\\New folder\\backend\\package.json"
+    },
+    {
+      "type": "remove_dependency",
+      "package": "@nestjs/schematics",
+      "location": "devDependencies",
+      "file": "D:\\Kuliah\\Ta\\New folder\\backend\\package.json"
+    },
+    {
+      "type": "remove_dependency",
+      "package": "eslint-config-prettier",
+      "location": "devDependencies",
+      "file": "D:\\Kuliah\\Ta\\New folder\\backend\\package.json"
+    },
+    {
+      "type": "remove_dependency",
+      "package": "source-map-support",
+      "location": "devDependencies",
+      "file": "D:\\Kuliah\\Ta\\New folder\\backend\\package.json"
+    },
+    {
+      "type": "remove_dependency",
+      "package": "tsconfig-paths",
+      "location": "devDependencies",
+      "file": "D:\\Kuliah\\Ta\\New folder\\backend\\package.json"
+    }
+  ],
+  "total_fixed": 0,
+  "skipped": 0,
+  "skipped_content_changed": 0,
+  "skipped_mixed_line_endings": 0,
+  "skipped_low_confidence_exports": 0
+}

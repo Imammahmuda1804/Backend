@@ -24,21 +24,37 @@ export class TransformInterceptor<T> implements NestInterceptor<
     context: ExecutionContext,
     next: CallHandler,
   ): Observable<ApiResponse<T>> {
-    return next.handle().pipe(
-      map((res: unknown) => {
-        if (res && typeof res === 'object' && 'data' in res && 'meta' in res) {
-          const typedRes = res as { data: T; meta: Record<string, unknown> };
-          return {
-            status: 'success' as const,
-            data: typedRes.data,
-            meta: typedRes.meta,
-          };
-        }
-        return {
-          status: 'success' as const,
-          data: res as T,
-        };
-      }),
+    return next.handle().pipe(map((res: unknown) => this.wrapResponse(res)));
+  }
+
+  private wrapResponse(res: unknown): ApiResponse<T> {
+    if (this.hasDataAndMeta(res)) return this.wrapPaginatedResponse(res);
+    return this.wrapDataResponse(res);
+  }
+
+  private hasDataAndMeta(
+    res: unknown,
+  ): res is { data: T; meta: Record<string, unknown> } {
+    return Boolean(
+      res && typeof res === 'object' && 'data' in res && 'meta' in res,
     );
+  }
+
+  private wrapPaginatedResponse(res: {
+    data: T;
+    meta: Record<string, unknown>;
+  }) {
+    return {
+      status: 'success' as const,
+      data: res.data,
+      meta: res.meta,
+    };
+  }
+
+  private wrapDataResponse(res: unknown) {
+    return {
+      status: 'success' as const,
+      data: res as T,
+    };
   }
 }

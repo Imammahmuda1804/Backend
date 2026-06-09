@@ -17,6 +17,7 @@ import {
 import { ReviewsService } from './reviews.service';
 import { ReviewsQueryDto } from './dto/reviews-query.dto';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { ApiAdminAuthResponses } from '../../common/decorators/api-admin-auth-responses.decorator';
 
 @ApiTags('Admin - Reviews')
 @ApiBearerAuth()
@@ -28,8 +29,7 @@ export class AdminReviewsController {
   @Get('destination/:id')
   @ApiOperation({ summary: 'Mendapatkan daftar review untuk sebuah destinasi' })
   @ApiResponse({ status: 200, description: 'Daftar review berhasil diambil' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
+  @ApiAdminAuthResponses()
   async getReviewsByDestination(
     @Param('id', ParseIntPipe) destinationId: number,
     @Query() query: ReviewsQueryDto,
@@ -56,8 +56,7 @@ export class AdminReviewsController {
     status: 200,
     description: 'Review berhasil dihapus secara masal',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
+  @ApiAdminAuthResponses()
   async deleteBulkReviews(
     @Param('id', ParseIntPipe) destinationId: number,
     @Query('category') category: 'all' | 'processed' | 'unprocessed',
@@ -69,8 +68,7 @@ export class AdminReviewsController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Menghapus review (scraped review)' })
   @ApiResponse({ status: 200, description: 'Review berhasil dihapus' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })
+  @ApiAdminAuthResponses()
   @ApiResponse({ status: 404, description: 'Review tidak ditemukan' })
   async deleteReview(@Param('id', ParseIntPipe) id: number) {
     return this.reviewsService.deleteReview(id);

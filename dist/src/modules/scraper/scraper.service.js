@@ -47,24 +47,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 var ScraperService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ScraperService = void 0;
-const common_1 = require("@nestjs/common");
-const prisma_service_1 = require("../../prisma/prisma.service");
-const apify_service_1 = require("./apify.service");
-const csv_service_1 = require("./csv.service");
 const bullmq_1 = require("@nestjs/bullmq");
+const common_1 = require("@nestjs/common");
 const bullmq_2 = require("bullmq");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const prisma_service_1 = require("../../prisma/prisma.service");
+const apify_service_1 = require("./apify.service");
 let ScraperService = ScraperService_1 = class ScraperService {
     prisma;
     apifyService;
-    csvService;
     scrapingQueue;
     logger = new common_1.Logger(ScraperService_1.name);
-    constructor(prisma, apifyService, csvService, scrapingQueue) {
+    constructor(prisma, apifyService, scrapingQueue) {
         this.prisma = prisma;
         this.apifyService = apifyService;
-        this.csvService = csvService;
         this.scrapingQueue = scrapingQueue;
     }
     async searchMaps(query) {
@@ -72,8 +69,7 @@ let ScraperService = ScraperService_1 = class ScraperService {
             throw new common_1.BadRequestException('Query parameter (q) is required');
         }
         try {
-            const results = await this.apifyService.searchPlaces(query.trim());
-            return results;
+            return await this.apifyService.searchPlaces(query.trim());
         }
         catch (error) {
             this.logger.error('Error searching maps', error);
@@ -81,39 +77,60 @@ let ScraperService = ScraperService_1 = class ScraperService {
         }
     }
     async startScraping(dto, adminId) {
+        const destination = await this.findScraperDestination(dto.destination_id);
+        const finalMapsUrl = this.resolveMapsUrl(dto, destination);
+        const effectiveMaxReviews = this.resolveMaxReviews(dto);
+        const job = await this.createPendingScrapingJob(destination.id, adminId);
+        await this.enqueueScrapingJob(job.id, destination, finalMapsUrl, effectiveMaxReviews);
+        this.logQueuedJob(job.id, destination.name, effectiveMaxReviews);
+        return this.buildStartScrapingResponse(job.id, destination.name, finalMapsUrl);
+    }
+    async findScraperDestination(destinationId) {
         const destination = await this.prisma.destination.findUnique({
-            where: { id: dto.destination_id },
+            where: { id: destinationId },
+            select: { id: true, name: true, googleMapsUrl: true },
         });
-        if (!destination) {
+        if (!destination)
             throw new common_1.NotFoundException('Destination not found');
-        }
+        return destination;
+    }
+    resolveMapsUrl(dto, destination) {
         const finalMapsUrl = dto.maps_url || destination.googleMapsUrl;
         if (!finalMapsUrl) {
             throw new common_1.BadRequestException('Destinasi belum memiliki URL Google Maps. Sertakan maps_url pada request.');
         }
-        const effectiveMaxReviews = dto.fetch_all_reviews
-            ? undefined
-            : dto.max_reviews;
-        const job = await this.prisma.scrapingJob.create({
+        return finalMapsUrl;
+    }
+    resolveMaxReviews(dto) {
+        return dto.fetch_all_reviews ? undefined : dto.max_reviews;
+    }
+    createPendingScrapingJob(destinationId, adminId) {
+        return this.prisma.scrapingJob.create({
             data: {
-                destinationId: destination.id,
+                destinationId,
                 status: 'pending',
                 createdBy: adminId,
             },
         });
-        await this.scrapingQueue.add('scrape-reviews', {
-            jobId: job.id,
+    }
+    enqueueScrapingJob(jobId, destination, finalMapsUrl, effectiveMaxReviews) {
+        return this.scrapingQueue.add('scrape-reviews', {
+            jobId,
             destinationId: destination.id,
             destinationName: destination.name,
             url: finalMapsUrl,
             maxReviews: effectiveMaxReviews,
         });
-        this.logger.log(`Scraping job #${job.id} queued for destination "${destination.name}" (target: ${effectiveMaxReviews ?? 'ALL'} text reviews)`);
+    }
+    logQueuedJob(jobId, destinationName, effectiveMaxReviews) {
+        this.logger.log(`Scraping job #${jobId} queued for destination "${destinationName}" (target: ${effectiveMaxReviews ?? 'ALL'} text reviews)`);
+    }
+    buildStartScrapingResponse(jobId, destinationName, mapsUrl) {
         return {
-            job_id: job.id,
+            job_id: jobId,
             status: 'pending',
-            destination_name: destination.name,
-            maps_url: finalMapsUrl,
+            destination_name: destinationName,
+            maps_url: mapsUrl,
             message: 'Scraping job dimulai. Sistem akan mengambil ulasan berteks sesuai jumlah yang diminta. Hasil berupa file Excel yang bisa diunduh.',
         };
     }
@@ -142,7 +159,7 @@ let ScraperService = ScraperService_1 = class ScraperService {
                 orderBy: { createdAt: 'desc' },
                 include: {
                     destination: {
-                        select: { name: true, city: true },
+                        select: { name: true, city: true, province: true },
                     },
                 },
             }),
@@ -187,45 +204,64 @@ let ScraperService = ScraperService_1 = class ScraperService {
         };
     }
     async downloadExcel(jobId) {
+        const job = await this.findCompletedScrapingJob(jobId);
+        const jobFilePath = this.resolveScrapedExcelPath(jobId);
+        const filename = this.buildDownloadExcelFileName(job);
+        return { filePath: jobFilePath, filename };
+    }
+    async findCompletedScrapingJob(jobId) {
         const job = await this.prisma.scrapingJob.findUnique({
             where: { id: jobId },
             include: {
                 destination: { select: { name: true } },
             },
         });
-        if (!job) {
+        if (!job)
             throw new common_1.NotFoundException('Scraping job not found');
-        }
         if (job.status !== 'completed') {
             throw new common_1.BadRequestException('Job belum selesai');
+        }
+        return job;
+    }
+    resolveScrapedExcelPath(jobId) {
+        if (!Number.isSafeInteger(jobId) || jobId <= 0) {
+            throw new common_1.BadRequestException('Job ID tidak valid');
         }
         const uploadDir = path.join(process.cwd(), 'uploads', 'scraped_data');
         const jobFilePath = path.join(uploadDir, `job_${jobId}.xlsx`);
         if (!fs.existsSync(jobFilePath)) {
             throw new common_1.NotFoundException('File Excel tidak ditemukan. Mungkin sudah dihapus.');
         }
-        const safeName = (job.destination?.name || 'Destination')
+        return jobFilePath;
+    }
+    buildDownloadExcelFileName(job) {
+        const safeName = this.toSafeFileName(job.destination?.name);
+        const dateStr = this.toDownloadDate(job.createdAt);
+        const reviewCount = job.totalReviews || 0;
+        return `[RanahInsight]_Scrape_${safeName}_${reviewCount}_Reviews_${dateStr}.xlsx`;
+    }
+    toSafeFileName(value) {
+        return (value || 'Destination')
             .replace(/[^a-zA-Z0-9\s]/g, '')
             .replace(/\s+/g, '_')
             .substring(0, 40);
-        const dateStr = new Date(job.createdAt)
+    }
+    toDownloadDate(value) {
+        return new Date(value)
             .toLocaleDateString('en-GB', {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
         })
             .replace(/ /g, '-');
-        const filename = `[RanahInsight]_Scrape_${safeName}_${job.totalReviews || 0}_Reviews_${dateStr}.xlsx`;
-        return { filePath: jobFilePath, filename };
     }
 };
 exports.ScraperService = ScraperService;
 exports.ScraperService = ScraperService = ScraperService_1 = __decorate([
     (0, common_1.Injectable)(),
-    __param(3, (0, bullmq_1.InjectQueue)('scraping-queue')),
+    __param(2, (0, bullmq_1.InjectQueue)('scraping-queue')),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         apify_service_1.ApifyService,
-        csv_service_1.CsvService,
         bullmq_2.Queue])
 ], ScraperService);
 //# sourceMappingURL=scraper.service.js.map

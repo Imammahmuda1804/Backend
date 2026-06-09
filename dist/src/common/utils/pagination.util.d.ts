@@ -1,3 +1,9 @@
-export declare function calculateOffset(page: number, limit: number): number;
-export declare function calculateTotalPages(totalItems: number, limit: number): number;
-export declare function buildOrderBy(sort?: string, order?: 'asc' | 'desc'): Record<string, 'asc' | 'desc'>;
+type PaginationOptions = {
+    defaultLimit: number;
+    maxLimit?: number;
+};
+export declare const parsePaginationQuery: (page?: string, limit?: string, options?: PaginationOptions) => {
+    page: number;
+    limit: number;
+};
+export {};

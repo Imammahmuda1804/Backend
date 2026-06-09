@@ -15,12 +15,18 @@ function parsePort(
   if (!rawValue) return fallback;
 
   const value = Number(rawValue);
-  if (!Number.isInteger(value) || value < 1 || value > 65535) {
-    errors.push(`${key} must be a valid TCP port between 1 and 65535`);
-    return fallback;
-  }
+  if (!isValidTcpPort(value)) return reportInvalidPort(key, fallback, errors);
 
   return value;
+}
+
+function isValidTcpPort(value: number) {
+  return Number.isInteger(value) && value >= 1 && value <= 65535;
+}
+
+function reportInvalidPort(key: string, fallback: number, errors: string[]) {
+  errors.push(`${key} must be a valid TCP port between 1 and 65535`);
+  return fallback;
 }
 
 // Memastikan nilai env berbentuk URL saat nilainya tersedia.
@@ -44,13 +50,23 @@ function validateCommaSeparatedOrigins(
   const rawValue = env[key];
   if (!rawValue) return;
 
-  for (const origin of rawValue.split(',').map((item) => item.trim())) {
-    if (!origin) continue;
-    try {
-      new URL(origin);
-    } catch {
-      errors.push(`${key} contains invalid origin: ${origin}`);
-    }
+  for (const origin of splitCommaSeparatedValues(rawValue)) {
+    validateOrigin(origin, key, errors);
+  }
+}
+
+function splitCommaSeparatedValues(value: string) {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function validateOrigin(origin: string, key: string, errors: string[]) {
+  try {
+    new URL(origin);
+  } catch {
+    errors.push(`${key} contains invalid origin: ${origin}`);
   }
 }
 

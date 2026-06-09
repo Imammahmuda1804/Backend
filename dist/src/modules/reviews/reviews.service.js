@@ -74,53 +74,57 @@ let ReviewsService = class ReviewsService {
         return { message: 'User review deleted' };
     }
     async recalculateUserRating(destinationId) {
-        const agg = await this.prisma.userReview.aggregate({
-            where: { destinationId },
-            _avg: { rating: true },
-            _count: { rating: true },
-        });
-        const newUserRating = agg._avg.rating ?? null;
-        const newUserReviewCount = agg._count.rating;
-        const sentimentReviews = await this.prisma.review.findMany({
-            where: { destinationId, sentiment: { not: null } },
-            select: { sentiment: true },
-        });
-        let recommendationScore;
-        if (sentimentReviews.length > 0 && newUserRating !== null) {
-            const positiveCount = sentimentReviews.filter((r) => r.sentiment === 'positive').length;
-            const positiveRatio = positiveCount / sentimentReviews.length;
-            const normalizedRating = newUserRating / 5;
-            recommendationScore = normalizedRating * 0.5 + positiveRatio * 0.5;
-        }
+        const ratingSummary = await this.getUserReviewRatingSummary(destinationId);
+        const recommendationScore = await this.calculateUserRecommendationScore(destinationId, ratingSummary.rating);
         await this.prisma.destination.update({
             where: { id: destinationId },
             data: {
-                userRating: newUserRating,
-                userReviewCount: newUserReviewCount,
+                userRating: ratingSummary.rating,
+                userReviewCount: ratingSummary.count,
                 ...(recommendationScore !== undefined && { recommendationScore }),
             },
         });
     }
+    async getUserReviewRatingSummary(destinationId) {
+        const aggregate = await this.prisma.userReview.aggregate({
+            where: { destinationId },
+            _avg: { rating: true },
+            _count: { rating: true },
+        });
+        return {
+            rating: aggregate._avg.rating ?? null,
+            count: aggregate._count.rating,
+        };
+    }
+    async calculateUserRecommendationScore(destinationId, userRating) {
+        if (userRating === null)
+            return undefined;
+        const sentimentReviews = await this.findReviewsWithSentiment(destinationId);
+        if (sentimentReviews.length === 0)
+            return undefined;
+        const positiveRatio = this.countPositiveReviews(sentimentReviews) / sentimentReviews.length;
+        return (userRating / 5) * 0.5 + positiveRatio * 0.5;
+    }
+    findReviewsWithSentiment(destinationId) {
+        return this.prisma.review.findMany({
+            where: { destinationId, sentiment: { not: null } },
+            select: { sentiment: true },
+        });
+    }
+    countPositiveReviews(reviews) {
+        return reviews.filter((review) => review.sentiment === 'positive').length;
+    }
     async getReviewsByDestination(destinationId, page, limit, sentiment, topicId, dateFrom, dateTo, sortBy, nlpStatus) {
         const skip = (page - 1) * limit;
-        const where = {
+        const where = this.buildDestinationReviewFilter({
             destinationId,
-            ...(sentiment && { sentiment }),
-            ...(topicId && { topicId }),
-            ...(dateFrom || dateTo
-                ? {
-                    reviewDate: {
-                        ...(dateFrom && { gte: new Date(dateFrom) }),
-                        ...(dateTo && {
-                            lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)),
-                        }),
-                    },
-                }
-                : {}),
-            ...(nlpStatus === 'processed' && { cleanedText: { not: null } }),
-            ...(nlpStatus === 'unprocessed' && { cleanedText: null }),
-        };
-        const orderBy = sortBy === 'oldest' ? { reviewDate: 'asc' } : { reviewDate: 'desc' };
+            sentiment,
+            topicId,
+            dateFrom,
+            dateTo,
+            nlpStatus,
+        });
+        const orderBy = this.getReviewOrder(sortBy);
         const [total, reviews] = await Promise.all([
             this.prisma.review.count({ where }),
             this.prisma.review.findMany({
@@ -142,6 +146,43 @@ let ReviewsService = class ReviewsService {
                 totalPages: Math.ceil(total / limit),
             },
         };
+    }
+    buildDestinationReviewFilter(input) {
+        return {
+            destinationId: input.destinationId,
+            ...(input.sentiment && { sentiment: input.sentiment }),
+            ...(input.topicId && { topicId: input.topicId }),
+            ...this.buildReviewDateFilter(input.dateFrom, input.dateTo),
+            ...this.buildReviewNlpFilter(input.nlpStatus),
+        };
+    }
+    buildReviewDateFilter(dateFrom, dateTo) {
+        if (!dateFrom && !dateTo)
+            return {};
+        return {
+            reviewDate: this.buildReviewDateRange(dateFrom, dateTo),
+        };
+    }
+    buildReviewDateRange(dateFrom, dateTo) {
+        const range = {};
+        if (dateFrom)
+            range.gte = new Date(dateFrom);
+        if (dateTo)
+            range.lte = this.endOfDay(dateTo);
+        return range;
+    }
+    endOfDay(date) {
+        return new Date(new Date(date).setHours(23, 59, 59, 999));
+    }
+    buildReviewNlpFilter(nlpStatus) {
+        if (nlpStatus === 'processed')
+            return { cleanedText: { not: null } };
+        if (nlpStatus === 'unprocessed')
+            return { cleanedText: null };
+        return {};
+    }
+    getReviewOrder(sortBy) {
+        return sortBy === 'oldest' ? { reviewDate: 'asc' } : { reviewDate: 'desc' };
     }
     async deleteBulkReviews(destinationId, category) {
         const whereClause = { destinationId };

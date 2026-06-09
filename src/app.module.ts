@@ -95,12 +95,22 @@ import { join } from 'path';
     // Mengatur queue Redis.
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        connection: {
-          host: configService.get<string>('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const redisUsername = configService.get<string>('REDIS_USERNAME');
+        const redisPassword = configService.get<string>('REDIS_PASSWORD');
+        const useRedisTls =
+          configService.get<string>('REDIS_TLS', 'false') === 'true';
+
+        return {
+          connection: {
+            host: configService.get<string>('REDIS_HOST', 'localhost'),
+            port: configService.get<number>('REDIS_PORT', 6379),
+            username: redisUsername || undefined,
+            password: redisPassword || undefined,
+            tls: useRedisTls ? {} : undefined,
+          },
+        };
+      },
       inject: [ConfigService],
     }),
   ],

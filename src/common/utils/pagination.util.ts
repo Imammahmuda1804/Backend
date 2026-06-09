@@ -1,22 +1,15 @@
-import { PAGINATION } from '../constants/pagination.constant';
+type PaginationOptions = {
+  defaultLimit: number;
+  maxLimit?: number;
+};
 
-// Menghitung offset pagination untuk Prisma.
-export function calculateOffset(page: number, limit: number): number {
-  return (page - 1) * limit;
-}
-
-// Menghitung total halaman pagination.
-export function calculateTotalPages(totalItems: number, limit: number): number {
-  return Math.ceil(totalItems / limit);
-}
-
-// Membuat orderBy Prisma dari parameter sort.
-export function buildOrderBy(
-  sort?: string,
-  order?: 'asc' | 'desc',
-): Record<string, 'asc' | 'desc'> {
-  const sortField = sort || 'createdAt';
-  const sortOrder = order || PAGINATION.DEFAULT_ORDER;
-
-  return { [sortField]: sortOrder };
-}
+export const parsePaginationQuery = (
+  page?: string,
+  limit?: string,
+  options: PaginationOptions = { defaultLimit: 20 },
+) => ({
+  page: page ? parseInt(page, 10) : 1,
+  limit: limit
+    ? Math.min(parseInt(limit, 10), options.maxLimit ?? 100)
+    : options.defaultLimit,
+});

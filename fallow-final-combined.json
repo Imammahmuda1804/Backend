@@ -1,0 +1,2875 @@
+{
+  "kind": "combined",
+  "schema_version": 7,
+  "version": "2.90.0",
+  "elapsed_ms": 350,
+  "check": {
+    "schema_version": 7,
+    "version": "2.90.0",
+    "elapsed_ms": 216,
+    "total_issues": 0,
+    "entry_points": {
+      "total": 175,
+      "sources": {
+        "dynamically_loaded": 1,
+        "package.json": 3,
+        "plugin": 171
+      }
+    },
+    "summary": {
+      "total_issues": 0,
+      "unused_files": 0,
+      "unused_exports": 0,
+      "unused_types": 0,
+      "private_type_leaks": 0,
+      "unused_dependencies": 0,
+      "unused_enum_members": 0,
+      "unused_class_members": 0,
+      "unresolved_imports": 0,
+      "unlisted_dependencies": 0,
+      "duplicate_exports": 0,
+      "type_only_dependencies": 0,
+      "test_only_dependencies": 0,
+      "circular_dependencies": 0,
+      "re_export_cycles": 0,
+      "boundary_violations": 0,
+      "stale_suppressions": 0,
+      "unused_catalog_entries": 0,
+      "empty_catalog_groups": 0,
+      "unresolved_catalog_references": 0,
+      "unused_dependency_overrides": 0,
+      "misconfigured_dependency_overrides": 0
+    },
+    "unused_files": [],
+    "unused_exports": [],
+    "unused_types": [],
+    "private_type_leaks": [],
+    "unused_dependencies": [],
+    "unused_dev_dependencies": [],
+    "unused_optional_dependencies": [],
+    "unused_enum_members": [],
+    "unused_class_members": [],
+    "unresolved_imports": [],
+    "unlisted_dependencies": [],
+    "duplicate_exports": [],
+    "type_only_dependencies": [],
+    "test_only_dependencies": [],
+    "circular_dependencies": [],
+    "re_export_cycles": [],
+    "boundary_violations": [],
+    "stale_suppressions": [],
+    "unused_catalog_entries": [],
+    "empty_catalog_groups": [],
+    "unresolved_catalog_references": [],
+    "unused_dependency_overrides": [],
+    "misconfigured_dependency_overrides": []
+  },
+  "dupes": {
+    "clone_groups": [],
+    "clone_families": [],
+    "stats": {
+      "total_files": 136,
+      "files_with_clones": 0,
+      "total_lines": 15033,
+      "duplicated_lines": 0,
+      "total_tokens": 68050,
+      "duplicated_tokens": 0,
+      "clone_groups": 0,
+      "clone_instances": 0,
+      "duplication_percentage": 0.0
+    }
+  },
+  "health": {
+    "findings": [],
+    "summary": {
+      "files_analyzed": 173,
+      "functions_analyzed": 1101,
+      "functions_above_threshold": 0,
+      "max_cyclomatic_threshold": 20,
+      "max_cognitive_threshold": 15,
+      "max_crap_threshold": 30.0,
+      "files_scored": 116,
+      "average_maintainability": 92.9,
+      "coverage_model": "static_estimated",
+      "severity_critical_count": 0,
+      "severity_high_count": 0,
+      "severity_moderate_count": 0
+    },
+    "vital_signs": {
+      "dead_file_pct": 0.0,
+      "dead_export_pct": 0.0,
+      "avg_cyclomatic": 1.7,
+      "critical_complexity_pct": 0.0,
+      "p90_cyclomatic": 3,
+      "duplication_pct": 0.0,
+      "hotspot_count": 3,
+      "hotspot_top_pct_count": 2,
+      "maintainability_avg": 92.9,
+      "maintainability_low_pct": 0.0,
+      "unused_dep_count": 0,
+      "unused_deps_per_k_files": 0.0,
+      "circular_dep_count": 0,
+      "circular_deps_per_k_files": 0.0,
+      "counts": {
+        "total_files": 173,
+        "total_exports": 228,
+        "dead_files": 0,
+        "dead_exports": 0,
+        "duplicated_lines": 0,
+        "total_lines": 15480,
+        "files_scored": 116,
+        "total_deps": 0
+      },
+      "unit_size_profile": {
+        "low_risk": 80.9,
+        "medium_risk": 14.8,
+        "high_risk": 3.8,
+        "very_high_risk": 0.5
+      },
+      "functions_over_60_loc_per_k": 4.5,
+      "unit_interfacing_profile": {
+        "low_risk": 86.3,
+        "medium_risk": 12.6,
+        "high_risk": 0.8,
+        "very_high_risk": 0.3
+      },
+      "p95_fan_in": 6,
+      "coupling_high_pct": 0.9,
+      "total_loc": 15480
+    },
+    "health_score": {
+      "formula_version": 2,
+      "score": 87.2,
+      "grade": "A",
+      "penalties": {
+        "dead_files": 0.0,
+        "dead_exports": 0.0,
+        "complexity": 0.0,
+        "p90_complexity": 0.0,
+        "maintainability": 0.0,
+        "hotspots": 10.0,
+        "unused_deps": 0.0,
+        "circular_deps": 0.0,
+        "unit_size": 2.3,
+        "coupling": 0.5,
+        "duplication": 0.0
+      }
+    },
+    "file_scores": [
+      {
+        "path": "src/modules/nlp/nlp-pipeline-runner.service.ts",
+        "fan_in": 2,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.24,
+        "maintainability_index": 87.3,
+        "total_cyclomatic": 26,
+        "total_cognitive": 11,
+        "function_count": 13,
+        "lines": 109,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/route-management.service.ts",
+        "fan_in": 2,
+        "fan_out": 5,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.18,
+        "maintainability_index": 87.4,
+        "total_cyclomatic": 30,
+        "total_cognitive": 18,
+        "function_count": 14,
+        "lines": 170,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp-upload-execution.service.ts",
+        "fan_in": 2,
+        "fan_out": 7,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 87.8,
+        "total_cyclomatic": 22,
+        "total_cognitive": 16,
+        "function_count": 9,
+        "lines": 167,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp-review-dedup.service.ts",
+        "fan_in": 3,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.19,
+        "maintainability_index": 87.9,
+        "total_cyclomatic": 52,
+        "total_cognitive": 24,
+        "function_count": 28,
+        "lines": 275,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/scraper.processor.ts",
+        "fan_in": 1,
+        "fan_out": 5,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.15,
+        "maintainability_index": 88.3,
+        "total_cyclomatic": 40,
+        "total_cognitive": 17,
+        "function_count": 21,
+        "lines": 269,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/search/search.service.ts",
+        "fan_in": 2,
+        "fan_out": 5,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.14,
+        "maintainability_index": 88.6,
+        "total_cyclomatic": 27,
+        "total_cognitive": 16,
+        "function_count": 13,
+        "lines": 199,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/route-access.service.ts",
+        "fan_in": 4,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.23,
+        "maintainability_index": 88.7,
+        "total_cyclomatic": 18,
+        "total_cognitive": 10,
+        "function_count": 8,
+        "lines": 79,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/analytics-export.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.22,
+        "maintainability_index": 89.0,
+        "total_cyclomatic": 28,
+        "total_cognitive": 7,
+        "function_count": 20,
+        "lines": 129,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp-topic-storage.service.ts",
+        "fan_in": 2,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.15,
+        "maintainability_index": 89.1,
+        "total_cyclomatic": 48,
+        "total_cognitive": 22,
+        "function_count": 24,
+        "lines": 330,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/utils/nlp-dedup.util.ts",
+        "fan_in": 5,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.25,
+        "maintainability_index": 89.7,
+        "total_cyclomatic": 15,
+        "total_cognitive": 7,
+        "function_count": 7,
+        "lines": 59,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/topics/topic-management.service.ts",
+        "fan_in": 2,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 89.7,
+        "total_cyclomatic": 26,
+        "total_cognitive": 14,
+        "function_count": 12,
+        "lines": 193,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/utils/nlp-result.util.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.34,
+        "maintainability_index": 89.8,
+        "total_cyclomatic": 22,
+        "total_cognitive": 10,
+        "function_count": 12,
+        "lines": 64,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/analytics-recalculation.service.ts",
+        "fan_in": 2,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.15,
+        "maintainability_index": 90.0,
+        "total_cyclomatic": 26,
+        "total_cognitive": 15,
+        "function_count": 12,
+        "lines": 168,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/auth/auth.service.ts",
+        "fan_in": 2,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.15,
+        "maintainability_index": 90.0,
+        "total_cyclomatic": 51,
+        "total_cognitive": 25,
+        "function_count": 26,
+        "lines": 347,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/destination-comparison-insights.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.17,
+        "maintainability_index": 90.5,
+        "total_cyclomatic": 73,
+        "total_cognitive": 28,
+        "function_count": 44,
+        "lines": 439,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp-destination-analytics-storage.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.17,
+        "maintainability_index": 90.5,
+        "total_cyclomatic": 31,
+        "total_cognitive": 15,
+        "function_count": 16,
+        "lines": 180,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/destinations/destinations.controller.ts",
+        "fan_in": 1,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.1,
+        "maintainability_index": 90.6,
+        "total_cyclomatic": 21,
+        "total_cognitive": 10,
+        "function_count": 11,
+        "lines": 203,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/scraper.service.ts",
+        "fan_in": 3,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 90.6,
+        "total_cyclomatic": 38,
+        "total_cognitive": 18,
+        "function_count": 19,
+        "lines": 301,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/ai-naming.service.ts",
+        "fan_in": 4,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.16,
+        "maintainability_index": 90.8,
+        "total_cyclomatic": 53,
+        "total_cognitive": 31,
+        "function_count": 26,
+        "lines": 331,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/scraper-workbook.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.16,
+        "maintainability_index": 90.8,
+        "total_cyclomatic": 39,
+        "total_cognitive": 15,
+        "function_count": 23,
+        "lines": 241,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/destination-analytics.service.ts",
+        "fan_in": 2,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.12,
+        "maintainability_index": 90.9,
+        "total_cyclomatic": 15,
+        "total_cognitive": 6,
+        "function_count": 8,
+        "lines": 126,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/destinations/destination-admin.service.ts",
+        "fan_in": 2,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.12,
+        "maintainability_index": 90.9,
+        "total_cyclomatic": 30,
+        "total_cognitive": 11,
+        "function_count": 18,
+        "lines": 257,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/analytics.utils.ts",
+        "fan_in": 6,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.2,
+        "maintainability_index": 91.2,
+        "total_cyclomatic": 13,
+        "total_cognitive": 7,
+        "function_count": 7,
+        "lines": 66,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/dashboard-analytics.service.ts",
+        "fan_in": 2,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.09,
+        "maintainability_index": 91.8,
+        "total_cyclomatic": 46,
+        "total_cognitive": 18,
+        "function_count": 28,
+        "lines": 488,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/favorites/favorites.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.12,
+        "maintainability_index": 92.0,
+        "total_cyclomatic": 14,
+        "total_cognitive": 4,
+        "function_count": 9,
+        "lines": 113,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/topics/topic-query.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.11,
+        "maintainability_index": 92.3,
+        "total_cyclomatic": 15,
+        "total_cognitive": 5,
+        "function_count": 9,
+        "lines": 140,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/topics/topic-review.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.11,
+        "maintainability_index": 92.3,
+        "total_cyclomatic": 20,
+        "total_cognitive": 9,
+        "function_count": 11,
+        "lines": 182,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/users/users.service.ts",
+        "fan_in": 3,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.11,
+        "maintainability_index": 92.3,
+        "total_cyclomatic": 29,
+        "total_cognitive": 13,
+        "function_count": 16,
+        "lines": 272,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/destinations/destination-catalog.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.1,
+        "maintainability_index": 92.6,
+        "total_cyclomatic": 26,
+        "total_cognitive": 9,
+        "function_count": 17,
+        "lines": 257,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/topic-group-classifier.service.ts",
+        "fan_in": 2,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.24,
+        "maintainability_index": 92.8,
+        "total_cyclomatic": 13,
+        "total_cognitive": 8,
+        "function_count": 5,
+        "lines": 55,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/guards/jwt-auth.guard.ts",
+        "fan_in": 2,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 93.3,
+        "total_cyclomatic": 7,
+        "total_cognitive": 4,
+        "function_count": 3,
+        "lines": 52,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/search/dto/search-query.dto.ts",
+        "fan_in": 1,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 93.3,
+        "total_cyclomatic": 19,
+        "total_cognitive": 8,
+        "function_count": 11,
+        "lines": 150,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/config/env.validation.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.21,
+        "maintainability_index": 93.7,
+        "total_cyclomatic": 21,
+        "total_cognitive": 12,
+        "function_count": 9,
+        "lines": 102,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/destinations/destination-detail.service.ts",
+        "fan_in": 2,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.11,
+        "maintainability_index": 93.9,
+        "total_cyclomatic": 52,
+        "total_cognitive": 25,
+        "function_count": 31,
+        "lines": 467,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/guards/roles.guard.ts",
+        "fan_in": 2,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.12,
+        "maintainability_index": 94.2,
+        "total_cyclomatic": 5,
+        "total_cognitive": 3,
+        "function_count": 2,
+        "lines": 42,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/utils/excel-parser.util.ts",
+        "fan_in": 4,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.19,
+        "maintainability_index": 94.3,
+        "total_cyclomatic": 95,
+        "total_cognitive": 44,
+        "function_count": 52,
+        "lines": 488,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/interceptors/transform.interceptor.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.16,
+        "maintainability_index": 95.2,
+        "total_cyclomatic": 10,
+        "total_cognitive": 2,
+        "function_count": 6,
+        "lines": 61,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "prisma/seed.ts",
+        "fan_in": 0,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.12,
+        "maintainability_index": 96.4,
+        "total_cyclomatic": 27,
+        "total_cognitive": 20,
+        "function_count": 11,
+        "lines": 224,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/utils/pagination.util.ts",
+        "fan_in": 3,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.25,
+        "maintainability_index": 97.6,
+        "total_cyclomatic": 4,
+        "total_cognitive": 3,
+        "function_count": 1,
+        "lines": 16,
+        "crap_max": 20.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp.service.ts",
+        "fan_in": 6,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.19,
+        "maintainability_index": 88.8,
+        "total_cyclomatic": 34,
+        "total_cognitive": 19,
+        "function_count": 11,
+        "lines": 177,
+        "crap_max": 17.6,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/route-planning.service.ts",
+        "fan_in": 2,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.21,
+        "maintainability_index": 87.3,
+        "total_cyclomatic": 42,
+        "total_cognitive": 16,
+        "function_count": 25,
+        "lines": 199,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp-review-storage.service.ts",
+        "fan_in": 2,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.2,
+        "maintainability_index": 87.6,
+        "total_cyclomatic": 28,
+        "total_cognitive": 13,
+        "function_count": 15,
+        "lines": 137,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/nlp-process.processor.ts",
+        "fan_in": 0,
+        "fan_out": 5,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.17,
+        "maintainability_index": 87.7,
+        "total_cyclomatic": 41,
+        "total_cognitive": 15,
+        "function_count": 25,
+        "lines": 236,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp-result-storage.service.ts",
+        "fan_in": 3,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.15,
+        "maintainability_index": 89.1,
+        "total_cyclomatic": 11,
+        "total_cognitive": 4,
+        "function_count": 6,
+        "lines": 71,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp-upload-preparation.service.ts",
+        "fan_in": 2,
+        "fan_out": 5,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.12,
+        "maintainability_index": 89.2,
+        "total_cyclomatic": 13,
+        "total_cognitive": 6,
+        "function_count": 7,
+        "lines": 110,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/destinations/admin-destinations.controller.ts",
+        "fan_in": 1,
+        "fan_out": 6,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.07,
+        "maintainability_index": 90.1,
+        "total_cyclomatic": 16,
+        "total_cognitive": 4,
+        "function_count": 11,
+        "lines": 243,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/search/search.controller.ts",
+        "fan_in": 1,
+        "fan_out": 6,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.06,
+        "maintainability_index": 90.4,
+        "total_cyclomatic": 7,
+        "total_cognitive": 0,
+        "function_count": 5,
+        "lines": 122,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/sync-topics.ts",
+        "fan_in": 0,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 90.6,
+        "total_cyclomatic": 20,
+        "total_cognitive": 7,
+        "function_count": 14,
+        "lines": 151,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/topics/topic-merge.service.ts",
+        "fan_in": 3,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.16,
+        "maintainability_index": 90.8,
+        "total_cyclomatic": 27,
+        "total_cognitive": 9,
+        "function_count": 19,
+        "lines": 171,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/admin-routes.controller.ts",
+        "fan_in": 1,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.09,
+        "maintainability_index": 90.9,
+        "total_cyclomatic": 8,
+        "total_cognitive": 2,
+        "function_count": 6,
+        "lines": 93,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/routes.controller.ts",
+        "fan_in": 1,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.09,
+        "maintainability_index": 90.9,
+        "total_cyclomatic": 22,
+        "total_cognitive": 6,
+        "function_count": 16,
+        "lines": 237,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/scraper.controller.ts",
+        "fan_in": 1,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.09,
+        "maintainability_index": 90.9,
+        "total_cyclomatic": 12,
+        "total_cognitive": 4,
+        "function_count": 7,
+        "lines": 131,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/reviews/reviews.service.ts",
+        "fan_in": 4,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.15,
+        "maintainability_index": 91.1,
+        "total_cyclomatic": 38,
+        "total_cognitive": 18,
+        "function_count": 20,
+        "lines": 260,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/reviews/admin-reviews.controller.ts",
+        "fan_in": 1,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.08,
+        "maintainability_index": 91.2,
+        "total_cyclomatic": 6,
+        "total_cognitive": 2,
+        "function_count": 4,
+        "lines": 77,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/destination-comparison.service.ts",
+        "fan_in": 2,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.07,
+        "maintainability_index": 91.5,
+        "total_cyclomatic": 10,
+        "total_cognitive": 4,
+        "function_count": 5,
+        "lines": 140,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp-processing-history.service.ts",
+        "fan_in": 3,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.1,
+        "maintainability_index": 91.5,
+        "total_cyclomatic": 12,
+        "total_cognitive": 5,
+        "function_count": 7,
+        "lines": 116,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/topics/topic-group.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 91.7,
+        "total_cyclomatic": 16,
+        "total_cognitive": 5,
+        "function_count": 11,
+        "lines": 126,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/vector/vector.service.ts",
+        "fan_in": 3,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 91.7,
+        "total_cyclomatic": 25,
+        "total_cognitive": 9,
+        "function_count": 16,
+        "lines": 198,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/admin/admin-users.controller.ts",
+        "fan_in": 1,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.09,
+        "maintainability_index": 91.8,
+        "total_cyclomatic": 8,
+        "total_cognitive": 2,
+        "function_count": 6,
+        "lines": 92,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/public-dashboard-analytics.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.11,
+        "maintainability_index": 92.3,
+        "total_cyclomatic": 8,
+        "total_cognitive": 2,
+        "function_count": 6,
+        "lines": 70,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/csv.service.ts",
+        "fan_in": 4,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.24,
+        "maintainability_index": 92.5,
+        "total_cyclomatic": 8,
+        "total_cognitive": 2,
+        "function_count": 6,
+        "lines": 33,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp.controller.ts",
+        "fan_in": 1,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.05,
+        "maintainability_index": 93.0,
+        "total_cyclomatic": 8,
+        "total_cognitive": 2,
+        "function_count": 6,
+        "lines": 154,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/topic-name-policy.service.ts",
+        "fan_in": 2,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.23,
+        "maintainability_index": 93.1,
+        "total_cyclomatic": 27,
+        "total_cognitive": 10,
+        "function_count": 17,
+        "lines": 120,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/scraped-review.util.ts",
+        "fan_in": 2,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.6,
+        "maintainability_index": 93.6,
+        "total_cyclomatic": 6,
+        "total_cognitive": 2,
+        "function_count": 2,
+        "lines": 10,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/filters/http-exception.filter.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 96.1,
+        "total_cyclomatic": 10,
+        "total_cognitive": 6,
+        "function_count": 5,
+        "lines": 76,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/route-distance.util.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.14,
+        "maintainability_index": 96.3,
+        "total_cyclomatic": 6,
+        "total_cognitive": 3,
+        "function_count": 3,
+        "lines": 44,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/apify.service.ts",
+        "fan_in": 3,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.12,
+        "maintainability_index": 96.4,
+        "total_cyclomatic": 11,
+        "total_cognitive": 6,
+        "function_count": 6,
+        "lines": 93,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/utils/slug.util.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.12,
+        "maintainability_index": 97.6,
+        "total_cyclomatic": 4,
+        "total_cognitive": 2,
+        "function_count": 2,
+        "lines": 33,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/decorators/current-user.decorator.ts",
+        "fan_in": 8,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 98.1,
+        "total_cyclomatic": 3,
+        "total_cognitive": 1,
+        "function_count": 1,
+        "lines": 24,
+        "crap_max": 12.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/app.controller.ts",
+        "fan_in": 2,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 90.9,
+        "total_cyclomatic": 6,
+        "total_cognitive": 4,
+        "function_count": 3,
+        "lines": 45,
+        "crap_max": 7.5,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/csv-value.util.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.41,
+        "maintainability_index": 89.9,
+        "total_cyclomatic": 17,
+        "total_cognitive": 4,
+        "function_count": 13,
+        "lines": 41,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/topics/topics.controller.ts",
+        "fan_in": 1,
+        "fan_out": 5,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.07,
+        "maintainability_index": 90.7,
+        "total_cyclomatic": 16,
+        "total_cognitive": 1,
+        "function_count": 15,
+        "lines": 242,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/users/users.controller.ts",
+        "fan_in": 1,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.07,
+        "maintainability_index": 91.5,
+        "total_cyclomatic": 5,
+        "total_cognitive": 1,
+        "function_count": 4,
+        "lines": 75,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/main.ts",
+        "fan_in": 0,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.04,
+        "maintainability_index": 92.4,
+        "total_cyclomatic": 3,
+        "total_cognitive": 1,
+        "function_count": 2,
+        "lines": 84,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/saved-route-progress.service.ts",
+        "fan_in": 2,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.07,
+        "maintainability_index": 92.4,
+        "total_cyclomatic": 5,
+        "total_cognitive": 1,
+        "function_count": 4,
+        "lines": 72,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/destinations/dto/destination-query.dto.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.1,
+        "maintainability_index": 92.7,
+        "total_cyclomatic": 5,
+        "total_cognitive": 1,
+        "function_count": 4,
+        "lines": 48,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/auth/auth.module.ts",
+        "fan_in": 1,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.07,
+        "maintainability_index": 93.2,
+        "total_cyclomatic": 2,
+        "total_cognitive": 1,
+        "function_count": 1,
+        "lines": 29,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/route-query.service.ts",
+        "fan_in": 2,
+        "fan_out": 2,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.08,
+        "maintainability_index": 93.2,
+        "total_cyclomatic": 7,
+        "total_cognitive": 1,
+        "function_count": 6,
+        "lines": 88,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/auth/strategies/jwt.strategy.ts",
+        "fan_in": 1,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.09,
+        "maintainability_index": 95.5,
+        "total_cyclomatic": 3,
+        "total_cognitive": 1,
+        "function_count": 2,
+        "lines": 32,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/utils/destination-lookup.util.ts",
+        "fan_in": 2,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.08,
+        "maintainability_index": 96.0,
+        "total_cyclomatic": 2,
+        "total_cognitive": 1,
+        "function_count": 1,
+        "lines": 25,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/guards/optional-jwt-auth.guard.ts",
+        "fan_in": 2,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 97.5,
+        "total_cyclomatic": 4,
+        "total_cognitive": 2,
+        "function_count": 2,
+        "lines": 32,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/config/multer.config.ts",
+        "fan_in": 2,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.08,
+        "maintainability_index": 97.6,
+        "total_cyclomatic": 8,
+        "total_cognitive": 3,
+        "function_count": 5,
+        "lines": 95,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "scripts/create-admin.ts",
+        "fan_in": 0,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.05,
+        "maintainability_index": 98.8,
+        "total_cyclomatic": 2,
+        "total_cognitive": 1,
+        "function_count": 1,
+        "lines": 41,
+        "crap_max": 6.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/analytics.service.ts",
+        "fan_in": 4,
+        "fan_out": 7,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.15,
+        "maintainability_index": 87.2,
+        "total_cyclomatic": 11,
+        "total_cognitive": 0,
+        "function_count": 11,
+        "lines": 71,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/topics/topics.service.ts",
+        "fan_in": 3,
+        "fan_out": 7,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.14,
+        "maintainability_index": 87.5,
+        "total_cyclomatic": 15,
+        "total_cognitive": 0,
+        "function_count": 15,
+        "lines": 106,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/app.module.ts",
+        "fan_in": 3,
+        "fan_out": 19,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.01,
+        "maintainability_index": 87.7,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 122,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/routes.service.ts",
+        "fan_in": 3,
+        "fan_out": 5,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.17,
+        "maintainability_index": 87.7,
+        "total_cyclomatic": 19,
+        "total_cognitive": 0,
+        "function_count": 19,
+        "lines": 109,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/destinations/destinations.service.ts",
+        "fan_in": 3,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.14,
+        "maintainability_index": 89.4,
+        "total_cyclomatic": 18,
+        "total_cognitive": 0,
+        "function_count": 18,
+        "lines": 126,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/nlp-upload.service.ts",
+        "fan_in": 2,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.07,
+        "maintainability_index": 91.5,
+        "total_cyclomatic": 5,
+        "total_cognitive": 0,
+        "function_count": 5,
+        "lines": 67,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/admin/admin-moderation.controller.ts",
+        "fan_in": 1,
+        "fan_out": 4,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.06,
+        "maintainability_index": 91.8,
+        "total_cyclomatic": 4,
+        "total_cognitive": 0,
+        "function_count": 4,
+        "lines": 65,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/app.controller.spec.ts",
+        "fan_in": 0,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 92.0,
+        "total_cyclomatic": 4,
+        "total_cognitive": 0,
+        "function_count": 4,
+        "lines": 32,
+        "crap_max": 1.2,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/analytics.controller.ts",
+        "fan_in": 1,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.08,
+        "maintainability_index": 92.1,
+        "total_cyclomatic": 6,
+        "total_cognitive": 0,
+        "function_count": 6,
+        "lines": 76,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/admin-analytics.controller.ts",
+        "fan_in": 1,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.07,
+        "maintainability_index": 92.4,
+        "total_cyclomatic": 5,
+        "total_cognitive": 0,
+        "function_count": 5,
+        "lines": 75,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/auth/auth.controller.ts",
+        "fan_in": 1,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.06,
+        "maintainability_index": 92.7,
+        "total_cyclomatic": 6,
+        "total_cognitive": 0,
+        "function_count": 6,
+        "lines": 94,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/favorites/favorites.controller.ts",
+        "fan_in": 1,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.05,
+        "maintainability_index": 93.0,
+        "total_cyclomatic": 5,
+        "total_cognitive": 0,
+        "function_count": 5,
+        "lines": 92,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/reviews/user-reviews.controller.ts",
+        "fan_in": 1,
+        "fan_out": 3,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.05,
+        "maintainability_index": 93.3,
+        "total_cyclomatic": 2,
+        "total_cognitive": 0,
+        "function_count": 2,
+        "lines": 38,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "test/app.e2e-spec.ts",
+        "fan_in": 0,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 94.9,
+        "total_cyclomatic": 4,
+        "total_cognitive": 0,
+        "function_count": 4,
+        "lines": 30,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/route.persistence.ts",
+        "fan_in": 4,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.03,
+        "maintainability_index": 96.3,
+        "total_cyclomatic": 2,
+        "total_cognitive": 0,
+        "function_count": 2,
+        "lines": 61,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/scraper/dto/history-query.dto.ts",
+        "fan_in": 1,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.08,
+        "maintainability_index": 96.6,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 13,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/utils/sentiment-trend.util.ts",
+        "fan_in": 2,
+        "fan_out": 1,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.03,
+        "maintainability_index": 96.7,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 30,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/prisma/prisma.service.ts",
+        "fan_in": 39,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.1,
+        "maintainability_index": 98.3,
+        "total_cyclomatic": 3,
+        "total_cognitive": 0,
+        "function_count": 3,
+        "lines": 29,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/analytics/dto/compare-query.dto.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.11,
+        "maintainability_index": 98.8,
+        "total_cyclomatic": 2,
+        "total_cognitive": 0,
+        "function_count": 2,
+        "lines": 18,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/reviews/dto/create-user-review.dto.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.05,
+        "maintainability_index": 98.8,
+        "total_cyclomatic": 2,
+        "total_cognitive": 0,
+        "function_count": 2,
+        "lines": 41,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/reviews/dto/reviews-query.dto.ts",
+        "fan_in": 2,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.04,
+        "maintainability_index": 98.8,
+        "total_cyclomatic": 3,
+        "total_cognitive": 0,
+        "function_count": 3,
+        "lines": 73,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/topics/dto/topic-admin.dto.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.04,
+        "maintainability_index": 98.8,
+        "total_cyclomatic": 5,
+        "total_cognitive": 0,
+        "function_count": 5,
+        "lines": 113,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/decorators/api-admin-auth-responses.decorator.ts",
+        "fan_in": 2,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.11,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 9,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/decorators/roles.decorator.ts",
+        "fan_in": 10,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.14,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 7,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/destinations/destination-categories.ts",
+        "fan_in": 4,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.05,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 20,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/reviews/dto/bulk-delete-reviews.dto.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.05,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 21,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/routes/dto/route.dto.ts",
+        "fan_in": 7,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.02,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 2,
+        "total_cognitive": 0,
+        "function_count": 2,
+        "lines": 118,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/topics/topic-name.util.ts",
+        "fan_in": 2,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.1,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 10,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/dto/paginated-response.dto.ts",
+        "fan_in": 0,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.02,
+        "maintainability_index": 99.5,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 43,
+        "crap_max": 2.0,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/app.service.ts",
+        "fan_in": 3,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.11,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 9,
+        "crap_max": 1.2,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/exceptions/nlp-processing.exception.ts",
+        "fan_in": 1,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 8,
+        "crap_max": 1.2,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/modules/nlp/exceptions/nlp-unavailable.exception.ts",
+        "fan_in": 2,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.13,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 8,
+        "crap_max": 1.2,
+        "crap_above_threshold": 0
+      },
+      {
+        "path": "src/common/decorators/public.decorator.ts",
+        "fan_in": 8,
+        "fan_out": 0,
+        "dead_code_ratio": 0.0,
+        "complexity_density": 0.14,
+        "maintainability_index": 99.4,
+        "total_cyclomatic": 1,
+        "total_cognitive": 0,
+        "function_count": 1,
+        "lines": 7,
+        "crap_max": 1.0,
+        "crap_above_threshold": 0
+      }
+    ],
+    "hotspots": [
+      {
+        "path": "src/modules/nlp/nlp-result-storage.service.ts",
+        "score": 78.9,
+        "commits": 10,
+        "weighted_commits": 8.43,
+        "lines_added": 643,
+        "lines_deleted": 246,
+        "complexity_density": 0.15,
+        "fan_in": 3,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/nlp/nlp-result-storage.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/nlp/nlp-result-storage.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/destinations/destinations.service.ts",
+        "score": 51.9,
+        "commits": 7,
+        "weighted_commits": 5.94,
+        "lines_added": 966,
+        "lines_deleted": 126,
+        "complexity_density": 0.14,
+        "fan_in": 3,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/destinations/destinations.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/destinations/destinations.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/nlp/ai-naming.service.ts",
+        "score": 50.4,
+        "commits": 6,
+        "weighted_commits": 5.05,
+        "lines_added": 415,
+        "lines_deleted": 68,
+        "complexity_density": 0.16,
+        "fan_in": 4,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/nlp/ai-naming.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/nlp/ai-naming.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/scraper/scraper.service.ts",
+        "score": 47.7,
+        "commits": 7,
+        "weighted_commits": 5.88,
+        "lines_added": 295,
+        "lines_deleted": 77,
+        "complexity_density": 0.13,
+        "fan_in": 3,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/scraper/scraper.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/scraper/scraper.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/auth/auth.service.ts",
+        "score": 47.5,
+        "commits": 6,
+        "weighted_commits": 5.07,
+        "lines_added": 343,
+        "lines_deleted": 51,
+        "complexity_density": 0.15,
+        "fan_in": 2,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/auth/auth.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/auth/auth.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/topics/topics.service.ts",
+        "score": 44.9,
+        "commits": 6,
+        "weighted_commits": 5.14,
+        "lines_added": 945,
+        "lines_deleted": 216,
+        "complexity_density": 0.14,
+        "fan_in": 3,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/topics/topics.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/topics/topics.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/analytics/analytics.service.ts",
+        "score": 39.8,
+        "commits": 5,
+        "weighted_commits": 4.25,
+        "lines_added": 2124,
+        "lines_deleted": 869,
+        "complexity_density": 0.15,
+        "fan_in": 4,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/analytics/analytics.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/analytics/analytics.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/scraper/scraper.processor.ts",
+        "score": 38.7,
+        "commits": 5,
+        "weighted_commits": 4.13,
+        "lines_added": 481,
+        "lines_deleted": 109,
+        "complexity_density": 0.15,
+        "fan_in": 1,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/scraper/scraper.processor.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/scraper/scraper.processor.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/search/search.service.ts",
+        "score": 36.8,
+        "commits": 5,
+        "weighted_commits": 4.21,
+        "lines_added": 333,
+        "lines_deleted": 144,
+        "complexity_density": 0.14,
+        "fan_in": 2,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/search/search.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/search/search.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/vector/vector.service.ts",
+        "score": 34.2,
+        "commits": 5,
+        "weighted_commits": 4.21,
+        "lines_added": 179,
+        "lines_deleted": 19,
+        "complexity_density": 0.13,
+        "fan_in": 3,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/vector/vector.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/vector/vector.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/reviews/reviews.service.ts",
+        "score": 31.1,
+        "commits": 4,
+        "weighted_commits": 3.32,
+        "lines_added": 426,
+        "lines_deleted": 226,
+        "complexity_density": 0.15,
+        "fan_in": 4,
+        "trend": "stable",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/reviews/reviews.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/reviews/reviews.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/nlp/nlp.service.ts",
+        "score": 29.7,
+        "commits": 3,
+        "weighted_commits": 2.5,
+        "lines_added": 178,
+        "lines_deleted": 4,
+        "complexity_density": 0.19,
+        "fan_in": 6,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/nlp/nlp.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/nlp/nlp.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/users/users.service.ts",
+        "score": 28.2,
+        "commits": 5,
+        "weighted_commits": 4.1,
+        "lines_added": 270,
+        "lines_deleted": 19,
+        "complexity_density": 0.11,
+        "fan_in": 3,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/users/users.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/users/users.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/scraper/scraper.controller.ts",
+        "score": 28.0,
+        "commits": 6,
+        "weighted_commits": 4.99,
+        "lines_added": 333,
+        "lines_deleted": 203,
+        "complexity_density": 0.09,
+        "fan_in": 1,
+        "trend": "stable",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/scraper/scraper.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/scraper/scraper.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/search/dto/search-query.dto.ts",
+        "score": 27.2,
+        "commits": 4,
+        "weighted_commits": 3.35,
+        "lines_added": 169,
+        "lines_deleted": 24,
+        "complexity_density": 0.13,
+        "fan_in": 1,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/search/dto/search-query.dto.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/search/dto/search-query.dto.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/scraper/nlp-process.processor.ts",
+        "score": 26.5,
+        "commits": 3,
+        "weighted_commits": 2.5,
+        "lines_added": 134,
+        "lines_deleted": 7,
+        "complexity_density": 0.17,
+        "fan_in": 0,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/scraper/nlp-process.processor.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/scraper/nlp-process.processor.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/topics/topics.controller.ts",
+        "score": 26.3,
+        "commits": 7,
+        "weighted_commits": 6.01,
+        "lines_added": 396,
+        "lines_deleted": 156,
+        "complexity_density": 0.07,
+        "fan_in": 1,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/topics/topics.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/topics/topics.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/destinations/destinations.controller.ts",
+        "score": 26.0,
+        "commits": 5,
+        "weighted_commits": 4.16,
+        "lines_added": 208,
+        "lines_deleted": 6,
+        "complexity_density": 0.1,
+        "fan_in": 1,
+        "trend": "stable",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/destinations/destinations.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/destinations/destinations.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/favorites/favorites.service.ts",
+        "score": 25.2,
+        "commits": 4,
+        "weighted_commits": 3.37,
+        "lines_added": 243,
+        "lines_deleted": 140,
+        "complexity_density": 0.12,
+        "fan_in": 2,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/favorites/favorites.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/favorites/favorites.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/common/guards/roles.guard.ts",
+        "score": 24.6,
+        "commits": 4,
+        "weighted_commits": 3.29,
+        "lines_added": 50,
+        "lines_deleted": 9,
+        "complexity_density": 0.12,
+        "fan_in": 2,
+        "trend": "stable",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/common/guards/roles.guard.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/common/guards/roles.guard.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/common/interceptors/transform.interceptor.ts",
+        "score": 24.4,
+        "commits": 3,
+        "weighted_commits": 2.44,
+        "lines_added": 58,
+        "lines_deleted": 14,
+        "complexity_density": 0.16,
+        "fan_in": 1,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/common/interceptors/transform.interceptor.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/common/interceptors/transform.interceptor.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/prisma/prisma.service.ts",
+        "score": 20.5,
+        "commits": 4,
+        "weighted_commits": 3.29,
+        "lines_added": 36,
+        "lines_deleted": 8,
+        "complexity_density": 0.1,
+        "fan_in": 39,
+        "trend": "stable",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/prisma/prisma.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/prisma/prisma.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/common/guards/optional-jwt-auth.guard.ts",
+        "score": 20.3,
+        "commits": 3,
+        "weighted_commits": 2.5,
+        "lines_added": 54,
+        "lines_deleted": 23,
+        "complexity_density": 0.13,
+        "fan_in": 2,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/common/guards/optional-jwt-auth.guard.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/common/guards/optional-jwt-auth.guard.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/common/guards/jwt-auth.guard.ts",
+        "score": 20.2,
+        "commits": 3,
+        "weighted_commits": 2.49,
+        "lines_added": 57,
+        "lines_deleted": 6,
+        "complexity_density": 0.13,
+        "fan_in": 2,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/common/guards/jwt-auth.guard.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/common/guards/jwt-auth.guard.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/common/decorators/current-user.decorator.ts",
+        "score": 20.2,
+        "commits": 3,
+        "weighted_commits": 2.49,
+        "lines_added": 36,
+        "lines_deleted": 13,
+        "complexity_density": 0.13,
+        "fan_in": 8,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/common/decorators/current-user.decorator.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/common/decorators/current-user.decorator.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/common/filters/http-exception.filter.ts",
+        "score": 19.8,
+        "commits": 3,
+        "weighted_commits": 2.44,
+        "lines_added": 57,
+        "lines_deleted": 6,
+        "complexity_density": 0.13,
+        "fan_in": 1,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/common/filters/http-exception.filter.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/common/filters/http-exception.filter.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/app.controller.ts",
+        "score": 19.6,
+        "commits": 3,
+        "weighted_commits": 2.41,
+        "lines_added": 46,
+        "lines_deleted": 2,
+        "complexity_density": 0.13,
+        "fan_in": 2,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/app.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/app.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/scraper/apify.service.ts",
+        "score": 18.4,
+        "commits": 3,
+        "weighted_commits": 2.46,
+        "lines_added": 124,
+        "lines_deleted": 32,
+        "complexity_density": 0.12,
+        "fan_in": 3,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/scraper/apify.service.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/scraper/apify.service.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/auth/auth.controller.ts",
+        "score": 16.0,
+        "commits": 5,
+        "weighted_commits": 4.28,
+        "lines_added": 154,
+        "lines_deleted": 61,
+        "complexity_density": 0.06,
+        "fan_in": 1,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/auth/auth.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/auth/auth.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/admin/admin-moderation.controller.ts",
+        "score": 15.7,
+        "commits": 5,
+        "weighted_commits": 4.18,
+        "lines_added": 144,
+        "lines_deleted": 79,
+        "complexity_density": 0.06,
+        "fan_in": 1,
+        "trend": "stable",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/admin/admin-moderation.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/admin/admin-moderation.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/destinations/dto/destination-query.dto.ts",
+        "score": 15.6,
+        "commits": 3,
+        "weighted_commits": 2.5,
+        "lines_added": 50,
+        "lines_deleted": 3,
+        "complexity_density": 0.1,
+        "fan_in": 2,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/destinations/dto/destination-query.dto.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/destinations/dto/destination-query.dto.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/auth/strategies/jwt.strategy.ts",
+        "score": 13.7,
+        "commits": 3,
+        "weighted_commits": 2.44,
+        "lines_added": 42,
+        "lines_deleted": 11,
+        "complexity_density": 0.09,
+        "fan_in": 1,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/auth/strategies/jwt.strategy.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/auth/strategies/jwt.strategy.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/analytics/analytics.controller.ts",
+        "score": 12.5,
+        "commits": 3,
+        "weighted_commits": 2.5,
+        "lines_added": 149,
+        "lines_deleted": 74,
+        "complexity_density": 0.08,
+        "fan_in": 1,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/analytics/analytics.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/analytics/analytics.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/search/search.controller.ts",
+        "score": 12.3,
+        "commits": 4,
+        "weighted_commits": 3.29,
+        "lines_added": 248,
+        "lines_deleted": 132,
+        "complexity_density": 0.06,
+        "fan_in": 1,
+        "trend": "stable",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/search/search.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/search/search.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/config/multer.config.ts",
+        "score": 12.2,
+        "commits": 3,
+        "weighted_commits": 2.45,
+        "lines_added": 100,
+        "lines_deleted": 2,
+        "complexity_density": 0.08,
+        "fan_in": 2,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/config/multer.config.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/config/multer.config.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/main.ts",
+        "score": 12.1,
+        "commits": 6,
+        "weighted_commits": 4.86,
+        "lines_added": 98,
+        "lines_deleted": 15,
+        "complexity_density": 0.04,
+        "fan_in": 0,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/main.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/main.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/nlp/nlp.controller.ts",
+        "score": 10.9,
+        "commits": 4,
+        "weighted_commits": 3.49,
+        "lines_added": 1050,
+        "lines_deleted": 484,
+        "complexity_density": 0.05,
+        "fan_in": 1,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/nlp/nlp.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/nlp/nlp.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/analytics/admin-analytics.controller.ts",
+        "score": 10.9,
+        "commits": 3,
+        "weighted_commits": 2.5,
+        "lines_added": 134,
+        "lines_deleted": 63,
+        "complexity_density": 0.07,
+        "fan_in": 1,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/analytics/admin-analytics.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/analytics/admin-analytics.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/destinations/admin-destinations.controller.ts",
+        "score": 10.6,
+        "commits": 3,
+        "weighted_commits": 2.43,
+        "lines_added": 248,
+        "lines_deleted": 6,
+        "complexity_density": 0.07,
+        "fan_in": 1,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/destinations/admin-destinations.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/destinations/admin-destinations.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/users/users.controller.ts",
+        "score": 10.6,
+        "commits": 3,
+        "weighted_commits": 2.43,
+        "lines_added": 77,
+        "lines_deleted": 3,
+        "complexity_density": 0.07,
+        "fan_in": 1,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/users/users.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/users/users.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/favorites/favorites.controller.ts",
+        "score": 10.5,
+        "commits": 4,
+        "weighted_commits": 3.37,
+        "lines_added": 179,
+        "lines_deleted": 92,
+        "complexity_density": 0.05,
+        "fan_in": 1,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/favorites/favorites.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/favorites/favorites.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/modules/reviews/user-reviews.controller.ts",
+        "score": 7.8,
+        "commits": 3,
+        "weighted_commits": 2.5,
+        "lines_added": 66,
+        "lines_deleted": 29,
+        "complexity_density": 0.05,
+        "fan_in": 1,
+        "trend": "accelerating",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/modules/reviews/user-reviews.controller.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/modules/reviews/user-reviews.controller.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      },
+      {
+        "path": "src/app.module.ts",
+        "score": 3.6,
+        "commits": 7,
+        "weighted_commits": 5.82,
+        "lines_added": 149,
+        "lines_deleted": 28,
+        "complexity_density": 0.01,
+        "fan_in": 3,
+        "trend": "cooling",
+        "actions": [
+          {
+            "type": "refactor-file",
+            "auto_fixable": false,
+            "description": "Refactor `src/app.module.ts`, high complexity combined with frequent changes makes this a maintenance risk",
+            "note": "Prioritize extracting complex functions, adding tests, or splitting the module"
+          },
+          {
+            "type": "add-tests",
+            "auto_fixable": false,
+            "description": "Add test coverage for `src/app.module.ts` to reduce change risk",
+            "note": "Frequently changed complex files benefit most from comprehensive test coverage"
+          }
+        ]
+      }
+    ],
+    "hotspot_summary": {
+      "since": "6 months",
+      "min_commits": 3,
+      "files_analyzed": 43,
+      "files_excluded": 33,
+      "shallow_clone": false
+    },
+    "target_thresholds": {
+      "fan_in_p95": 6.0,
+      "fan_in_p75": 3.0,
+      "fan_out_p95": 8.0,
+      "fan_out_p90": 5
+    }
+  }
+}

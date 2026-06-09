@@ -116,4 +116,11 @@ export declare class UsersService {
         id: number;
         status: string;
     }>;
+    private assertEmailAvailable;
+    private hashPasswordIfProvided;
+    private buildProfileUpdateData;
+    private buildAdminUpdateData;
+    private buildIdentityUpdateData;
+    private assignWhenPresent;
+    private assignWhenDefined;
 }

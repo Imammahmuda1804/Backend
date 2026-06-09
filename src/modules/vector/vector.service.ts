@@ -92,43 +92,76 @@ export class VectorService {
     filters: HybridSearchFilters = {},
   ): Promise<SimilarDestination[]> {
     const vectorStr = `[${queryEmbedding.join(',')}]`;
+    const whereSql = Prisma.join(
+      this.buildHybridWhereClauses(filters),
+      ' AND ',
+    );
+
+    if (sortType === 'relevance') {
+      return this.searchByRelevance(vectorStr, whereSql, limit);
+    }
+
+    return this.searchByHybridScore(vectorStr, whereSql, limit);
+  }
+
+  private buildHybridWhereClauses(filters: HybridSearchFilters) {
     const whereClauses: Prisma.Sql[] = [
       Prisma.sql`d.embedding IS NOT NULL`,
       Prisma.sql`d.deleted_at IS NULL`,
     ];
 
-    if (filters.city) {
-      whereClauses.push(Prisma.sql`LOWER(d.city) = LOWER(${filters.city})`);
-    }
-    if (filters.category) {
-      whereClauses.push(
-        Prisma.sql`LOWER(d.category) = LOWER(${filters.category})`,
-      );
-    }
-    if (filters.minRating != null) {
-      whereClauses.push(
-        Prisma.sql`COALESCE(d.user_rating, d.google_rating, 0) >= ${filters.minRating}`,
-      );
-    }
-    if (filters.topicIds && filters.topicIds.length > 0) {
-      whereClauses.push(Prisma.sql`EXISTS (
+    this.addCityFilter(whereClauses, filters.city);
+    this.addCategoryFilter(whereClauses, filters.category);
+    this.addMinRatingFilter(whereClauses, filters.minRating);
+    this.addTopicFilter(whereClauses, filters.topicIds);
+    this.addSentimentFilter(whereClauses, filters.sentiment);
+
+    return whereClauses;
+  }
+
+  private addCityFilter(whereClauses: Prisma.Sql[], city?: string) {
+    if (city) whereClauses.push(Prisma.sql`LOWER(d.city) = LOWER(${city})`);
+  }
+
+  private addCategoryFilter(whereClauses: Prisma.Sql[], category?: string) {
+    if (!category) return;
+    whereClauses.push(Prisma.sql`LOWER(d.category) = LOWER(${category})`);
+  }
+
+  private addMinRatingFilter(whereClauses: Prisma.Sql[], minRating?: number) {
+    if (minRating == null) return;
+    whereClauses.push(
+      Prisma.sql`COALESCE(d.user_rating, d.google_rating, 0) >= ${minRating}`,
+    );
+  }
+
+  private addTopicFilter(whereClauses: Prisma.Sql[], topicIds?: number[]) {
+    if (!topicIds || topicIds.length === 0) return;
+    whereClauses.push(Prisma.sql`EXISTS (
         SELECT 1 FROM destination_topics dt
         WHERE dt.destination_id = d.id
-          AND dt.topic_id IN (${Prisma.join(filters.topicIds)})
+          AND dt.topic_id IN (${Prisma.join(topicIds)})
       )`);
-    }
-    if (filters.sentiment) {
-      whereClauses.push(Prisma.sql`EXISTS (
+  }
+
+  private addSentimentFilter(
+    whereClauses: Prisma.Sql[],
+    sentiment?: 'positive' | 'negative' | 'neutral',
+  ) {
+    if (!sentiment) return;
+    whereClauses.push(Prisma.sql`EXISTS (
         SELECT 1 FROM reviews r
         WHERE r.destination_id = d.id
-          AND r.sentiment = ${filters.sentiment}
+          AND r.sentiment = ${sentiment}
       )`);
-    }
+  }
 
-    const whereSql = Prisma.join(whereClauses, ' AND ');
-
-    if (sortType === 'relevance') {
-      return this.prisma.$queryRaw<SimilarDestination[]>`
+  private searchByRelevance(
+    vectorStr: string,
+    whereSql: Prisma.Sql,
+    limit: number,
+  ) {
+    return this.prisma.$queryRaw<SimilarDestination[]>`
         SELECT
           d.id, d.name, d.slug, d.city, d.province, d.category,
           d.thumbnail_url, d.google_rating, d.user_rating,
@@ -139,9 +172,13 @@ export class VectorService {
         ORDER BY similarity DESC
         LIMIT ${limit}
       `;
-    }
+  }
 
-    // Mode default memakai hybrid search.
+  private searchByHybridScore(
+    vectorStr: string,
+    whereSql: Prisma.Sql,
+    limit: number,
+  ) {
     return this.prisma.$queryRaw<SimilarDestination[]>`
       SELECT
         d.id, d.name, d.slug, d.city, d.province, d.category,

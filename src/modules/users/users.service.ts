@@ -4,12 +4,32 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   UpdateProfileDto,
   AdminUpdateUserDto,
   AdminCreateUserDto,
 } from './dto';
+
+const USER_PUBLIC_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  status: true,
+  profilePicture: true,
+  createdAt: true,
+} satisfies Prisma.UserSelect;
+
+const USER_PROFILE_SELECT = {
+  id: true,
+  name: true,
+  email: true,
+  role: true,
+  profilePicture: true,
+  createdAt: true,
+} satisfies Prisma.UserSelect;
 
 @Injectable()
 export class UsersService {
@@ -18,15 +38,7 @@ export class UsersService {
   async findById(id: number) {
     const user = await this.prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        status: true,
-        profilePicture: true,
-        createdAt: true,
-      },
+      select: USER_PUBLIC_SELECT,
     });
 
     if (!user) {
@@ -43,37 +55,13 @@ export class UsersService {
   }
 
   async updateProfile(userId: number, dto: UpdateProfileDto) {
-    if (dto.email) {
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: dto.email },
-      });
+    await this.assertEmailAvailable(dto.email, userId);
+    const hashedPassword = await this.hashPasswordIfProvided(dto.password);
 
-      if (existingUser && existingUser.id !== userId) {
-        throw new ConflictException('Email sudah digunakan oleh pengguna lain');
-      }
-    }
-    let hashedPassword = undefined;
-    if (dto.password) {
-      hashedPassword = await bcrypt.hash(dto.password, 10);
-    }
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        ...(dto.name && { name: dto.name }),
-        ...(dto.email && { email: dto.email }),
-        ...(hashedPassword && { password: hashedPassword }),
-        ...(dto.profilePicture !== undefined && {
-          profilePicture: dto.profilePicture,
-        }),
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        profilePicture: true,
-        createdAt: true,
-      },
+      data: this.buildProfileUpdateData(dto, hashedPassword),
+      select: USER_PROFILE_SELECT,
     });
 
     return updatedUser;
@@ -97,15 +85,7 @@ export class UsersService {
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          status: true,
-          profilePicture: true,
-          createdAt: true,
-        },
+        select: USER_PUBLIC_SELECT,
       }),
       this.prisma.user.count({ where: whereCondition }),
     ]);
@@ -190,15 +170,7 @@ export class UsersService {
         role: dto.role,
         status: dto.status,
       },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        status: true,
-        profilePicture: true,
-        createdAt: true,
-      },
+      select: USER_PUBLIC_SELECT,
     });
   }
 
@@ -206,35 +178,13 @@ export class UsersService {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User tidak ditemukan');
 
-    if (dto.email && dto.email !== user.email) {
-      const existing = await this.prisma.user.findUnique({
-        where: { email: dto.email },
-      });
-      if (existing) throw new ConflictException('Email sudah digunakan');
-    }
-    let hashedPassword: string | undefined;
-    if (dto.password) {
-      hashedPassword = await bcrypt.hash(dto.password, 10);
-    }
+    await this.assertEmailAvailable(dto.email, id, 'Email sudah digunakan');
+    const hashedPassword = await this.hashPasswordIfProvided(dto.password);
 
     return this.prisma.user.update({
       where: { id },
-      data: {
-        ...(dto.name && { name: dto.name }),
-        ...(dto.email && { email: dto.email }),
-        ...(hashedPassword && { password: hashedPassword }),
-        ...(dto.role && { role: dto.role }),
-        ...(dto.status && { status: dto.status }),
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        status: true,
-        profilePicture: true,
-        createdAt: true,
-      },
+      data: this.buildAdminUpdateData(dto, hashedPassword),
+      select: USER_PUBLIC_SELECT,
     });
   }
 
@@ -247,5 +197,75 @@ export class UsersService {
       data: { status: 'suspended' },
       select: { id: true, status: true },
     });
+  }
+
+  private async assertEmailAvailable(
+    email?: string,
+    currentUserId?: number,
+    message = 'Email sudah digunakan oleh pengguna lain',
+  ) {
+    if (!email) return;
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser && existingUser.id !== currentUserId) {
+      throw new ConflictException(message);
+    }
+  }
+
+  private async hashPasswordIfProvided(password?: string) {
+    return password ? bcrypt.hash(password, 10) : undefined;
+  }
+
+  private buildProfileUpdateData(
+    dto: UpdateProfileDto,
+    hashedPassword?: string,
+  ): Prisma.UserUpdateInput {
+    const data = this.buildIdentityUpdateData(dto, hashedPassword);
+    this.assignWhenDefined(data, 'profilePicture', dto.profilePicture);
+    return data;
+  }
+
+  private buildAdminUpdateData(
+    dto: AdminUpdateUserDto,
+    hashedPassword?: string,
+  ): Prisma.UserUpdateInput {
+    const data = this.buildIdentityUpdateData(dto, hashedPassword);
+    this.assignWhenPresent(data, 'role', dto.role);
+    this.assignWhenPresent(data, 'status', dto.status);
+    return data;
+  }
+
+  private buildIdentityUpdateData(
+    dto: Pick<UpdateProfileDto | AdminUpdateUserDto, 'name' | 'email'>,
+    hashedPassword?: string,
+  ): Prisma.UserUpdateInput {
+    const data: Prisma.UserUpdateInput = {};
+    this.assignWhenPresent(data, 'name', dto.name);
+    this.assignWhenPresent(data, 'email', dto.email);
+    this.assignWhenPresent(data, 'password', hashedPassword);
+    return data;
+  }
+
+  private assignWhenPresent<K extends keyof Prisma.UserUpdateInput>(
+    data: Prisma.UserUpdateInput,
+    key: K,
+    value: Prisma.UserUpdateInput[K] | undefined,
+  ) {
+    if (value !== undefined && value !== '') {
+      data[key] = value;
+    }
+  }
+
+  private assignWhenDefined<K extends keyof Prisma.UserUpdateInput>(
+    data: Prisma.UserUpdateInput,
+    key: K,
+    value: Prisma.UserUpdateInput[K] | undefined,
+  ) {
+    if (value !== undefined) {
+      data[key] = value;
+    }
   }
 }

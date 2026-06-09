@@ -9,6 +9,9 @@ export declare class SearchService {
     private readonly logger;
     constructor(prisma: PrismaService, nlpService: NlpService, vectorService: VectorService);
     semanticSearch(dto: SearchQueryDto, userId?: number): Promise<import("../vector/interfaces/similar-destination.interface").SimilarDestination[]>;
+    private getSearchEmbedding;
+    private buildSearchFilters;
+    private saveSearchHistory;
     private attachTopTopics;
     getHistory(userId: number, page: number, limit: number): Promise<{
         data: {

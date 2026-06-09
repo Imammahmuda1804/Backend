@@ -1187,7 +1187,7 @@ Response utama:
 | --- | --- |
 | `total_rows` | Jumlah review valid di file. |
 | `new_reviews` | Review yang belum ada berdasarkan `review_hash`. |
-| `duplicate_reviews` | Review yang sudah ada. |
+| `duplicate_reviews` | Review yang sudah ada di database atau duplikat dalam file yang sama. |
 | `already_processed` | `true` jika hash file pernah diproses. |
 | `recommended_mode` | Mode aman yang disarankan UI. |
 
@@ -1223,6 +1223,8 @@ Mode proses:
 | `skip_existing` | Hanya insert dan proses review baru. Duplikat dilewati. |
 | `reprocess_existing` | Review yang sudah ada tidak dibuat ulang, tetapi dianalisis ulang. |
 | `replace_existing` | Review scraping lama destinasi dihapus, lalu file dipakai sebagai data baru. |
+
+Catatan dedup: jika unique constraint `(destination_id, source, review_hash)` tetap terjadi karena race/data existing, backend mengambil review existing dan memperlakukannya sebagai duplikat, sehingga mode `skip_existing` tidak menggagalkan seluruh proses.
 
 ### GET `/admin/nlp/history`
 

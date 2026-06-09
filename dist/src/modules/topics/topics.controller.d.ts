@@ -48,9 +48,9 @@ export declare class TopicsController {
         }[];
     }[]>;
     renameWithAi(): Promise<{
+        total: number;
         renamed: number;
         failed: number;
-        total: number;
     }>;
     mergeTopics(dto: MergeTopicsDto): Promise<{
         merged: boolean;
@@ -60,19 +60,14 @@ export declare class TopicsController {
         deleted_topics: number;
     }>;
     createGroup(dto: TopicGroupPayloadDto): Promise<{
+        topics: never[];
         id: number;
         group_name: string;
         description: string | null;
-        keywords: import("@prisma/client/runtime/client").JsonValue;
+        keywords: unknown;
         display_order: number;
-        topics: never[];
     }>;
     updateGroup(id: number, dto: TopicGroupPayloadDto): Promise<{
-        id: number;
-        group_name: string;
-        description: string | null;
-        keywords: import("@prisma/client/runtime/client").JsonValue;
-        display_order: number;
         topics: {
             id: number;
             topic_name: string;
@@ -81,6 +76,11 @@ export declare class TopicsController {
             is_detail_visible: boolean;
             total_destinations: number;
         }[];
+        id: number;
+        group_name: string;
+        description: string | null;
+        keywords: unknown;
+        display_order: number;
     }>;
     deleteGroup(id: number): Promise<{
         deleted: boolean;
@@ -92,14 +92,14 @@ export declare class TopicsController {
         group_name: string;
     }>;
     renameTopic(id: number, dto: RenameTopicDto): Promise<{
-        id: number;
-        topicName: string;
-    } | {
         merged: boolean;
         target_topic_id: number;
         target_topic_name: string;
         source_topic_ids: number[];
         deleted_topics: number;
+    } | {
+        id: number;
+        topicName: string;
     }>;
     updateSettings(id: number, dto: UpdateTopicSettingsDto): Promise<{
         id: number;
@@ -152,20 +152,13 @@ export declare class AdminTopicsController {
         };
         data: {
             id: number;
-            reviewer_name: string;
+            reviewer_name: string | null;
             review_text: string | null;
             rating: number | null;
             review_date: Date | null;
             sentiment: string | null;
             sentiment_confidence: number | null;
-            destination: {
-                id: number;
-                name: string;
-                city: string;
-                slug: string;
-                province: string;
-                thumbnailUrl: string | null;
-            };
+            destination: unknown;
         }[];
         meta: {
             page: number;

@@ -70,12 +70,20 @@ exports.AppModule = AppModule = __decorate([
             }),
             bullmq_1.BullModule.forRootAsync({
                 imports: [config_1.ConfigModule],
-                useFactory: (configService) => ({
-                    connection: {
-                        host: configService.get('REDIS_HOST', 'localhost'),
-                        port: configService.get('REDIS_PORT', 6379),
-                    },
-                }),
+                useFactory: (configService) => {
+                    const redisUsername = configService.get('REDIS_USERNAME');
+                    const redisPassword = configService.get('REDIS_PASSWORD');
+                    const useRedisTls = configService.get('REDIS_TLS', 'false') === 'true';
+                    return {
+                        connection: {
+                            host: configService.get('REDIS_HOST', 'localhost'),
+                            port: configService.get('REDIS_PORT', 6379),
+                            username: redisUsername || undefined,
+                            password: redisPassword || undefined,
+                            tls: useRedisTls ? {} : undefined,
+                        },
+                    };
+                },
                 inject: [config_1.ConfigService],
             }),
         ],

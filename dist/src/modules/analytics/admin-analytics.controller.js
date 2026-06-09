@@ -35,7 +35,7 @@ let AdminAnalyticsController = class AdminAnalyticsController {
     async exportCsv(destinationId, res) {
         const { csv, filename } = await this.analyticsService.exportAnalyticsCsv(destinationId);
         res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
         res.send(csv);
     }
 };

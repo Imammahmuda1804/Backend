@@ -12,6 +12,9 @@ const destinations_service_1 = require("./destinations.service");
 const admin_destinations_controller_1 = require("./admin-destinations.controller");
 const destinations_controller_1 = require("./destinations.controller");
 const scraper_module_1 = require("../scraper/scraper.module");
+const destination_admin_service_1 = require("./destination-admin.service");
+const destination_catalog_service_1 = require("./destination-catalog.service");
+const destination_detail_service_1 = require("./destination-detail.service");
 let DestinationsModule = class DestinationsModule {
 };
 exports.DestinationsModule = DestinationsModule;
@@ -19,7 +22,12 @@ exports.DestinationsModule = DestinationsModule = __decorate([
     (0, common_1.Module)({
         imports: [scraper_module_1.ScraperModule],
         controllers: [admin_destinations_controller_1.AdminDestinationsController, destinations_controller_1.DestinationsController],
-        providers: [destinations_service_1.DestinationsService],
+        providers: [
+            destinations_service_1.DestinationsService,
+            destination_admin_service_1.DestinationAdminService,
+            destination_catalog_service_1.DestinationCatalogService,
+            destination_detail_service_1.DestinationDetailService,
+        ],
         exports: [destinations_service_1.DestinationsService],
     })
 ], DestinationsModule);

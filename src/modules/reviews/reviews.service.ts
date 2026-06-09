@@ -83,40 +83,58 @@ export class ReviewsService {
 
   // Menghitung ulang rating user destinasi.
   async recalculateUserRating(destinationId: number): Promise<void> {
-    const agg = await this.prisma.userReview.aggregate({
+    const ratingSummary = await this.getUserReviewRatingSummary(destinationId);
+    const recommendationScore = await this.calculateUserRecommendationScore(
+      destinationId,
+      ratingSummary.rating,
+    );
+
+    await this.prisma.destination.update({
+      where: { id: destinationId },
+      data: {
+        userRating: ratingSummary.rating,
+        userReviewCount: ratingSummary.count,
+        ...(recommendationScore !== undefined && { recommendationScore }),
+      },
+    });
+  }
+
+  private async getUserReviewRatingSummary(destinationId: number) {
+    const aggregate = await this.prisma.userReview.aggregate({
       where: { destinationId },
       _avg: { rating: true },
       _count: { rating: true },
     });
 
-    const newUserRating = agg._avg.rating ?? null;
-    const newUserReviewCount = agg._count.rating;
+    return {
+      rating: aggregate._avg.rating ?? null,
+      count: aggregate._count.rating,
+    };
+  }
 
-    // Hitung ulang recommendationScore (formula: rating*0.5 + positiveRatio*0.5)
-    // konsisten dengan NlpResultStorageService.calculateRecommendationScore
-    const sentimentReviews = await this.prisma.review.findMany({
+  private async calculateUserRecommendationScore(
+    destinationId: number,
+    userRating: number | null,
+  ) {
+    if (userRating === null) return undefined;
+
+    const sentimentReviews = await this.findReviewsWithSentiment(destinationId);
+    if (sentimentReviews.length === 0) return undefined;
+
+    const positiveRatio =
+      this.countPositiveReviews(sentimentReviews) / sentimentReviews.length;
+    return (userRating / 5) * 0.5 + positiveRatio * 0.5;
+  }
+
+  private findReviewsWithSentiment(destinationId: number) {
+    return this.prisma.review.findMany({
       where: { destinationId, sentiment: { not: null } },
       select: { sentiment: true },
     });
+  }
 
-    let recommendationScore: number | undefined;
-    if (sentimentReviews.length > 0 && newUserRating !== null) {
-      const positiveCount = sentimentReviews.filter(
-        (r) => r.sentiment === 'positive',
-      ).length;
-      const positiveRatio = positiveCount / sentimentReviews.length;
-      const normalizedRating = newUserRating / 5;
-      recommendationScore = normalizedRating * 0.5 + positiveRatio * 0.5;
-    }
-
-    await this.prisma.destination.update({
-      where: { id: destinationId },
-      data: {
-        userRating: newUserRating,
-        userReviewCount: newUserReviewCount,
-        ...(recommendationScore !== undefined && { recommendationScore }),
-      },
-    });
+  private countPositiveReviews(reviews: Array<{ sentiment: string | null }>) {
+    return reviews.filter((review) => review.sentiment === 'positive').length;
   }
 
   // Mengambil review destinasi untuk admin.
@@ -132,27 +150,15 @@ export class ReviewsService {
     nlpStatus?: 'all' | 'processed' | 'unprocessed',
   ) {
     const skip = (page - 1) * limit;
-
-    const where: Prisma.ReviewWhereInput = {
+    const where = this.buildDestinationReviewFilter({
       destinationId,
-      ...(sentiment && { sentiment }),
-      ...(topicId && { topicId }),
-      ...(dateFrom || dateTo
-        ? {
-            reviewDate: {
-              ...(dateFrom && { gte: new Date(dateFrom) }),
-              ...(dateTo && {
-                lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)),
-              }),
-            },
-          }
-        : {}),
-      ...(nlpStatus === 'processed' && { cleanedText: { not: null } }),
-      ...(nlpStatus === 'unprocessed' && { cleanedText: null }),
-    };
-
-    const orderBy: Prisma.ReviewOrderByWithRelationInput =
-      sortBy === 'oldest' ? { reviewDate: 'asc' } : { reviewDate: 'desc' };
+      sentiment,
+      topicId,
+      dateFrom,
+      dateTo,
+      nlpStatus,
+    });
+    const orderBy = this.getReviewOrder(sortBy);
 
     const [total, reviews] = await Promise.all([
       this.prisma.review.count({ where }),
@@ -176,6 +182,59 @@ export class ReviewsService {
         totalPages: Math.ceil(total / limit),
       },
     };
+  }
+
+  private buildDestinationReviewFilter(input: {
+    destinationId: number;
+    sentiment?: string;
+    topicId?: number;
+    dateFrom?: string;
+    dateTo?: string;
+    nlpStatus?: 'all' | 'processed' | 'unprocessed';
+  }): Prisma.ReviewWhereInput {
+    return {
+      destinationId: input.destinationId,
+      ...(input.sentiment && { sentiment: input.sentiment }),
+      ...(input.topicId && { topicId: input.topicId }),
+      ...this.buildReviewDateFilter(input.dateFrom, input.dateTo),
+      ...this.buildReviewNlpFilter(input.nlpStatus),
+    };
+  }
+
+  private buildReviewDateFilter(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Prisma.ReviewWhereInput {
+    if (!dateFrom && !dateTo) return {};
+
+    return {
+      reviewDate: this.buildReviewDateRange(dateFrom, dateTo),
+    };
+  }
+
+  private buildReviewDateRange(dateFrom?: string, dateTo?: string) {
+    const range: Prisma.DateTimeNullableFilter = {};
+    if (dateFrom) range.gte = new Date(dateFrom);
+    if (dateTo) range.lte = this.endOfDay(dateTo);
+    return range;
+  }
+
+  private endOfDay(date: string) {
+    return new Date(new Date(date).setHours(23, 59, 59, 999));
+  }
+
+  private buildReviewNlpFilter(
+    nlpStatus?: 'all' | 'processed' | 'unprocessed',
+  ): Prisma.ReviewWhereInput {
+    if (nlpStatus === 'processed') return { cleanedText: { not: null } };
+    if (nlpStatus === 'unprocessed') return { cleanedText: null };
+    return {};
+  }
+
+  private getReviewOrder(
+    sortBy?: 'newest' | 'oldest',
+  ): Prisma.ReviewOrderByWithRelationInput {
+    return sortBy === 'oldest' ? { reviewDate: 'asc' } : { reviewDate: 'desc' };
   }
 
   // Menghapus banyak review sekaligus.

@@ -47,6 +47,7 @@ export declare class ScraperController {
             destination: {
                 name: string;
                 city: string;
+                province: string;
             };
         } & {
             id: number;

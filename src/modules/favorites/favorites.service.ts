@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { findActiveDestinationIdentity } from '../../common/utils/destination-lookup.util';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -7,33 +8,41 @@ export class FavoritesService {
 
   // Menambahkan destinasi ke favorit.
   async addFavorite(userId: number, destinationId: number) {
-    const destination = await this.prisma.destination.findFirst({
-      where: { id: destinationId, deletedAt: null },
-      select: { id: true, name: true },
-    });
+    await this.ensureDestinationExists(destinationId);
+    return this.createFavoriteOrReturnExisting(userId, destinationId);
+  }
 
-    if (!destination) {
-      throw new NotFoundException('Destinasi tidak ditemukan');
-    }
+  private async ensureDestinationExists(destinationId: number) {
+    await findActiveDestinationIdentity(this.prisma, destinationId);
+  }
+
+  private async createFavoriteOrReturnExisting(
+    userId: number,
+    destinationId: number,
+  ) {
     try {
       await this.prisma.favorite.create({
         data: { userId, destinationId },
       });
+      return { message: 'Destination saved to favorites' };
     } catch (error: unknown) {
       // Jika favorit sudah ada, kembalikan sukses.
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === 'P2002'
-      ) {
-        // Favorit sudah tercatat.
-        return { message: 'Destination already in favorites' };
-      }
+      if (this.isUniqueConstraintError(error)) return this.existingFavorite();
       throw error;
     }
+  }
 
-    return { message: 'Destination saved to favorites' };
+  private isUniqueConstraintError(error: unknown) {
+    return (
+      error !== null &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === 'P2002'
+    );
+  }
+
+  private existingFavorite() {
+    return { message: 'Destination already in favorites' };
   }
 
   // Mengambil daftar favorit user.

@@ -15,27 +15,49 @@ export function averageAndNormalizeEmbeddings(
 ): number[] | null {
   if (embeddings.length === 0) return null;
 
-  const embeddingDim = embeddings[0]?.length ?? 0;
+  const embeddingDim = getEmbeddingDimension(embeddings);
   if (embeddingDim === 0) return null;
 
-  const destinationEmbedding = Array.from({ length: embeddingDim }, () => 0);
+  const usableEmbeddings = embeddings.filter((embedding) =>
+    hasExpectedDimension(embedding, embeddingDim),
+  );
+  if (usableEmbeddings.length === 0) return null;
+
+  const summedEmbedding = sumEmbeddingColumns(usableEmbeddings, embeddingDim);
+  const averagedEmbedding = summedEmbedding.map(
+    (value) => value / usableEmbeddings.length,
+  );
+
+  return normalizeVector(averagedEmbedding);
+}
+
+function getEmbeddingDimension(embeddings: number[][]): number {
+  return embeddings.find((embedding) => embedding.length > 0)?.length ?? 0;
+}
+
+function hasExpectedDimension(embedding: number[], dimension: number): boolean {
+  return embedding.length === dimension;
+}
+
+function sumEmbeddingColumns(
+  embeddings: number[][],
+  dimension: number,
+): number[] {
+  const totals = Array.from({ length: dimension }, () => 0);
 
   for (const embedding of embeddings) {
-    if (embedding.length !== embeddingDim) continue;
-    for (let i = 0; i < embeddingDim; i++) {
-      destinationEmbedding[i] += embedding[i] ?? 0;
+    for (let index = 0; index < dimension; index++) {
+      totals[index] += embedding[index] ?? 0;
     }
   }
 
-  for (let i = 0; i < embeddingDim; i++) {
-    destinationEmbedding[i] /= embeddings.length;
-  }
+  return totals;
+}
 
-  const norm = Math.sqrt(
-    destinationEmbedding.reduce((sum, value) => sum + value * value, 0),
-  );
+function normalizeVector(vector: number[]): number[] {
+  const norm = Math.sqrt(vector.reduce((sum, value) => sum + value * value, 0));
 
-  if (norm === 0) return destinationEmbedding;
+  if (norm === 0) return vector;
 
-  return destinationEmbedding.map((value) => value / norm);
+  return vector.map((value) => value / norm);
 }

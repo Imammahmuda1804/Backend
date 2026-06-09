@@ -1,14 +1,7 @@
-import { PrismaService } from '../../prisma/prisma.service';
-import { NlpService } from './nlp.service';
-import { NlpResultStorageService } from './nlp-result-storage.service';
-import { CsvService } from '../scraper/csv.service';
+import { NlpUploadService } from './nlp-upload.service';
 export declare class NlpController {
-    private readonly prisma;
-    private readonly nlpService;
-    private readonly nlpStorageService;
-    private readonly csvService;
-    private readonly logger;
-    constructor(prisma: PrismaService, nlpService: NlpService, nlpStorageService: NlpResultStorageService, csvService: CsvService);
+    private readonly nlpUploadService;
+    constructor(nlpUploadService: NlpUploadService);
     preflight(file: Express.Multer.File, destinationIdStr: string): Promise<{
         destination_id: number;
         destination_name: string;
@@ -108,16 +101,5 @@ export declare class NlpController {
             negative: number;
             neutral: number;
         };
-    }>;
-    private parseDestinationId;
-    private getDestinationOrThrow;
-    private parseFileOrThrow;
-    private getExistingReviewHashes;
-    private getExistingReviewMap;
-    private runPipeline;
-    private assertValidPipelineResult;
-    private resetDestinationNlpData;
-    private refreshDestinationRating;
-    private getSentimentSummary;
-    private cleanupInsertedReviews;
+    } | undefined>;
 }

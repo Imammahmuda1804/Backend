@@ -1,24 +1,17 @@
-import { PrismaService } from '../../prisma/prisma.service';
-import { AiNamingService } from '../nlp/ai-naming.service';
-type TopicScope = 'search' | 'detail';
-type TopicGroupPayload = {
-    groupName: string;
-    description?: string;
-    keywords?: string[];
-    displayOrder?: number;
-};
-type TopicReviewSentiment = 'positive' | 'neutral' | 'negative';
-export declare function normalizeTopicNameForMatch(value: string): string;
+import { TopicGroupService } from './topic-group.service';
+import { TopicManagementService } from './topic-management.service';
+import { TopicMergeService } from './topic-merge.service';
+import { TopicQueryService } from './topic-query.service';
+import { TopicReviewService } from './topic-review.service';
+import type { TopicGroupPayload, TopicReviewSentiment, TopicScope } from './topic.types';
+export { normalizeTopicNameForMatch } from './topic-name.util';
 export declare class TopicsService {
-    private readonly prisma;
-    private readonly aiNamingService;
-    private readonly logger;
-    constructor(prisma: PrismaService, aiNamingService: AiNamingService);
-    renameUnnamedTopics(): Promise<{
-        renamed: number;
-        failed: number;
-        total: number;
-    }>;
+    private readonly queryService;
+    private readonly reviewService;
+    private readonly mergeService;
+    private readonly groupService;
+    private readonly managementService;
+    constructor(queryService: TopicQueryService, reviewService: TopicReviewService, mergeService: TopicMergeService, groupService: TopicGroupService, managementService: TopicManagementService);
     findAll(scope?: TopicScope): Promise<{
         id: number;
         group_name: string;
@@ -99,20 +92,13 @@ export declare class TopicsService {
         };
         data: {
             id: number;
-            reviewer_name: string;
+            reviewer_name: string | null;
             review_text: string | null;
             rating: number | null;
             review_date: Date | null;
             sentiment: string | null;
             sentiment_confidence: number | null;
-            destination: {
-                id: number;
-                name: string;
-                city: string;
-                slug: string;
-                province: string;
-                thumbnailUrl: string | null;
-            };
+            destination: unknown;
         }[];
         meta: {
             page: number;
@@ -121,15 +107,20 @@ export declare class TopicsService {
             total_pages: number;
         };
     }>;
+    renameUnnamedTopics(): Promise<{
+        total: number;
+        renamed: number;
+        failed: number;
+    }>;
     renameTopic(topicId: number, newName: string): Promise<{
-        id: number;
-        topicName: string;
-    } | {
         merged: boolean;
         target_topic_id: number;
         target_topic_name: string;
         source_topic_ids: number[];
         deleted_topics: number;
+    } | {
+        id: number;
+        topicName: string;
     }>;
     findTopicByNormalizedName(topicName: string, excludeId?: number): Promise<{
         id: number;
@@ -142,9 +133,6 @@ export declare class TopicsService {
         source_topic_ids: number[];
         deleted_topics: number;
     }>;
-    private mergeTopicKeywords;
-    private mapSentimentFilter;
-    private normalizeSentimentSummary;
     updateTopicSettings(topicId: number, data: {
         groupId?: number | null;
         isSearchVisible?: boolean;
@@ -161,19 +149,14 @@ export declare class TopicsService {
         group_name: string;
     }>;
     createGroup(data: TopicGroupPayload): Promise<{
+        topics: never[];
         id: number;
         group_name: string;
         description: string | null;
-        keywords: import("@prisma/client/runtime/client").JsonValue;
+        keywords: unknown;
         display_order: number;
-        topics: never[];
     }>;
     updateGroup(groupId: number, data: TopicGroupPayload): Promise<{
-        id: number;
-        group_name: string;
-        description: string | null;
-        keywords: import("@prisma/client/runtime/client").JsonValue;
-        display_order: number;
         topics: {
             id: number;
             topic_name: string;
@@ -182,16 +165,19 @@ export declare class TopicsService {
             is_detail_visible: boolean;
             total_destinations: number;
         }[];
+        id: number;
+        group_name: string;
+        description: string | null;
+        keywords: unknown;
+        display_order: number;
     }>;
     deleteGroup(groupId: number): Promise<{
         deleted: boolean;
         id: number;
         group_name: string;
     }>;
-    private normalizeKeywords;
     deleteTopic(topicId: number): Promise<{
         deleted: boolean;
         id: number;
     }>;
 }
-export {};

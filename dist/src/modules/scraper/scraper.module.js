@@ -15,6 +15,7 @@ const apify_service_1 = require("./apify.service");
 const scraper_processor_1 = require("./scraper.processor");
 const axios_1 = require("@nestjs/axios");
 const csv_service_1 = require("./csv.service");
+const scraper_workbook_service_1 = require("./scraper-workbook.service");
 let ScraperModule = class ScraperModule {
 };
 exports.ScraperModule = ScraperModule;
@@ -27,7 +28,13 @@ exports.ScraperModule = ScraperModule = __decorate([
             axios_1.HttpModule,
         ],
         controllers: [scraper_controller_1.ScraperController],
-        providers: [scraper_service_1.ScraperService, apify_service_1.ApifyService, scraper_processor_1.ScraperProcessor, csv_service_1.CsvService],
+        providers: [
+            scraper_service_1.ScraperService,
+            apify_service_1.ApifyService,
+            scraper_processor_1.ScraperProcessor,
+            scraper_workbook_service_1.ScraperWorkbookService,
+            csv_service_1.CsvService,
+        ],
         exports: [scraper_service_1.ScraperService],
     })
 ], ScraperModule);

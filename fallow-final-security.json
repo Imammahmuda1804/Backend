@@ -1,0 +1,743 @@
+{
+  "kind": "security",
+  "schema_version": "1",
+  "security_findings": [
+    {
+      "finding_id": "a8c03f15259a728a",
+      "kind": "tainted-sink",
+      "category": "path-traversal",
+      "cwe": 22,
+      "path": "src/modules/destinations/destination-admin.service.ts",
+      "line": 205,
+      "col": 21,
+      "evidence": "Non-literal path component passed to path.join(). Candidate for verification: confirm the input cannot escape the intended directory (reject `..`).",
+      "trace": [
+        {
+          "path": "src/modules/destinations/destination-admin.service.ts",
+          "line": 205,
+          "col": 21,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": true,
+        "reachable_from_untrusted_source": true,
+        "untrusted_source_hop_count": 2,
+        "untrusted_source_trace": [
+          {
+            "path": "src/modules/destinations/admin-destinations.controller.ts",
+            "line": 29,
+            "col": 9,
+            "role": "untrusted-source"
+          },
+          {
+            "path": "src/modules/destinations/destinations.service.ts",
+            "line": 2,
+            "col": 9,
+            "role": "intermediate"
+          },
+          {
+            "path": "src/modules/destinations/destination-admin.service.ts",
+            "line": 205,
+            "col": 21,
+            "role": "sink"
+          }
+        ],
+        "blast_radius": 8,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/modules/destinations/destination-admin.service.ts",
+          "line": 205,
+          "col": 21,
+          "category": "path-traversal",
+          "cwe": 22,
+          "callee": "path.join"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": true
+        }
+      },
+      "taint_flow": {
+        "source": {
+          "path": "src/modules/destinations/admin-destinations.controller.ts",
+          "line": 29,
+          "col": 9
+        },
+        "sink": {
+          "path": "src/modules/destinations/destination-admin.service.ts",
+          "line": 205,
+          "col": 21
+        },
+        "path": {
+          "intra_module": false,
+          "cross_module_hops": 2
+        }
+      }
+    },
+    {
+      "finding_id": "a8ce3b1525a6a91a",
+      "kind": "tainted-sink",
+      "category": "path-traversal",
+      "cwe": 22,
+      "path": "src/modules/destinations/destination-admin.service.ts",
+      "line": 249,
+      "col": 11,
+      "evidence": "Non-literal path component passed to path.join(). Candidate for verification: confirm the input cannot escape the intended directory (reject `..`).",
+      "trace": [
+        {
+          "path": "src/modules/destinations/destination-admin.service.ts",
+          "line": 249,
+          "col": 11,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": true,
+        "reachable_from_untrusted_source": true,
+        "untrusted_source_hop_count": 2,
+        "untrusted_source_trace": [
+          {
+            "path": "src/modules/destinations/admin-destinations.controller.ts",
+            "line": 29,
+            "col": 9,
+            "role": "untrusted-source"
+          },
+          {
+            "path": "src/modules/destinations/destinations.service.ts",
+            "line": 2,
+            "col": 9,
+            "role": "intermediate"
+          },
+          {
+            "path": "src/modules/destinations/destination-admin.service.ts",
+            "line": 249,
+            "col": 11,
+            "role": "sink"
+          }
+        ],
+        "blast_radius": 8,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/modules/destinations/destination-admin.service.ts",
+          "line": 249,
+          "col": 11,
+          "category": "path-traversal",
+          "cwe": 22,
+          "callee": "path.join"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": true
+        }
+      },
+      "taint_flow": {
+        "source": {
+          "path": "src/modules/destinations/admin-destinations.controller.ts",
+          "line": 29,
+          "col": 9
+        },
+        "sink": {
+          "path": "src/modules/destinations/destination-admin.service.ts",
+          "line": 249,
+          "col": 11
+        },
+        "path": {
+          "intra_module": false,
+          "cross_module_hops": 2
+        }
+      }
+    },
+    {
+      "finding_id": "db4454e8a3287f8b",
+      "kind": "tainted-sink",
+      "category": "path-traversal",
+      "cwe": 22,
+      "path": "src/modules/scraper/scraper.service.ts",
+      "line": 265,
+      "col": 22,
+      "evidence": "Non-literal path component passed to path.join(). Candidate for verification: confirm the input cannot escape the intended directory (reject `..`).",
+      "trace": [
+        {
+          "path": "src/modules/scraper/scraper.service.ts",
+          "line": 265,
+          "col": 22,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": true,
+        "reachable_from_untrusted_source": true,
+        "untrusted_source_hop_count": 1,
+        "untrusted_source_trace": [
+          {
+            "path": "src/modules/destinations/admin-destinations.controller.ts",
+            "line": 30,
+            "col": 9,
+            "role": "untrusted-source"
+          },
+          {
+            "path": "src/modules/scraper/scraper.service.ts",
+            "line": 265,
+            "col": 22,
+            "role": "sink"
+          }
+        ],
+        "blast_radius": 8,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/modules/scraper/scraper.service.ts",
+          "line": 265,
+          "col": 22,
+          "category": "path-traversal",
+          "cwe": 22,
+          "callee": "path.join"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": true
+        }
+      },
+      "taint_flow": {
+        "source": {
+          "path": "src/modules/destinations/admin-destinations.controller.ts",
+          "line": 30,
+          "col": 9
+        },
+        "sink": {
+          "path": "src/modules/scraper/scraper.service.ts",
+          "line": 265,
+          "col": 22
+        },
+        "path": {
+          "intra_module": false,
+          "cross_module_hops": 1
+        }
+      }
+    },
+    {
+      "finding_id": "db4455e8a328813e",
+      "kind": "tainted-sink",
+      "category": "path-traversal",
+      "cwe": 22,
+      "path": "src/modules/scraper/scraper.service.ts",
+      "line": 266,
+      "col": 24,
+      "evidence": "Non-literal path component passed to path.join(). Candidate for verification: confirm the input cannot escape the intended directory (reject `..`).",
+      "trace": [
+        {
+          "path": "src/modules/scraper/scraper.service.ts",
+          "line": 266,
+          "col": 24,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": true,
+        "reachable_from_untrusted_source": true,
+        "untrusted_source_hop_count": 1,
+        "untrusted_source_trace": [
+          {
+            "path": "src/modules/destinations/admin-destinations.controller.ts",
+            "line": 30,
+            "col": 9,
+            "role": "untrusted-source"
+          },
+          {
+            "path": "src/modules/scraper/scraper.service.ts",
+            "line": 266,
+            "col": 24,
+            "role": "sink"
+          }
+        ],
+        "blast_radius": 8,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/modules/scraper/scraper.service.ts",
+          "line": 266,
+          "col": 24,
+          "category": "path-traversal",
+          "cwe": 22,
+          "callee": "path.join"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": true
+        }
+      },
+      "taint_flow": {
+        "source": {
+          "path": "src/modules/destinations/admin-destinations.controller.ts",
+          "line": 30,
+          "col": 9
+        },
+        "sink": {
+          "path": "src/modules/scraper/scraper.service.ts",
+          "line": 266,
+          "col": 24
+        },
+        "path": {
+          "intra_module": false,
+          "cross_module_hops": 1
+        }
+      }
+    },
+    {
+      "finding_id": "c572c8de6e6cb362",
+      "kind": "tainted-sink",
+      "category": "path-traversal",
+      "cwe": 22,
+      "path": "src/modules/scraper/scraper-workbook.service.ts",
+      "line": 203,
+      "col": 28,
+      "evidence": "Non-literal path component passed to path.join(). Candidate for verification: confirm the input cannot escape the intended directory (reject `..`).",
+      "trace": [
+        {
+          "path": "src/modules/scraper/scraper-workbook.service.ts",
+          "line": 203,
+          "col": 28,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": true,
+        "reachable_from_untrusted_source": true,
+        "untrusted_source_hop_count": 1,
+        "untrusted_source_trace": [
+          {
+            "path": "src/modules/scraper/scraper.processor.ts",
+            "line": 11,
+            "col": 9,
+            "role": "untrusted-source"
+          },
+          {
+            "path": "src/modules/scraper/scraper-workbook.service.ts",
+            "line": 203,
+            "col": 28,
+            "role": "sink"
+          }
+        ],
+        "blast_radius": 7,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/modules/scraper/scraper-workbook.service.ts",
+          "line": 203,
+          "col": 28,
+          "category": "path-traversal",
+          "cwe": 22,
+          "callee": "path.join"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": true
+        }
+      },
+      "taint_flow": {
+        "source": {
+          "path": "src/modules/scraper/scraper.processor.ts",
+          "line": 11,
+          "col": 9
+        },
+        "sink": {
+          "path": "src/modules/scraper/scraper-workbook.service.ts",
+          "line": 203,
+          "col": 28
+        },
+        "path": {
+          "intra_module": false,
+          "cross_module_hops": 1
+        }
+      }
+    },
+    {
+      "finding_id": "c572c4de6e6cac96",
+      "kind": "tainted-sink",
+      "category": "path-traversal",
+      "cwe": 22,
+      "path": "src/modules/scraper/scraper-workbook.service.ts",
+      "line": 207,
+      "col": 21,
+      "evidence": "Non-literal path component passed to path.join(). Candidate for verification: confirm the input cannot escape the intended directory (reject `..`).",
+      "trace": [
+        {
+          "path": "src/modules/scraper/scraper-workbook.service.ts",
+          "line": 207,
+          "col": 21,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": true,
+        "reachable_from_untrusted_source": true,
+        "untrusted_source_hop_count": 1,
+        "untrusted_source_trace": [
+          {
+            "path": "src/modules/scraper/scraper.processor.ts",
+            "line": 11,
+            "col": 9,
+            "role": "untrusted-source"
+          },
+          {
+            "path": "src/modules/scraper/scraper-workbook.service.ts",
+            "line": 207,
+            "col": 21,
+            "role": "sink"
+          }
+        ],
+        "blast_radius": 7,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/modules/scraper/scraper-workbook.service.ts",
+          "line": 207,
+          "col": 21,
+          "category": "path-traversal",
+          "cwe": 22,
+          "callee": "path.join"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": true
+        }
+      },
+      "taint_flow": {
+        "source": {
+          "path": "src/modules/scraper/scraper.processor.ts",
+          "line": 11,
+          "col": 9
+        },
+        "sink": {
+          "path": "src/modules/scraper/scraper-workbook.service.ts",
+          "line": 207,
+          "col": 21
+        },
+        "path": {
+          "intra_module": false,
+          "cross_module_hops": 1
+        }
+      }
+    },
+    {
+      "finding_id": "c568d3de6e64718e",
+      "kind": "tainted-sink",
+      "category": "path-traversal",
+      "cwe": 22,
+      "path": "src/modules/scraper/scraper-workbook.service.ts",
+      "line": 236,
+      "col": 24,
+      "evidence": "Non-literal path component passed to path.join(). Candidate for verification: confirm the input cannot escape the intended directory (reject `..`).",
+      "trace": [
+        {
+          "path": "src/modules/scraper/scraper-workbook.service.ts",
+          "line": 236,
+          "col": 24,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": true,
+        "reachable_from_untrusted_source": true,
+        "untrusted_source_hop_count": 1,
+        "untrusted_source_trace": [
+          {
+            "path": "src/modules/scraper/scraper.processor.ts",
+            "line": 11,
+            "col": 9,
+            "role": "untrusted-source"
+          },
+          {
+            "path": "src/modules/scraper/scraper-workbook.service.ts",
+            "line": 236,
+            "col": 24,
+            "role": "sink"
+          }
+        ],
+        "blast_radius": 7,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/modules/scraper/scraper-workbook.service.ts",
+          "line": 236,
+          "col": 24,
+          "category": "path-traversal",
+          "cwe": 22,
+          "callee": "path.join"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": true
+        }
+      },
+      "taint_flow": {
+        "source": {
+          "path": "src/modules/scraper/scraper.processor.ts",
+          "line": 11,
+          "col": 9
+        },
+        "sink": {
+          "path": "src/modules/scraper/scraper-workbook.service.ts",
+          "line": 236,
+          "col": 24
+        },
+        "path": {
+          "intra_module": false,
+          "cross_module_hops": 1
+        }
+      }
+    },
+    {
+      "finding_id": "4de288b8a137de38",
+      "kind": "tainted-sink",
+      "category": "header-injection",
+      "cwe": 113,
+      "path": "src/modules/analytics/admin-analytics.controller.ts",
+      "line": 68,
+      "col": 4,
+      "evidence": "Non-literal header value passed to res.setHeader(). Candidate for verification: confirm CR/LF and untrusted header content are rejected before writing the response.",
+      "trace": [
+        {
+          "path": "src/modules/analytics/admin-analytics.controller.ts",
+          "line": 68,
+          "col": 4,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": true,
+        "reachable_from_untrusted_source": false,
+        "blast_radius": 6,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/modules/analytics/admin-analytics.controller.ts",
+          "line": 68,
+          "col": 4,
+          "category": "header-injection",
+          "cwe": 113,
+          "callee": "res.setHeader"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": false
+        }
+      }
+    },
+    {
+      "finding_id": "03dcc1f10edb1660",
+      "kind": "tainted-sink",
+      "category": "header-injection",
+      "cwe": 113,
+      "path": "src/modules/scraper/scraper.controller.ts",
+      "line": 123,
+      "col": 4,
+      "evidence": "Non-literal header value passed to res.setHeader(). Candidate for verification: confirm CR/LF and untrusted header content are rejected before writing the response.",
+      "trace": [
+        {
+          "path": "src/modules/scraper/scraper.controller.ts",
+          "line": 123,
+          "col": 4,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": true,
+        "reachable_from_untrusted_source": false,
+        "blast_radius": 6,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/modules/scraper/scraper.controller.ts",
+          "line": 123,
+          "col": 4,
+          "category": "header-injection",
+          "cwe": 113,
+          "callee": "res.setHeader"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": false
+        }
+      }
+    },
+    {
+      "finding_id": "88a0b0503c662b65",
+      "kind": "tainted-sink",
+      "category": "path-traversal",
+      "cwe": 22,
+      "path": "src/sync-topics.ts",
+      "line": 56,
+      "col": 9,
+      "evidence": "Non-literal path component passed to path.join(). Candidate for verification: confirm the input cannot escape the intended directory (reject `..`).",
+      "trace": [
+        {
+          "path": "src/sync-topics.ts",
+          "line": 56,
+          "col": 9,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": false,
+        "reachable_from_untrusted_source": false,
+        "blast_radius": 0,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/sync-topics.ts",
+          "line": 56,
+          "col": 9,
+          "category": "path-traversal",
+          "cwe": 22,
+          "callee": "path.join"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": false
+        }
+      }
+    },
+    {
+      "finding_id": "8896bf503c5df05d",
+      "kind": "tainted-sink",
+      "category": "path-traversal",
+      "cwe": 22,
+      "path": "src/sync-topics.ts",
+      "line": 67,
+      "col": 4,
+      "evidence": "Non-literal file-system path passed to fs.readFileSync(). Candidate for verification: confirm the input cannot escape the intended directory (reject `..`).",
+      "trace": [
+        {
+          "path": "src/sync-topics.ts",
+          "line": 67,
+          "col": 4,
+          "role": "sink"
+        }
+      ],
+      "actions": [
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file security-sink"
+        }
+      ],
+      "reachability": {
+        "reachable_from_entry": false,
+        "reachable_from_untrusted_source": false,
+        "blast_radius": 0,
+        "crosses_boundary": false
+      },
+      "candidate": {
+        "sink": {
+          "path": "src/sync-topics.ts",
+          "line": 67,
+          "col": 4,
+          "category": "path-traversal",
+          "cwe": 22,
+          "callee": "fs.readFileSync"
+        },
+        "boundary": {
+          "client_server": false,
+          "cross_module": false
+        }
+      }
+    }
+  ],
+  "unresolved_edge_files": 0,
+  "unresolved_callee_sites": 1282
+}

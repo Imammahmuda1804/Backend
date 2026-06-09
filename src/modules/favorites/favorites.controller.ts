@@ -19,6 +19,7 @@ import {
 } from '@nestjs/swagger';
 import { FavoritesService } from './favorites.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { parsePaginationQuery } from '../../common/utils/pagination.util';
 
 @ApiTags('Favorites')
 @ApiBearerAuth()
@@ -53,9 +54,12 @@ export class FavoritesController {
     @Query('page') page?: string,
     @Query('limit') limit?: string,
   ) {
-    const parsedPage = page ? parseInt(page, 10) : 1;
-    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20;
-    return this.favoritesService.getFavorites(userId, parsedPage, parsedLimit);
+    const pagination = parsePaginationQuery(page, limit, { defaultLimit: 20 });
+    return this.favoritesService.getFavorites(
+      userId,
+      pagination.page,
+      pagination.limit,
+    );
   }
 
   // Menghapus destinasi dari favorit.

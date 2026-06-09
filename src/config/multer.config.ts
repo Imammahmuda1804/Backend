@@ -19,12 +19,24 @@ export interface MulterFile {
 const uploadDir = './uploads/destinations';
 const profileDir = './uploads/profiles';
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-if (!fs.existsSync(profileDir)) {
-  fs.mkdirSync(profileDir, { recursive: true });
-}
+const ensureDirectory = (path: string) => {
+  if (!fs.existsSync(path)) fs.mkdirSync(path, { recursive: true });
+};
+
+const createUniqueFileName =
+  (prefix = '') =>
+  (
+    req: Request,
+    file: MulterFile,
+    callback: (error: Error | null, filename: string) => void,
+  ) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = extname(file.originalname);
+    callback(null, `${prefix}${uniqueSuffix}${ext}`);
+  };
+
+ensureDirectory(uploadDir);
+ensureDirectory(profileDir);
 
 export const imageFileFilter = (
   req: Request,
@@ -60,15 +72,7 @@ export const multerImageOptions = {
 
   storage: diskStorage({
     destination: uploadDir,
-    filename: (
-      req: Request,
-      file: MulterFile,
-      callback: (error: Error | null, filename: string) => void,
-    ) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      const ext = extname(file.originalname);
-      callback(null, `${uniqueSuffix}${ext}`);
-    },
+    filename: createUniqueFileName(),
   }),
 };
 
@@ -85,14 +89,6 @@ export const multerProfileImageOptions = {
 
   storage: diskStorage({
     destination: profileDir,
-    filename: (
-      req: Request,
-      file: MulterFile,
-      callback: (error: Error | null, filename: string) => void,
-    ) => {
-      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-      const ext = extname(file.originalname);
-      callback(null, `avatar-${uniqueSuffix}${ext}`);
-    },
+    filename: createUniqueFileName('avatar-'),
   }),
 };

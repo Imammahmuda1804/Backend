@@ -8,38 +8,26 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CsvService = void 0;
 const common_1 = require("@nestjs/common");
-function serializeCsvValue(value) {
-    if (value === null || value === undefined)
-        return '';
-    if (typeof value === 'string')
-        return value;
-    if (typeof value === 'number' || typeof value === 'boolean') {
-        return String(value);
-    }
-    if (value instanceof Date)
-        return value.toISOString();
-    if (typeof value === 'object')
-        return JSON.stringify(value) ?? '';
-    return '';
-}
+const csv_value_util_1 = require("./csv-value.util");
 let CsvService = class CsvService {
     generateCsv(data) {
         if (!data || data.length === 0)
             return '';
         const headers = Object.keys(data[0]);
-        const rows = [headers.join(',')];
-        for (const item of data) {
-            const values = headers.map((header) => {
-                const val = item[header];
-                const stringVal = serializeCsvValue(val);
-                return `"${stringVal.replace(/"/g, '""')}"`;
-            });
-            rows.push(values.join(','));
-        }
+        const rows = [
+            this.createHeaderRow(headers),
+            ...data.map((item) => this.createDataRow(item, headers)),
+        ];
         return rows.join('\n');
     }
     generateInternalCsv(data) {
         return this.generateCsv(data);
+    }
+    createHeaderRow(headers) {
+        return headers.join(',');
+    }
+    createDataRow(item, headers) {
+        return headers.map((header) => (0, csv_value_util_1.escapeCsvValue)(item[header])).join(',');
     }
 };
 exports.CsvService = CsvService;

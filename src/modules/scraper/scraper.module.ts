@@ -6,6 +6,7 @@ import { ApifyService } from './apify.service';
 import { ScraperProcessor } from './scraper.processor';
 import { HttpModule } from '@nestjs/axios';
 import { CsvService } from './csv.service';
+import { ScraperWorkbookService } from './scraper-workbook.service';
 
 @Module({
   imports: [
@@ -15,7 +16,13 @@ import { CsvService } from './csv.service';
     HttpModule,
   ],
   controllers: [ScraperController],
-  providers: [ScraperService, ApifyService, ScraperProcessor, CsvService],
+  providers: [
+    ScraperService,
+    ApifyService,
+    ScraperProcessor,
+    ScraperWorkbookService,
+    CsvService,
+  ],
   exports: [ScraperService],
 })
 export class ScraperModule {}

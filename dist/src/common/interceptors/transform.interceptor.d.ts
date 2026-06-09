@@ -7,4 +7,8 @@ export interface ApiResponse<T> {
 }
 export declare class TransformInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
     intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>>;
+    private wrapResponse;
+    private hasDataAndMeta;
+    private wrapPaginatedResponse;
+    private wrapDataResponse;
 }

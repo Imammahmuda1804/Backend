@@ -16,7 +16,7 @@ export declare class AuthController {
             id: number;
             name: string;
             email: string;
-            role: import("@prisma/client").$Enums.Role;
+            role: string;
             profilePicture: string | null;
         };
         access_token: string;
@@ -27,7 +27,7 @@ export declare class AuthController {
             id: number;
             name: string;
             email: string;
-            role: import("@prisma/client").$Enums.Role;
+            role: string;
             profilePicture: string | null;
         };
         access_token: string;

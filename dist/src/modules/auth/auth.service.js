@@ -89,72 +89,68 @@ let AuthService = AuthService_1 = class AuthService {
         return user;
     }
     async login(dto) {
-        const user = await this.prisma.user.findUnique({
-            where: { email: dto.email },
-        });
-        if (!user || !user.password) {
-            throw new common_1.UnauthorizedException('Email atau password salah');
-        }
-        if (user.status !== 'active') {
-            throw new common_1.UnauthorizedException('Akun Anda telah dinonaktifkan');
-        }
-        const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-        if (!isPasswordValid) {
-            throw new common_1.UnauthorizedException('Email atau password salah');
-        }
-        const tokens = await this.generateTokens({
-            sub: user.id,
-            email: user.email,
-            role: user.role,
-        });
+        const user = await this.findPasswordLoginCandidate(dto.email);
+        this.assertPasswordLoginAllowed(user);
+        await this.assertPasswordMatches(dto.password, user.password);
         this.logger.log(`User logged in: ${user.email}`);
-        return {
-            ...tokens,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                profilePicture: user.profilePicture,
-            },
-        };
+        return this.buildLoginResponse(user);
+    }
+    findPasswordLoginCandidate(email) {
+        return this.prisma.user.findUnique({ where: { email } });
+    }
+    assertPasswordLoginAllowed(user) {
+        if (!user?.password)
+            this.throwInvalidPasswordLogin();
+        this.assertActiveUser(user.status);
+    }
+    async assertPasswordMatches(plainPassword, hashedPassword) {
+        const isPasswordValid = await bcrypt.compare(plainPassword, hashedPassword);
+        if (!isPasswordValid)
+            this.throwInvalidPasswordLogin();
+    }
+    throwInvalidPasswordLogin() {
+        throw new common_1.UnauthorizedException('Email atau password salah');
     }
     async loginWithGoogle(dto) {
         const payload = await this.verifyGoogleToken(dto.id_token);
-        const googleId = payload.sub;
-        const email = payload.email?.toLowerCase();
-        if (!googleId || !email || payload.email_verified !== true) {
-            throw new common_1.UnauthorizedException('Akun Google tidak valid');
-        }
-        const existingByGoogleId = await this.prisma.user.findUnique({
-            where: { googleId },
-        });
-        const user = existingByGoogleId ??
-            (await this.findOrCreateGoogleUser({
-                googleId,
-                email,
-                name: payload.name || email.split('@')[0],
-                picture: payload.picture,
-            }));
-        if (user.status !== 'active') {
+        const googleProfile = this.toVerifiedGoogleProfile(payload);
+        const existingByGoogleId = await this.findUserByGoogleId(googleProfile.googleId);
+        const user = existingByGoogleId ?? (await this.findOrCreateGoogleUser(googleProfile));
+        this.assertActiveUser(user.status);
+        this.logger.log(`User logged in with Google: ${user.email}`);
+        return this.buildLoginResponse(user);
+    }
+    toVerifiedGoogleProfile(payload) {
+        this.assertGooglePayloadVerified(payload);
+        const email = payload.email.toLowerCase();
+        return {
+            googleId: payload.sub,
+            email,
+            name: this.resolveGoogleProfileName(payload, email),
+            picture: payload.picture,
+        };
+    }
+    assertGooglePayloadVerified(payload) {
+        if (!payload.sub)
+            this.throwInvalidGoogleAccount();
+        if (!payload.email)
+            this.throwInvalidGoogleAccount();
+        if (payload.email_verified !== true)
+            this.throwInvalidGoogleAccount();
+    }
+    resolveGoogleProfileName(payload, email) {
+        return payload.name ?? email.split('@')[0];
+    }
+    throwInvalidGoogleAccount() {
+        throw new common_1.UnauthorizedException('Akun Google tidak valid');
+    }
+    assertActiveUser(status) {
+        if (status !== 'active') {
             throw new common_1.UnauthorizedException('Akun Anda telah dinonaktifkan');
         }
-        const tokens = await this.generateTokens({
-            sub: user.id,
-            email: user.email,
-            role: user.role,
-        });
-        this.logger.log(`User logged in with Google: ${user.email}`);
-        return {
-            ...tokens,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                role: user.role,
-                profilePicture: user.profilePicture,
-            },
-        };
+    }
+    findUserByGoogleId(googleId) {
+        return this.prisma.user.findUnique({ where: { googleId } });
     }
     async generateTokens(payload) {
         const tokenPayload = {
@@ -212,26 +208,31 @@ let AuthService = AuthService_1 = class AuthService {
     }
     async verifyGoogleToken(idToken) {
         const audience = this.getGoogleClientIds();
-        if (audience.length === 0) {
-            this.logger.error('Google login client ID belum dikonfigurasi');
-            throw new common_1.UnauthorizedException('Login Google belum dikonfigurasi');
-        }
+        this.assertGoogleLoginConfigured(audience);
         try {
-            const ticket = await this.googleClient.verifyIdToken({
-                idToken,
-                audience,
-            });
-            const payload = ticket.getPayload();
-            if (!payload) {
-                throw new common_1.UnauthorizedException('Token Google tidak valid');
-            }
-            return payload;
+            return await this.readGoogleTokenPayload(idToken, audience);
         }
         catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            this.logger.warn(`Google token verification failed: ${message}`);
-            throw new common_1.UnauthorizedException('Token Google tidak valid');
+            return this.rejectInvalidGoogleToken(error);
         }
+    }
+    assertGoogleLoginConfigured(audience) {
+        if (audience.length > 0)
+            return;
+        this.logger.error('Google login client ID belum dikonfigurasi');
+        throw new common_1.UnauthorizedException('Login Google belum dikonfigurasi');
+    }
+    async readGoogleTokenPayload(idToken, audience) {
+        const ticket = await this.googleClient.verifyIdToken({ idToken, audience });
+        const payload = ticket.getPayload();
+        if (!payload)
+            throw new common_1.UnauthorizedException('Token Google tidak valid');
+        return payload;
+    }
+    rejectInvalidGoogleToken(error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.warn(`Google token verification failed: ${message}`);
+        throw new common_1.UnauthorizedException('Token Google tidak valid');
     }
     getGoogleClientIds() {
         const clientIds = this.configService.get('GOOGLE_CLIENT_IDS');
@@ -276,6 +277,26 @@ let AuthService = AuthService_1 = class AuthService {
                 profilePicture: input.picture,
             },
         });
+    }
+    async buildLoginResponse(user) {
+        const tokens = await this.generateTokens({
+            sub: user.id,
+            email: user.email,
+            role: user.role,
+        });
+        return {
+            ...tokens,
+            user: this.toPublicAuthUser(user),
+        };
+    }
+    toPublicAuthUser(user) {
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            profilePicture: user.profilePicture,
+        };
     }
 };
 exports.AuthService = AuthService;

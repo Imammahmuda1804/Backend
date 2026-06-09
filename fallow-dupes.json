@@ -1,0 +1,2028 @@
+{
+  "kind": "dupes",
+  "schema_version": 7,
+  "version": "2.89.0",
+  "elapsed_ms": 45,
+  "clone_groups": [
+    {
+      "instances": [
+        {
+          "file": "src/config/multer.config.ts",
+          "start_line": 63,
+          "end_line": 73,
+          "start_col": 4,
+          "end_col": 1,
+          "fragment": "filename: (\n      req: Request,\n      file: MulterFile,\n      callback: (error: Error | null, filename: string) => void,\n    ) => {\n      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);\n      const ext = extname(file.originalname);\n      callback(null, `${uniqueSuffix}${ext}`);\n    },\n  }),\n}"
+        },
+        {
+          "file": "src/config/multer.config.ts",
+          "start_line": 88,
+          "end_line": 98,
+          "start_col": 4,
+          "end_col": 1,
+          "fragment": "filename: (\n      req: Request,\n      file: MulterFile,\n      callback: (error: Error | null, filename: string) => void,\n    ) => {\n      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);\n      const ext = extname(file.originalname);\n      callback(null, `avatar-${uniqueSuffix}${ext}`);\n    },\n  }),\n}"
+        }
+      ],
+      "token_count": 78,
+      "line_count": 11,
+      "fingerprint": "dup:10925570",
+      "suggested_name": "uniqueSuffix",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (11 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/admin/admin-moderation.controller.ts",
+          "start_line": 26,
+          "end_line": 32,
+          "start_col": 12,
+          "end_col": 47,
+          "fragment": "{ name: 'id', type: Number })\n  @ApiResponse({ status: 200, description: 'Review berhasil dihapus' })\n  @ApiResponse({ status: 401, description: 'Unauthorized' })\n  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })\n  @ApiResponse({ status: 404, description: 'Review tidak ditemukan' })\n  async deleteReview(@Param('id', ParseIntPipe) id: number) {\n    return this.reviewsService.deleteReview(id)"
+        },
+        {
+          "file": "src/modules/reviews/admin-reviews.controller.ts",
+          "start_line": 70,
+          "end_line": 76,
+          "start_col": 16,
+          "end_col": 47,
+          "fragment": "{ summary: 'Menghapus review (scraped review)' })\n  @ApiResponse({ status: 200, description: 'Review berhasil dihapus' })\n  @ApiResponse({ status: 401, description: 'Unauthorized' })\n  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })\n  @ApiResponse({ status: 404, description: 'Review tidak ditemukan' })\n  async deleteReview(@Param('id', ParseIntPipe) id: number) {\n    return this.reviewsService.deleteReview(id)"
+        }
+      ],
+      "token_count": 70,
+      "line_count": 7,
+      "fingerprint": "dup:bb7874a9",
+      "suggested_name": "ApiResponse",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (7 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/analytics/analytics.service.ts",
+          "start_line": 86,
+          "end_line": 101,
+          "start_col": 24,
+          "end_col": 67,
+          "fragment": "true,\n          recommendationScore: true,\n          positiveRatio: true,\n        },\n      }),\n    ]);\n\n    // Mengambil nama topik.\n    const topicIds = topTopics.map((t) => t.topicId);\n    const topics = await this.prisma.topic.findMany({\n      where: { id: { in: topicIds } },\n      select: { id: true, topicName: true },\n    });\n    const topicMap = new Map(topics.map((t) => [t.id, t.topicName]));\n\n    const sentimentDist = this.buildSentimentDist(sentimentCounts);"
+        },
+        {
+          "file": "src/modules/analytics/analytics.service.ts",
+          "start_line": 242,
+          "end_line": 263,
+          "start_col": 29,
+          "end_col": 6,
+          "fragment": "true,\n          recommendationScore: true,\n          positiveRatio: true,\n        },\n      }),\n    ]);\n\n    // Mengambil nama topik.\n    const topicIds = topTopics.map((t) => t.topicId);\n    const topics = await this.prisma.topic.findMany({\n      where: { id: { in: topicIds } },\n      select: { id: true, topicName: true },\n    });\n    const topicMap = new Map(topics.map((t) => [t.id, t.topicName]));\n\n    const topicRiskIds = [\n      ...new Set(\n        topicSentimentRows\n          .map((row) => row.topicId)\n          .filter((id): id is number => id !== null),\n      ),\n    ];"
+        }
+      ],
+      "token_count": 96,
+      "line_count": 22,
+      "fingerprint": "dup:497e67d3",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (22 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/analytics/analytics.service.ts",
+          "start_line": 491,
+          "end_line": 495,
+          "start_col": 10,
+          "end_col": 37,
+          "fragment": "result = Array.from(grouped.entries())\n      .sort(([a], [b]) => a.localeCompare(b))\n      .map(([date, counts]) => ({ date, ...counts }));\n\n    return { period, trends: result }"
+        },
+        {
+          "file": "src/modules/analytics/analytics.service.ts",
+          "start_line": 615,
+          "end_line": 619,
+          "start_col": 10,
+          "end_col": 21,
+          "fragment": "trends = Array.from(grouped.entries())\n      .sort(([a], [b]) => a.localeCompare(b))\n      .map(([date, counts]) => ({ date, ...counts }));\n\n    return { trends }"
+        }
+      ],
+      "token_count": 57,
+      "line_count": 5,
+      "fingerprint": "dup:e713ff3c",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (5 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/analytics/analytics.service.ts",
+          "start_line": 832,
+          "end_line": 849,
+          "start_col": 59,
+          "end_col": 5,
+          "fragment": ")) {\n      const date = new Date(dateStr);\n      await this.prisma.sentimentTrend.upsert({\n        where: { destinationId_date: { destinationId, date } },\n        create: {\n          destinationId,\n          date,\n          positiveCount: counts.pos,\n          negativeCount: counts.neg,\n          neutralCount: counts.neu,\n        },\n        update: {\n          positiveCount: counts.pos,\n          negativeCount: counts.neg,\n          neutralCount: counts.neu,\n        },\n      });\n    }"
+        },
+        {
+          "file": "src/modules/nlp/nlp-result-storage.service.ts",
+          "start_line": 373,
+          "end_line": 395,
+          "start_col": 57,
+          "end_col": 5,
+          "fragment": ")) {\n      const date = new Date(dateStr);\n      await this.prisma.sentimentTrend.upsert({\n        where: {\n          destinationId_date: {\n            destinationId,\n            date,\n          },\n        },\n        create: {\n          destinationId,\n          date,\n          positiveCount: counts.pos,\n          negativeCount: counts.neg,\n          neutralCount: counts.neu,\n        },\n        update: {\n          positiveCount: counts.pos,\n          negativeCount: counts.neg,\n          neutralCount: counts.neu,\n        },\n      });\n    }"
+        }
+      ],
+      "token_count": 73,
+      "line_count": 23,
+      "fingerprint": "dup:d4e8e8e7",
+      "suggested_name": "counts",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (23 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/auth/auth.service.ts",
+          "start_line": 76,
+          "end_line": 95,
+          "start_col": 65,
+          "end_col": 5,
+          "fragment": ");\n    }\n    const tokens = await this.generateTokens({\n      sub: user.id,\n      email: user.email,\n      role: user.role,\n    });\n\n    this.logger.log(`User logged in: ${user.email}`);\n\n    return {\n      ...tokens,\n      user: {\n        id: user.id,\n        name: user.name,\n        email: user.email,\n        role: user.role,\n        profilePicture: user.profilePicture,\n      },\n    }"
+        },
+        {
+          "file": "src/modules/auth/auth.service.ts",
+          "start_line": 122,
+          "end_line": 142,
+          "start_col": 69,
+          "end_col": 5,
+          "fragment": ");\n    }\n\n    const tokens = await this.generateTokens({\n      sub: user.id,\n      email: user.email,\n      role: user.role,\n    });\n\n    this.logger.log(`User logged in with Google: ${user.email}`);\n\n    return {\n      ...tokens,\n      user: {\n        id: user.id,\n        name: user.name,\n        email: user.email,\n        role: user.role,\n        profilePicture: user.profilePicture,\n      },\n    }"
+        }
+      ],
+      "token_count": 69,
+      "line_count": 21,
+      "fingerprint": "dup:55f2aaaa",
+      "suggested_name": "user",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (21 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 216,
+          "end_line": 243,
+          "start_col": 4,
+          "end_col": 7,
+          "fragment": "const destination = await this.prisma.destination.findUnique({\n      where: { id },\n    });\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    return this.prisma.destination.update({\n      where: { id },\n      data: {\n        name: dto.name,\n        description: dto.description,\n        city: dto.city,\n        province: dto.province,\n        category: dto.category,\n        latitude: dto.latitude,\n        longitude: dto.longitude,\n        googlePlaceId: dto.googlePlaceId,\n        googleMapsUrl: dto.googleMapsUrl,\n        youtubeUrl: dto.youtubeUrl,\n        thumbnailUrl: dto.thumbnailUrl,\n        ...(dto.googleRating !== undefined && {\n          googleRating: dto.googleRating,\n        }),\n        ...(dto.googleReviewCount !== undefined && {\n          googleReviewCount: dto.googleReviewCount,\n        }),\n      }"
+        },
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 249,
+          "end_line": 258,
+          "start_col": 4,
+          "end_col": 37,
+          "fragment": "const destination = await this.prisma.destination.findUnique({\n      where: { id },\n    });\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    return this.prisma.destination.update({\n      where: { id },\n      data: { deletedAt: new Date() }"
+        },
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 264,
+          "end_line": 273,
+          "start_col": 4,
+          "end_col": 48,
+          "fragment": "const destination = await this.prisma.destination.findUnique({\n      where: { id },\n    });\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    return this.prisma.destination.update({\n      where: { id },\n      data: { googleMapsUrl: dto.googleMapsUrl }"
+        }
+      ],
+      "token_count": 53,
+      "line_count": 28,
+      "fingerprint": "dup:cc6072af",
+      "suggested_name": "dto",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (28 lines, 3 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 278,
+          "end_line": 291,
+          "start_col": 23,
+          "end_col": 5,
+          "fragment": "(destinationId: number, filename: string) {\n    const destination = await this.prisma.destination.findUnique({\n      where: { id: destinationId },\n    });\n    if (!destination) {\n      const filepath = path.join(\n        process.cwd(),\n        'uploads',\n        'destinations',\n        filename,\n      );\n      await this.removeFileIfExists(filepath);\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }"
+        },
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 312,
+          "end_line": 325,
+          "start_col": 19,
+          "end_col": 5,
+          "fragment": "(destinationId: number, filename: string) {\n    const destination = await this.prisma.destination.findUnique({\n      where: { id: destinationId },\n    });\n    if (!destination) {\n      const filepath = path.join(\n        process.cwd(),\n        'uploads',\n        'destinations',\n        filename,\n      );\n      await this.removeFileIfExists(filepath);\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }"
+        }
+      ],
+      "token_count": 80,
+      "line_count": 14,
+      "fingerprint": "dup:0381c503",
+      "suggested_name": "destination",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (14 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 416,
+          "end_line": 441,
+          "start_col": 19,
+          "end_col": 28,
+          "fragment": "{\n            topic: true,\n          },\n        },\n        userReviews: {\n          include: {\n            user: {\n              select: {\n                id: true,\n                name: true,\n                profilePicture: true,\n              },\n            },\n          },\n          orderBy: { createdAt: 'desc' },\n        },\n      },\n    });\n\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    // Menghitung rating user aplikasi.\n    const reviewAgg = await this.prisma.userReview.aggregate({\n      where: { destinationId"
+        },
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 483,
+          "end_line": 512,
+          "start_col": 19,
+          "end_col": 28,
+          "fragment": "{\n            topic: {\n              include: {\n                group: true,\n              },\n            },\n          },\n        },\n        userReviews: {\n          include: {\n            user: {\n              select: {\n                id: true,\n                name: true,\n                profilePicture: true,\n              },\n            },\n          },\n          orderBy: { createdAt: 'desc' },\n        },\n      },\n    });\n\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    // Menghitung rating user aplikasi.\n    const reviewAgg = await this.prisma.userReview.aggregate({\n      where: { destinationId"
+        }
+      ],
+      "token_count": 60,
+      "line_count": 30,
+      "fingerprint": "dup:e05dfd73",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (30 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 455,
+          "end_line": 469,
+          "start_col": 52,
+          "end_col": 5,
+          "fragment": "id);\n\n    return {\n      ...destination,\n      // Review user aplikasi.\n      averageUserRating: reviewAgg._avg.rating || null,\n      totalUserReviews: reviewAgg._count,\n      // Review hasil scraping Google Maps.\n      scrapedAverageRating: scrapedAgg._avg.rating\n        ? parseFloat(scrapedAgg._avg.rating.toFixed(2))\n        : destination.userRating,\n      scrapedReviewCount: scrapedAgg._count.rating,\n      topicSentimentBreakdown,\n      topicGroups,\n    }"
+        },
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 528,
+          "end_line": 542,
+          "start_col": 64,
+          "end_col": 5,
+          "fragment": "id);\n\n    return {\n      ...destination,\n      // Review user aplikasi.\n      averageUserRating: reviewAgg._avg.rating || null,\n      totalUserReviews: reviewAgg._count,\n      // Review hasil scraping Google Maps.\n      scrapedAverageRating: scrapedAgg._avg.rating\n        ? parseFloat(scrapedAgg._avg.rating.toFixed(2))\n        : destination.userRating,\n      scrapedReviewCount: scrapedAgg._count.rating,\n      topicSentimentBreakdown,\n      topicGroups,\n    }"
+        }
+      ],
+      "token_count": 57,
+      "line_count": 15,
+      "fingerprint": "dup:ac6bad7d",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (15 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 583,
+          "end_line": 596,
+          "start_col": 11,
+          "end_col": 36,
+          "fragment": ": number,\n    page: number,\n    limit: number,\n  ) {\n    const destination = await this.prisma.destination.findFirst({\n      where: { id: destinationId, deletedAt: null },\n      select: { id: true },\n    });\n\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    const skip = (page - 1) * limit;"
+        },
+        {
+          "file": "src/modules/destinations/destinations.service.ts",
+          "start_line": 632,
+          "end_line": 648,
+          "start_col": 11,
+          "end_col": 7,
+          "fragment": ": number,\n    page: number,\n    limit: number,\n  ) {\n    const destination = await this.prisma.destination.findFirst({\n      where: { id: destinationId, deletedAt: null },\n      select: { id: true },\n    });\n\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    const topics = await this.prisma.topic.findMany({\n      where: { groupId },\n      select: { id: true },\n    });"
+        }
+      ],
+      "token_count": 52,
+      "line_count": 17,
+      "fingerprint": "dup:741c74d0",
+      "suggested_name": "destination",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (17 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/favorites/favorites.controller.ts",
+          "start_line": 51,
+          "end_line": 58,
+          "start_col": 20,
+          "end_col": 16,
+          "fragment": "(\n    @CurrentUser('id') userId: number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20;\n    return this."
+        },
+        {
+          "file": "src/modules/search/search.controller.ts",
+          "start_line": 84,
+          "end_line": 91,
+          "start_col": 18,
+          "end_col": 16,
+          "fragment": "(\n    @CurrentUser('id') userId: number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20;\n    return this."
+        }
+      ],
+      "token_count": 75,
+      "line_count": 8,
+      "fingerprint": "dup:b534d36a",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (8 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/favorites/favorites.controller.ts",
+          "start_line": 52,
+          "end_line": 57,
+          "start_col": 29,
+          "end_col": 71,
+          "fragment": ": number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20"
+        },
+        {
+          "file": "src/modules/search/search.controller.ts",
+          "start_line": 85,
+          "end_line": 90,
+          "start_col": 29,
+          "end_col": 71,
+          "fragment": ": number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20"
+        },
+        {
+          "file": "src/modules/topics/topics.controller.ts",
+          "start_line": 191,
+          "end_line": 196,
+          "start_col": 33,
+          "end_col": 71,
+          "fragment": ": number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 10"
+        }
+      ],
+      "token_count": 54,
+      "line_count": 6,
+      "fingerprint": "dup:dcee1b13",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (6 lines, 3 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/nlp/nlp.controller.ts",
+          "start_line": 109,
+          "end_line": 117,
+          "start_col": 66,
+          "end_col": 6,
+          "fragment": ");\n    const destination = await this.getDestinationOrThrow(destinationId);\n    const reviews = await this.parseFileOrThrow(file);\n    const hashedReviews = attachReviewHashes(destinationId, reviews);\n    const fileHash = createFileHash(file.buffer);\n    const existingHashes = await this.getExistingReviewHashes(\n      destinationId,\n      hashedReviews,\n    );"
+        },
+        {
+          "file": "src/modules/nlp/nlp.controller.ts",
+          "start_line": 250,
+          "end_line": 266,
+          "start_col": 41,
+          "end_col": 7,
+          "fragment": ");\n    const destination = await this.getDestinationOrThrow(destinationId);\n    const reviews = await this.parseFileOrThrow(file);\n    const hashedReviews = attachReviewHashes(destinationId, reviews);\n    const fileHash = createFileHash(file.buffer);\n\n    const run = await this.prisma.nlpProcessingRun.create({\n      data: {\n        destinationId,\n        adminId,\n        fileName: file.originalname,\n        fileHash,\n        mode,\n        status: 'processing',\n        totalRows: hashedReviews.length,\n      },\n    });"
+        }
+      ],
+      "token_count": 50,
+      "line_count": 17,
+      "fingerprint": "dup:2873f405",
+      "suggested_name": "destinationId",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (17 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/nlp/nlp.controller.ts",
+          "start_line": 405,
+          "end_line": 415,
+          "start_col": 39,
+          "end_col": 34,
+          "fragment": "(\n    destinationId: number,\n    reviews: ReviewWithHash[],\n  ) {\n    const existing = await this.prisma.review.findMany({\n      where: {\n        destinationId,\n        source: 'google_maps',\n        reviewHash: { in: reviews.map((review) => review.reviewHash) },\n      },\n      select: { reviewHash: true }"
+        },
+        {
+          "file": "src/modules/nlp/nlp.controller.ts",
+          "start_line": 420,
+          "end_line": 430,
+          "start_col": 36,
+          "end_col": 44,
+          "fragment": "(\n    destinationId: number,\n    reviews: ReviewWithHash[],\n  ) {\n    const existing = await this.prisma.review.findMany({\n      where: {\n        destinationId,\n        source: 'google_maps',\n        reviewHash: { in: reviews.map((review) => review.reviewHash) },\n      },\n      select: { id: true, reviewHash: true }"
+        }
+      ],
+      "token_count": 56,
+      "line_count": 11,
+      "fingerprint": "dup:f774fdd5",
+      "suggested_name": "reviewHash",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (11 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/nlp/nlp.service.ts",
+          "start_line": 34,
+          "end_line": 73,
+          "start_col": 8,
+          "end_col": 39,
+          "fragment": "{\n      const response = await firstValueFrom(\n        this.httpService\n          .post<NlpPipelineResult>(\n            `${this.nlpBaseUrl}/pipeline/process`,\n            formData,\n            {\n              headers: formData.getHeaders(),\n              timeout: 300000, // 5 minutes timeout\n            },\n          )\n          .pipe(\n            catchError((error: AxiosError) => {\n              this.handleAxiosError(error);\n              throw error;\n            }),\n          ),\n      );\n\n      this.logger.log(\n        `✅ FastAPI response received. Keys: ${Object.keys(response.data).join(', ')}`,\n      );\n      this.logger.log(\n        `📊 Results count: ${response.data.results?.length || 'undefined'}`,\n      );\n      this.logger.log(\n        `📊 Topics count: ${response.data.topics?.length || 'undefined'}`,\n      );\n\n      return response.data;\n    } catch (error: unknown) {\n      if (\n        error instanceof NlpServiceUnavailableException ||\n        error instanceof NlpProcessingException\n      ) {\n        throw error;\n      }\n      const msg = error instanceof Error ? error.message : String(error);\n      this.logger.error(`Unexpected error during NLP pipeline: ${msg}`);\n      throw new NlpProcessingException("
+        },
+        {
+          "file": "src/modules/nlp/nlp.service.ts",
+          "start_line": 81,
+          "end_line": 107,
+          "start_col": 8,
+          "end_col": 39,
+          "fragment": "{\n      const response = await firstValueFrom(\n        this.httpService\n          .post<{ embedding: number[] }>(\n            `${this.nlpBaseUrl}/embed`,\n            { text },\n            { timeout: 30000 }, // 30 seconds timeout\n          )\n          .pipe(\n            catchError((error: AxiosError) => {\n              this.handleAxiosError(error);\n              throw error;\n            }),\n          ),\n      );\n\n      return response.data.embedding;\n    } catch (error: unknown) {\n      if (\n        error instanceof NlpServiceUnavailableException ||\n        error instanceof NlpProcessingException\n      ) {\n        throw error;\n      }\n      const msg = error instanceof Error ? error.message : String(error);\n      this.logger.error(`Unexpected error generating embedding: ${msg}`);\n      throw new NlpProcessingException("
+        }
+      ],
+      "token_count": 52,
+      "line_count": 40,
+      "fingerprint": "dup:198a58b2",
+      "suggested_name": "response",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (40 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/routes/routes.service.ts",
+          "start_line": 72,
+          "end_line": 77,
+          "start_col": 16,
+          "end_col": 18,
+          "fragment": "(userId: number, page = 1, limit = 20) {\n    const take = Math.min(limit, 50);\n    const skip = (Math.max(page, 1) - 1) * take;\n\n    const [data, total] = await Promise.all([\n      this.prisma."
+        },
+        {
+          "file": "src/modules/routes/routes.service.ts",
+          "start_line": 90,
+          "end_line": 95,
+          "start_col": 17,
+          "end_col": 18,
+          "fragment": "(userId: number, page = 1, limit = 20) {\n    const take = Math.min(limit, 50);\n    const skip = (Math.max(page, 1) - 1) * take;\n\n    const [data, total] = await Promise.all([\n      this.prisma."
+        }
+      ],
+      "token_count": 61,
+      "line_count": 6,
+      "fingerprint": "dup:0dda2d6c",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (6 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/routes/routes.service.ts",
+          "start_line": 228,
+          "end_line": 233,
+          "start_col": 56,
+          "end_col": 54,
+          "fragment": ");\n    const normalizedStops = await this.prepareStops(dto.stops, dto.autoSort);\n    const stats = this.calculateRouteStats(normalizedStops);\n\n    return this.prisma.$transaction(async (tx) => {\n      await tx.routeStop.deleteMany({ where: { routeId"
+        },
+        {
+          "file": "src/modules/routes/routes.service.ts",
+          "start_line": 332,
+          "end_line": 337,
+          "start_col": 30,
+          "end_col": 54,
+          "fragment": ");\n    const normalizedStops = await this.prepareStops(dto.stops, dto.autoSort);\n    const stats = this.calculateRouteStats(normalizedStops);\n\n    return this.prisma.$transaction(async (tx) => {\n      await tx.routeStop.deleteMany({ where: { routeId"
+        }
+      ],
+      "token_count": 57,
+      "line_count": 6,
+      "fingerprint": "dup:9e852720",
+      "suggested_name": "normalizedStops",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (6 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/routes/routes.service.ts",
+          "start_line": 241,
+          "end_line": 256,
+          "start_col": 10,
+          "end_col": 6,
+          "fragment": "totalDistanceKm: stats.totalDistanceKm,\n          estimatedDurationMinutes: stats.estimatedDurationMinutes,\n          stops: {\n            create: normalizedStops.map((stop) => ({\n              destinationId: stop.destinationId,\n              stopOrder: stop.stopOrder,\n              distanceFromPreviousKm: stop.distanceFromPreviousKm,\n              distanceToNextKm: stop.distanceToNextKm,\n              note: stop.note,\n              estimatedVisitMinutes: stop.estimatedVisitMinutes,\n            })),\n          },\n        },\n        include: ROUTE_INCLUDE,\n      });\n    })"
+        },
+        {
+          "file": "src/modules/routes/routes.service.ts",
+          "start_line": 346,
+          "end_line": 361,
+          "start_col": 10,
+          "end_col": 6,
+          "fragment": "totalDistanceKm: stats.totalDistanceKm,\n          estimatedDurationMinutes: stats.estimatedDurationMinutes,\n          stops: {\n            create: normalizedStops.map((stop) => ({\n              destinationId: stop.destinationId,\n              stopOrder: stop.stopOrder,\n              distanceFromPreviousKm: stop.distanceFromPreviousKm,\n              distanceToNextKm: stop.distanceToNextKm,\n              note: stop.note,\n              estimatedVisitMinutes: stop.estimatedVisitMinutes,\n            })),\n          },\n        },\n        include: ROUTE_INCLUDE,\n      });\n    })"
+        }
+      ],
+      "token_count": 59,
+      "line_count": 16,
+      "fingerprint": "dup:6e7d3e3d",
+      "suggested_name": "stop",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (16 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "instances": [
+        {
+          "file": "src/modules/users/dto/admin-update-user.dto.ts",
+          "start_line": 22,
+          "end_line": 40,
+          "start_col": 23,
+          "end_col": 15,
+          "fragment": "{\n    description: 'Email user',\n    example: 'john@mail.com',\n  })\n  @IsOptional()\n  @IsEmail({}, { message: 'Format email tidak valid' })\n  email?: string;\n\n  @ApiPropertyOptional({\n    description: 'Password baru',\n    example: 'newpassword123',\n  })\n  @IsOptional()\n  @IsString()\n  @MinLength(6, { message: 'Password minimal 6 karakter' })\n  password?: string;\n\n  @ApiPropertyOptional({\n    description"
+        },
+        {
+          "file": "src/modules/users/dto/update-profile.dto.ts",
+          "start_line": 14,
+          "end_line": 32,
+          "start_col": 23,
+          "end_col": 15,
+          "fragment": "{\n    description: 'Email user',\n    example: 'newemail@mail.com',\n  })\n  @IsOptional()\n  @IsEmail({}, { message: 'Format email tidak valid' })\n  email?: string;\n\n  @ApiPropertyOptional({\n    description: 'Password baru',\n    example: 'newpassword123',\n  })\n  @IsOptional()\n  @IsString()\n  @MinLength(6, { message: 'Password minimal 6 karakter' })\n  password?: string;\n\n  @ApiPropertyOptional({\n    description"
+        }
+      ],
+      "token_count": 53,
+      "line_count": 19,
+      "fingerprint": "dup:25327765",
+      "suggested_name": "description",
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract duplicated code (19 lines, 2 instances) into a shared function"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    }
+  ],
+  "clone_families": [
+    {
+      "files": [
+        "src/config/multer.config.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/config/multer.config.ts",
+              "start_line": 63,
+              "end_line": 73,
+              "start_col": 4,
+              "end_col": 1,
+              "fragment": "filename: (\n      req: Request,\n      file: MulterFile,\n      callback: (error: Error | null, filename: string) => void,\n    ) => {\n      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);\n      const ext = extname(file.originalname);\n      callback(null, `${uniqueSuffix}${ext}`);\n    },\n  }),\n}"
+            },
+            {
+              "file": "src/config/multer.config.ts",
+              "start_line": 88,
+              "end_line": 98,
+              "start_col": 4,
+              "end_col": 1,
+              "fragment": "filename: (\n      req: Request,\n      file: MulterFile,\n      callback: (error: Error | null, filename: string) => void,\n    ) => {\n      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);\n      const ext = extname(file.originalname);\n      callback(null, `avatar-${uniqueSuffix}${ext}`);\n    },\n  }),\n}"
+            }
+          ],
+          "token_count": 78,
+          "line_count": 11,
+          "fingerprint": "dup:10925570",
+          "suggested_name": "uniqueSuffix",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (11 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 11,
+      "total_duplicated_tokens": 78,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (11 lines) from multer.config.ts, multer.config.ts",
+          "estimated_savings": 11
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 1 duplicated code block (11 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (11 lines) from multer.config.ts, multer.config.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/admin/admin-moderation.controller.ts",
+        "src/modules/reviews/admin-reviews.controller.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/admin/admin-moderation.controller.ts",
+              "start_line": 26,
+              "end_line": 32,
+              "start_col": 12,
+              "end_col": 47,
+              "fragment": "{ name: 'id', type: Number })\n  @ApiResponse({ status: 200, description: 'Review berhasil dihapus' })\n  @ApiResponse({ status: 401, description: 'Unauthorized' })\n  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })\n  @ApiResponse({ status: 404, description: 'Review tidak ditemukan' })\n  async deleteReview(@Param('id', ParseIntPipe) id: number) {\n    return this.reviewsService.deleteReview(id)"
+            },
+            {
+              "file": "src/modules/reviews/admin-reviews.controller.ts",
+              "start_line": 70,
+              "end_line": 76,
+              "start_col": 16,
+              "end_col": 47,
+              "fragment": "{ summary: 'Menghapus review (scraped review)' })\n  @ApiResponse({ status: 200, description: 'Review berhasil dihapus' })\n  @ApiResponse({ status: 401, description: 'Unauthorized' })\n  @ApiResponse({ status: 403, description: 'Forbidden — ADMIN only' })\n  @ApiResponse({ status: 404, description: 'Review tidak ditemukan' })\n  async deleteReview(@Param('id', ParseIntPipe) id: number) {\n    return this.reviewsService.deleteReview(id)"
+            }
+          ],
+          "token_count": 70,
+          "line_count": 7,
+          "fingerprint": "dup:bb7874a9",
+          "suggested_name": "ApiResponse",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (7 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 7,
+      "total_duplicated_tokens": 70,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (7 lines) from admin-moderation.controller.ts, admin-reviews.controller.ts",
+          "estimated_savings": 7
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 1 duplicated code block (7 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (7 lines) from admin-moderation.controller.ts, admin-reviews.controller.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/analytics/analytics.service.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/analytics/analytics.service.ts",
+              "start_line": 86,
+              "end_line": 101,
+              "start_col": 24,
+              "end_col": 67,
+              "fragment": "true,\n          recommendationScore: true,\n          positiveRatio: true,\n        },\n      }),\n    ]);\n\n    // Mengambil nama topik.\n    const topicIds = topTopics.map((t) => t.topicId);\n    const topics = await this.prisma.topic.findMany({\n      where: { id: { in: topicIds } },\n      select: { id: true, topicName: true },\n    });\n    const topicMap = new Map(topics.map((t) => [t.id, t.topicName]));\n\n    const sentimentDist = this.buildSentimentDist(sentimentCounts);"
+            },
+            {
+              "file": "src/modules/analytics/analytics.service.ts",
+              "start_line": 242,
+              "end_line": 263,
+              "start_col": 29,
+              "end_col": 6,
+              "fragment": "true,\n          recommendationScore: true,\n          positiveRatio: true,\n        },\n      }),\n    ]);\n\n    // Mengambil nama topik.\n    const topicIds = topTopics.map((t) => t.topicId);\n    const topics = await this.prisma.topic.findMany({\n      where: { id: { in: topicIds } },\n      select: { id: true, topicName: true },\n    });\n    const topicMap = new Map(topics.map((t) => [t.id, t.topicName]));\n\n    const topicRiskIds = [\n      ...new Set(\n        topicSentimentRows\n          .map((row) => row.topicId)\n          .filter((id): id is number => id !== null),\n      ),\n    ];"
+            }
+          ],
+          "token_count": 96,
+          "line_count": 22,
+          "fingerprint": "dup:497e67d3",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (22 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        },
+        {
+          "instances": [
+            {
+              "file": "src/modules/analytics/analytics.service.ts",
+              "start_line": 491,
+              "end_line": 495,
+              "start_col": 10,
+              "end_col": 37,
+              "fragment": "result = Array.from(grouped.entries())\n      .sort(([a], [b]) => a.localeCompare(b))\n      .map(([date, counts]) => ({ date, ...counts }));\n\n    return { period, trends: result }"
+            },
+            {
+              "file": "src/modules/analytics/analytics.service.ts",
+              "start_line": 615,
+              "end_line": 619,
+              "start_col": 10,
+              "end_col": 21,
+              "fragment": "trends = Array.from(grouped.entries())\n      .sort(([a], [b]) => a.localeCompare(b))\n      .map(([date, counts]) => ({ date, ...counts }));\n\n    return { trends }"
+            }
+          ],
+          "token_count": 57,
+          "line_count": 5,
+          "fingerprint": "dup:e713ff3c",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (5 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 27,
+      "total_duplicated_tokens": 153,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (22 lines) from analytics.service.ts, analytics.service.ts",
+          "estimated_savings": 22
+        },
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (5 lines) from analytics.service.ts, analytics.service.ts",
+          "estimated_savings": 5
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 2 duplicated code blocks (27 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (22 lines) from analytics.service.ts, analytics.service.ts"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (5 lines) from analytics.service.ts, analytics.service.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/analytics/analytics.service.ts",
+        "src/modules/nlp/nlp-result-storage.service.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/analytics/analytics.service.ts",
+              "start_line": 832,
+              "end_line": 849,
+              "start_col": 59,
+              "end_col": 5,
+              "fragment": ")) {\n      const date = new Date(dateStr);\n      await this.prisma.sentimentTrend.upsert({\n        where: { destinationId_date: { destinationId, date } },\n        create: {\n          destinationId,\n          date,\n          positiveCount: counts.pos,\n          negativeCount: counts.neg,\n          neutralCount: counts.neu,\n        },\n        update: {\n          positiveCount: counts.pos,\n          negativeCount: counts.neg,\n          neutralCount: counts.neu,\n        },\n      });\n    }"
+            },
+            {
+              "file": "src/modules/nlp/nlp-result-storage.service.ts",
+              "start_line": 373,
+              "end_line": 395,
+              "start_col": 57,
+              "end_col": 5,
+              "fragment": ")) {\n      const date = new Date(dateStr);\n      await this.prisma.sentimentTrend.upsert({\n        where: {\n          destinationId_date: {\n            destinationId,\n            date,\n          },\n        },\n        create: {\n          destinationId,\n          date,\n          positiveCount: counts.pos,\n          negativeCount: counts.neg,\n          neutralCount: counts.neu,\n        },\n        update: {\n          positiveCount: counts.pos,\n          negativeCount: counts.neg,\n          neutralCount: counts.neu,\n        },\n      });\n    }"
+            }
+          ],
+          "token_count": 73,
+          "line_count": 23,
+          "fingerprint": "dup:d4e8e8e7",
+          "suggested_name": "counts",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (23 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 23,
+      "total_duplicated_tokens": 73,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (23 lines) from analytics.service.ts, nlp-result-storage.service.ts",
+          "estimated_savings": 23
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 1 duplicated code block (23 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (23 lines) from analytics.service.ts, nlp-result-storage.service.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/auth/auth.service.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/auth/auth.service.ts",
+              "start_line": 76,
+              "end_line": 95,
+              "start_col": 65,
+              "end_col": 5,
+              "fragment": ");\n    }\n    const tokens = await this.generateTokens({\n      sub: user.id,\n      email: user.email,\n      role: user.role,\n    });\n\n    this.logger.log(`User logged in: ${user.email}`);\n\n    return {\n      ...tokens,\n      user: {\n        id: user.id,\n        name: user.name,\n        email: user.email,\n        role: user.role,\n        profilePicture: user.profilePicture,\n      },\n    }"
+            },
+            {
+              "file": "src/modules/auth/auth.service.ts",
+              "start_line": 122,
+              "end_line": 142,
+              "start_col": 69,
+              "end_col": 5,
+              "fragment": ");\n    }\n\n    const tokens = await this.generateTokens({\n      sub: user.id,\n      email: user.email,\n      role: user.role,\n    });\n\n    this.logger.log(`User logged in with Google: ${user.email}`);\n\n    return {\n      ...tokens,\n      user: {\n        id: user.id,\n        name: user.name,\n        email: user.email,\n        role: user.role,\n        profilePicture: user.profilePicture,\n      },\n    }"
+            }
+          ],
+          "token_count": 69,
+          "line_count": 21,
+          "fingerprint": "dup:55f2aaaa",
+          "suggested_name": "user",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (21 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 21,
+      "total_duplicated_tokens": 69,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (21 lines) from auth.service.ts, auth.service.ts",
+          "estimated_savings": 21
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 1 duplicated code block (21 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (21 lines) from auth.service.ts, auth.service.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/destinations/destinations.service.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 216,
+              "end_line": 243,
+              "start_col": 4,
+              "end_col": 7,
+              "fragment": "const destination = await this.prisma.destination.findUnique({\n      where: { id },\n    });\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    return this.prisma.destination.update({\n      where: { id },\n      data: {\n        name: dto.name,\n        description: dto.description,\n        city: dto.city,\n        province: dto.province,\n        category: dto.category,\n        latitude: dto.latitude,\n        longitude: dto.longitude,\n        googlePlaceId: dto.googlePlaceId,\n        googleMapsUrl: dto.googleMapsUrl,\n        youtubeUrl: dto.youtubeUrl,\n        thumbnailUrl: dto.thumbnailUrl,\n        ...(dto.googleRating !== undefined && {\n          googleRating: dto.googleRating,\n        }),\n        ...(dto.googleReviewCount !== undefined && {\n          googleReviewCount: dto.googleReviewCount,\n        }),\n      }"
+            },
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 249,
+              "end_line": 258,
+              "start_col": 4,
+              "end_col": 37,
+              "fragment": "const destination = await this.prisma.destination.findUnique({\n      where: { id },\n    });\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    return this.prisma.destination.update({\n      where: { id },\n      data: { deletedAt: new Date() }"
+            },
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 264,
+              "end_line": 273,
+              "start_col": 4,
+              "end_col": 48,
+              "fragment": "const destination = await this.prisma.destination.findUnique({\n      where: { id },\n    });\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    return this.prisma.destination.update({\n      where: { id },\n      data: { googleMapsUrl: dto.googleMapsUrl }"
+            }
+          ],
+          "token_count": 53,
+          "line_count": 28,
+          "fingerprint": "dup:cc6072af",
+          "suggested_name": "dto",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (28 lines, 3 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        },
+        {
+          "instances": [
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 278,
+              "end_line": 291,
+              "start_col": 23,
+              "end_col": 5,
+              "fragment": "(destinationId: number, filename: string) {\n    const destination = await this.prisma.destination.findUnique({\n      where: { id: destinationId },\n    });\n    if (!destination) {\n      const filepath = path.join(\n        process.cwd(),\n        'uploads',\n        'destinations',\n        filename,\n      );\n      await this.removeFileIfExists(filepath);\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }"
+            },
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 312,
+              "end_line": 325,
+              "start_col": 19,
+              "end_col": 5,
+              "fragment": "(destinationId: number, filename: string) {\n    const destination = await this.prisma.destination.findUnique({\n      where: { id: destinationId },\n    });\n    if (!destination) {\n      const filepath = path.join(\n        process.cwd(),\n        'uploads',\n        'destinations',\n        filename,\n      );\n      await this.removeFileIfExists(filepath);\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }"
+            }
+          ],
+          "token_count": 80,
+          "line_count": 14,
+          "fingerprint": "dup:0381c503",
+          "suggested_name": "destination",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (14 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        },
+        {
+          "instances": [
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 416,
+              "end_line": 441,
+              "start_col": 19,
+              "end_col": 28,
+              "fragment": "{\n            topic: true,\n          },\n        },\n        userReviews: {\n          include: {\n            user: {\n              select: {\n                id: true,\n                name: true,\n                profilePicture: true,\n              },\n            },\n          },\n          orderBy: { createdAt: 'desc' },\n        },\n      },\n    });\n\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    // Menghitung rating user aplikasi.\n    const reviewAgg = await this.prisma.userReview.aggregate({\n      where: { destinationId"
+            },
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 483,
+              "end_line": 512,
+              "start_col": 19,
+              "end_col": 28,
+              "fragment": "{\n            topic: {\n              include: {\n                group: true,\n              },\n            },\n          },\n        },\n        userReviews: {\n          include: {\n            user: {\n              select: {\n                id: true,\n                name: true,\n                profilePicture: true,\n              },\n            },\n          },\n          orderBy: { createdAt: 'desc' },\n        },\n      },\n    });\n\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    // Menghitung rating user aplikasi.\n    const reviewAgg = await this.prisma.userReview.aggregate({\n      where: { destinationId"
+            }
+          ],
+          "token_count": 60,
+          "line_count": 30,
+          "fingerprint": "dup:e05dfd73",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (30 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        },
+        {
+          "instances": [
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 455,
+              "end_line": 469,
+              "start_col": 52,
+              "end_col": 5,
+              "fragment": "id);\n\n    return {\n      ...destination,\n      // Review user aplikasi.\n      averageUserRating: reviewAgg._avg.rating || null,\n      totalUserReviews: reviewAgg._count,\n      // Review hasil scraping Google Maps.\n      scrapedAverageRating: scrapedAgg._avg.rating\n        ? parseFloat(scrapedAgg._avg.rating.toFixed(2))\n        : destination.userRating,\n      scrapedReviewCount: scrapedAgg._count.rating,\n      topicSentimentBreakdown,\n      topicGroups,\n    }"
+            },
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 528,
+              "end_line": 542,
+              "start_col": 64,
+              "end_col": 5,
+              "fragment": "id);\n\n    return {\n      ...destination,\n      // Review user aplikasi.\n      averageUserRating: reviewAgg._avg.rating || null,\n      totalUserReviews: reviewAgg._count,\n      // Review hasil scraping Google Maps.\n      scrapedAverageRating: scrapedAgg._avg.rating\n        ? parseFloat(scrapedAgg._avg.rating.toFixed(2))\n        : destination.userRating,\n      scrapedReviewCount: scrapedAgg._count.rating,\n      topicSentimentBreakdown,\n      topicGroups,\n    }"
+            }
+          ],
+          "token_count": 57,
+          "line_count": 15,
+          "fingerprint": "dup:ac6bad7d",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (15 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        },
+        {
+          "instances": [
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 583,
+              "end_line": 596,
+              "start_col": 11,
+              "end_col": 36,
+              "fragment": ": number,\n    page: number,\n    limit: number,\n  ) {\n    const destination = await this.prisma.destination.findFirst({\n      where: { id: destinationId, deletedAt: null },\n      select: { id: true },\n    });\n\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    const skip = (page - 1) * limit;"
+            },
+            {
+              "file": "src/modules/destinations/destinations.service.ts",
+              "start_line": 632,
+              "end_line": 648,
+              "start_col": 11,
+              "end_col": 7,
+              "fragment": ": number,\n    page: number,\n    limit: number,\n  ) {\n    const destination = await this.prisma.destination.findFirst({\n      where: { id: destinationId, deletedAt: null },\n      select: { id: true },\n    });\n\n    if (!destination) {\n      throw new NotFoundException('Destinasi tidak ditemukan');\n    }\n\n    const topics = await this.prisma.topic.findMany({\n      where: { groupId },\n      select: { id: true },\n    });"
+            }
+          ],
+          "token_count": 52,
+          "line_count": 17,
+          "fingerprint": "dup:741c74d0",
+          "suggested_name": "destination",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (17 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 104,
+      "total_duplicated_tokens": 302,
+      "suggestions": [
+        {
+          "kind": "ExtractModule",
+          "description": "Extract 5 shared clone groups (104 lines) from destinations.service.ts into src\\modules\\destinations",
+          "estimated_savings": 132
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 5 duplicated code blocks (104 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract 5 shared clone groups (104 lines) from destinations.service.ts into src\\modules\\destinations"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/favorites/favorites.controller.ts",
+        "src/modules/search/search.controller.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/favorites/favorites.controller.ts",
+              "start_line": 51,
+              "end_line": 58,
+              "start_col": 20,
+              "end_col": 16,
+              "fragment": "(\n    @CurrentUser('id') userId: number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20;\n    return this."
+            },
+            {
+              "file": "src/modules/search/search.controller.ts",
+              "start_line": 84,
+              "end_line": 91,
+              "start_col": 18,
+              "end_col": 16,
+              "fragment": "(\n    @CurrentUser('id') userId: number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20;\n    return this."
+            }
+          ],
+          "token_count": 75,
+          "line_count": 8,
+          "fingerprint": "dup:b534d36a",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (8 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 8,
+      "total_duplicated_tokens": 75,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (8 lines) from favorites.controller.ts, search.controller.ts",
+          "estimated_savings": 8
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 1 duplicated code block (8 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (8 lines) from favorites.controller.ts, search.controller.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/favorites/favorites.controller.ts",
+        "src/modules/search/search.controller.ts",
+        "src/modules/topics/topics.controller.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/favorites/favorites.controller.ts",
+              "start_line": 52,
+              "end_line": 57,
+              "start_col": 29,
+              "end_col": 71,
+              "fragment": ": number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20"
+            },
+            {
+              "file": "src/modules/search/search.controller.ts",
+              "start_line": 85,
+              "end_line": 90,
+              "start_col": 29,
+              "end_col": 71,
+              "fragment": ": number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 20"
+            },
+            {
+              "file": "src/modules/topics/topics.controller.ts",
+              "start_line": 191,
+              "end_line": 196,
+              "start_col": 33,
+              "end_col": 71,
+              "fragment": ": number,\n    @Query('page') page?: string,\n    @Query('limit') limit?: string,\n  ) {\n    const parsedPage = page ? parseInt(page, 10) : 1;\n    const parsedLimit = limit ? Math.min(parseInt(limit, 10), 100) : 10"
+            }
+          ],
+          "token_count": 54,
+          "line_count": 6,
+          "fingerprint": "dup:dcee1b13",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (6 lines, 3 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 6,
+      "total_duplicated_tokens": 54,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (6 lines) from favorites.controller.ts, search.controller.ts, topics.controller.ts",
+          "estimated_savings": 12
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 1 duplicated code block (6 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (6 lines) from favorites.controller.ts, search.controller.ts, topics.controller.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/nlp/nlp.controller.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/nlp/nlp.controller.ts",
+              "start_line": 109,
+              "end_line": 117,
+              "start_col": 66,
+              "end_col": 6,
+              "fragment": ");\n    const destination = await this.getDestinationOrThrow(destinationId);\n    const reviews = await this.parseFileOrThrow(file);\n    const hashedReviews = attachReviewHashes(destinationId, reviews);\n    const fileHash = createFileHash(file.buffer);\n    const existingHashes = await this.getExistingReviewHashes(\n      destinationId,\n      hashedReviews,\n    );"
+            },
+            {
+              "file": "src/modules/nlp/nlp.controller.ts",
+              "start_line": 250,
+              "end_line": 266,
+              "start_col": 41,
+              "end_col": 7,
+              "fragment": ");\n    const destination = await this.getDestinationOrThrow(destinationId);\n    const reviews = await this.parseFileOrThrow(file);\n    const hashedReviews = attachReviewHashes(destinationId, reviews);\n    const fileHash = createFileHash(file.buffer);\n\n    const run = await this.prisma.nlpProcessingRun.create({\n      data: {\n        destinationId,\n        adminId,\n        fileName: file.originalname,\n        fileHash,\n        mode,\n        status: 'processing',\n        totalRows: hashedReviews.length,\n      },\n    });"
+            }
+          ],
+          "token_count": 50,
+          "line_count": 17,
+          "fingerprint": "dup:2873f405",
+          "suggested_name": "destinationId",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (17 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        },
+        {
+          "instances": [
+            {
+              "file": "src/modules/nlp/nlp.controller.ts",
+              "start_line": 405,
+              "end_line": 415,
+              "start_col": 39,
+              "end_col": 34,
+              "fragment": "(\n    destinationId: number,\n    reviews: ReviewWithHash[],\n  ) {\n    const existing = await this.prisma.review.findMany({\n      where: {\n        destinationId,\n        source: 'google_maps',\n        reviewHash: { in: reviews.map((review) => review.reviewHash) },\n      },\n      select: { reviewHash: true }"
+            },
+            {
+              "file": "src/modules/nlp/nlp.controller.ts",
+              "start_line": 420,
+              "end_line": 430,
+              "start_col": 36,
+              "end_col": 44,
+              "fragment": "(\n    destinationId: number,\n    reviews: ReviewWithHash[],\n  ) {\n    const existing = await this.prisma.review.findMany({\n      where: {\n        destinationId,\n        source: 'google_maps',\n        reviewHash: { in: reviews.map((review) => review.reviewHash) },\n      },\n      select: { id: true, reviewHash: true }"
+            }
+          ],
+          "token_count": 56,
+          "line_count": 11,
+          "fingerprint": "dup:f774fdd5",
+          "suggested_name": "reviewHash",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (11 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 28,
+      "total_duplicated_tokens": 106,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (17 lines) from nlp.controller.ts, nlp.controller.ts",
+          "estimated_savings": 17
+        },
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (11 lines) from nlp.controller.ts, nlp.controller.ts",
+          "estimated_savings": 11
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 2 duplicated code blocks (28 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (17 lines) from nlp.controller.ts, nlp.controller.ts"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (11 lines) from nlp.controller.ts, nlp.controller.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/nlp/nlp.service.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/nlp/nlp.service.ts",
+              "start_line": 34,
+              "end_line": 73,
+              "start_col": 8,
+              "end_col": 39,
+              "fragment": "{\n      const response = await firstValueFrom(\n        this.httpService\n          .post<NlpPipelineResult>(\n            `${this.nlpBaseUrl}/pipeline/process`,\n            formData,\n            {\n              headers: formData.getHeaders(),\n              timeout: 300000, // 5 minutes timeout\n            },\n          )\n          .pipe(\n            catchError((error: AxiosError) => {\n              this.handleAxiosError(error);\n              throw error;\n            }),\n          ),\n      );\n\n      this.logger.log(\n        `✅ FastAPI response received. Keys: ${Object.keys(response.data).join(', ')}`,\n      );\n      this.logger.log(\n        `📊 Results count: ${response.data.results?.length || 'undefined'}`,\n      );\n      this.logger.log(\n        `📊 Topics count: ${response.data.topics?.length || 'undefined'}`,\n      );\n\n      return response.data;\n    } catch (error: unknown) {\n      if (\n        error instanceof NlpServiceUnavailableException ||\n        error instanceof NlpProcessingException\n      ) {\n        throw error;\n      }\n      const msg = error instanceof Error ? error.message : String(error);\n      this.logger.error(`Unexpected error during NLP pipeline: ${msg}`);\n      throw new NlpProcessingException("
+            },
+            {
+              "file": "src/modules/nlp/nlp.service.ts",
+              "start_line": 81,
+              "end_line": 107,
+              "start_col": 8,
+              "end_col": 39,
+              "fragment": "{\n      const response = await firstValueFrom(\n        this.httpService\n          .post<{ embedding: number[] }>(\n            `${this.nlpBaseUrl}/embed`,\n            { text },\n            { timeout: 30000 }, // 30 seconds timeout\n          )\n          .pipe(\n            catchError((error: AxiosError) => {\n              this.handleAxiosError(error);\n              throw error;\n            }),\n          ),\n      );\n\n      return response.data.embedding;\n    } catch (error: unknown) {\n      if (\n        error instanceof NlpServiceUnavailableException ||\n        error instanceof NlpProcessingException\n      ) {\n        throw error;\n      }\n      const msg = error instanceof Error ? error.message : String(error);\n      this.logger.error(`Unexpected error generating embedding: ${msg}`);\n      throw new NlpProcessingException("
+            }
+          ],
+          "token_count": 52,
+          "line_count": 40,
+          "fingerprint": "dup:198a58b2",
+          "suggested_name": "response",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (40 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 40,
+      "total_duplicated_tokens": 52,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (40 lines) from nlp.service.ts, nlp.service.ts",
+          "estimated_savings": 40
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 1 duplicated code block (40 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (40 lines) from nlp.service.ts, nlp.service.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/routes/routes.service.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/routes/routes.service.ts",
+              "start_line": 72,
+              "end_line": 77,
+              "start_col": 16,
+              "end_col": 18,
+              "fragment": "(userId: number, page = 1, limit = 20) {\n    const take = Math.min(limit, 50);\n    const skip = (Math.max(page, 1) - 1) * take;\n\n    const [data, total] = await Promise.all([\n      this.prisma."
+            },
+            {
+              "file": "src/modules/routes/routes.service.ts",
+              "start_line": 90,
+              "end_line": 95,
+              "start_col": 17,
+              "end_col": 18,
+              "fragment": "(userId: number, page = 1, limit = 20) {\n    const take = Math.min(limit, 50);\n    const skip = (Math.max(page, 1) - 1) * take;\n\n    const [data, total] = await Promise.all([\n      this.prisma."
+            }
+          ],
+          "token_count": 61,
+          "line_count": 6,
+          "fingerprint": "dup:0dda2d6c",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (6 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        },
+        {
+          "instances": [
+            {
+              "file": "src/modules/routes/routes.service.ts",
+              "start_line": 228,
+              "end_line": 233,
+              "start_col": 56,
+              "end_col": 54,
+              "fragment": ");\n    const normalizedStops = await this.prepareStops(dto.stops, dto.autoSort);\n    const stats = this.calculateRouteStats(normalizedStops);\n\n    return this.prisma.$transaction(async (tx) => {\n      await tx.routeStop.deleteMany({ where: { routeId"
+            },
+            {
+              "file": "src/modules/routes/routes.service.ts",
+              "start_line": 332,
+              "end_line": 337,
+              "start_col": 30,
+              "end_col": 54,
+              "fragment": ");\n    const normalizedStops = await this.prepareStops(dto.stops, dto.autoSort);\n    const stats = this.calculateRouteStats(normalizedStops);\n\n    return this.prisma.$transaction(async (tx) => {\n      await tx.routeStop.deleteMany({ where: { routeId"
+            }
+          ],
+          "token_count": 57,
+          "line_count": 6,
+          "fingerprint": "dup:9e852720",
+          "suggested_name": "normalizedStops",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (6 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        },
+        {
+          "instances": [
+            {
+              "file": "src/modules/routes/routes.service.ts",
+              "start_line": 241,
+              "end_line": 256,
+              "start_col": 10,
+              "end_col": 6,
+              "fragment": "totalDistanceKm: stats.totalDistanceKm,\n          estimatedDurationMinutes: stats.estimatedDurationMinutes,\n          stops: {\n            create: normalizedStops.map((stop) => ({\n              destinationId: stop.destinationId,\n              stopOrder: stop.stopOrder,\n              distanceFromPreviousKm: stop.distanceFromPreviousKm,\n              distanceToNextKm: stop.distanceToNextKm,\n              note: stop.note,\n              estimatedVisitMinutes: stop.estimatedVisitMinutes,\n            })),\n          },\n        },\n        include: ROUTE_INCLUDE,\n      });\n    })"
+            },
+            {
+              "file": "src/modules/routes/routes.service.ts",
+              "start_line": 346,
+              "end_line": 361,
+              "start_col": 10,
+              "end_col": 6,
+              "fragment": "totalDistanceKm: stats.totalDistanceKm,\n          estimatedDurationMinutes: stats.estimatedDurationMinutes,\n          stops: {\n            create: normalizedStops.map((stop) => ({\n              destinationId: stop.destinationId,\n              stopOrder: stop.stopOrder,\n              distanceFromPreviousKm: stop.distanceFromPreviousKm,\n              distanceToNextKm: stop.distanceToNextKm,\n              note: stop.note,\n              estimatedVisitMinutes: stop.estimatedVisitMinutes,\n            })),\n          },\n        },\n        include: ROUTE_INCLUDE,\n      });\n    })"
+            }
+          ],
+          "token_count": 59,
+          "line_count": 16,
+          "fingerprint": "dup:6e7d3e3d",
+          "suggested_name": "stop",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (16 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 28,
+      "total_duplicated_tokens": 177,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (16 lines) from routes.service.ts, routes.service.ts",
+          "estimated_savings": 16
+        },
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (6 lines) from routes.service.ts, routes.service.ts",
+          "estimated_savings": 6
+        },
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (6 lines) from routes.service.ts, routes.service.ts",
+          "estimated_savings": 6
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 3 duplicated code blocks (28 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (16 lines) from routes.service.ts, routes.service.ts"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (6 lines) from routes.service.ts, routes.service.ts"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (6 lines) from routes.service.ts, routes.service.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    },
+    {
+      "files": [
+        "src/modules/users/dto/admin-update-user.dto.ts",
+        "src/modules/users/dto/update-profile.dto.ts"
+      ],
+      "groups": [
+        {
+          "instances": [
+            {
+              "file": "src/modules/users/dto/admin-update-user.dto.ts",
+              "start_line": 22,
+              "end_line": 40,
+              "start_col": 23,
+              "end_col": 15,
+              "fragment": "{\n    description: 'Email user',\n    example: 'john@mail.com',\n  })\n  @IsOptional()\n  @IsEmail({}, { message: 'Format email tidak valid' })\n  email?: string;\n\n  @ApiPropertyOptional({\n    description: 'Password baru',\n    example: 'newpassword123',\n  })\n  @IsOptional()\n  @IsString()\n  @MinLength(6, { message: 'Password minimal 6 karakter' })\n  password?: string;\n\n  @ApiPropertyOptional({\n    description"
+            },
+            {
+              "file": "src/modules/users/dto/update-profile.dto.ts",
+              "start_line": 14,
+              "end_line": 32,
+              "start_col": 23,
+              "end_col": 15,
+              "fragment": "{\n    description: 'Email user',\n    example: 'newemail@mail.com',\n  })\n  @IsOptional()\n  @IsEmail({}, { message: 'Format email tidak valid' })\n  email?: string;\n\n  @ApiPropertyOptional({\n    description: 'Password baru',\n    example: 'newpassword123',\n  })\n  @IsOptional()\n  @IsString()\n  @MinLength(6, { message: 'Password minimal 6 karakter' })\n  password?: string;\n\n  @ApiPropertyOptional({\n    description"
+            }
+          ],
+          "token_count": 53,
+          "line_count": 19,
+          "fingerprint": "dup:25327765",
+          "suggested_name": "description",
+          "actions": [
+            {
+              "type": "extract-shared",
+              "auto_fixable": false,
+              "description": "Extract duplicated code (19 lines, 2 instances) into a shared function"
+            },
+            {
+              "type": "suppress-line",
+              "auto_fixable": false,
+              "description": "Suppress with an inline comment above the duplicated code",
+              "comment": "// fallow-ignore-next-line code-duplication"
+            }
+          ]
+        }
+      ],
+      "total_duplicated_lines": 19,
+      "total_duplicated_tokens": 53,
+      "suggestions": [
+        {
+          "kind": "ExtractFunction",
+          "description": "Extract shared function (19 lines) from admin-update-user.dto.ts, update-profile.dto.ts",
+          "estimated_savings": 19
+        }
+      ],
+      "actions": [
+        {
+          "type": "extract-shared",
+          "auto_fixable": false,
+          "description": "Extract 1 duplicated code block (19 lines) into a shared module",
+          "note": "These clone groups share the same files, indicating a structural relationship; refactor together"
+        },
+        {
+          "type": "apply-suggestion",
+          "auto_fixable": false,
+          "description": "Extract shared function (19 lines) from admin-update-user.dto.ts, update-profile.dto.ts"
+        },
+        {
+          "type": "suppress-line",
+          "auto_fixable": false,
+          "description": "Suppress with an inline comment above the duplicated code",
+          "comment": "// fallow-ignore-next-line code-duplication"
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "total_files": 93,
+    "files_with_clones": 15,
+    "total_lines": 12031,
+    "duplicated_lines": 590,
+    "total_tokens": 55146,
+    "duplicated_tokens": 1369,
+    "clone_groups": 20,
+    "clone_instances": 42,
+    "duplication_percentage": 4.903998005153354
+  },
+  "_meta": {
+    "docs": "https://docs.fallow.tools/cli/dupes",
+    "field_definitions": {
+      "actions[]": "Per-finding fix and suppression suggestions. Each entry carries a `type` discriminant (kebab-case) plus a per-action `auto_fixable` bool. Consumers dispatch on `type` to choose the remediation and filter on `auto_fixable` of each individual entry.",
+      "actions[].auto_fixable": "Evaluated PER FINDING, not per action type. The same `type` may carry `auto_fixable: true` on one finding and `auto_fixable: false` on another when per-instance guards in the `fallow fix` applier discriminate. Filter on this bool of each individual action, not on `type` alone. Current per-instance flips: (1) `remove-catalog-entry` is `true` only when the finding's `hardcoded_consumers` array is empty (else fallow fix skips the entry to avoid breaking `pnpm install`); (2) the primary dependency action flips between `remove-dependency` (`auto_fixable: true`) and `move-dependency` (`auto_fixable: false`) based on `used_in_workspaces`; (3) `add-to-config` for `ignoreExports` is `true` when fallow fix can safely apply the action, which means EITHER a fallow config file already exists OR no config exists and the working directory is NOT inside a monorepo subpackage (the applier then creates `.fallowrc.json` using `fallow init`'s framework-aware scaffolding and layers the new rules on top); `false` inside a monorepo subpackage with no workspace-root config because the applier refuses to fragment per-package configs; (4) `update-catalog-reference` is always `false` today (catalog-switching applier not yet wired). All `suppress-line` and `suppress-file` actions are uniformly `false`."
+    },
+    "metrics": {
+      "duplication_percentage": {
+        "name": "Duplication Percentage",
+        "description": "Fraction of total source tokens that appear in at least one clone group. Computed over the full analyzed file set.",
+        "range": "[0, 100]",
+        "interpretation": "lower is better"
+      },
+      "token_count": {
+        "name": "Token Count",
+        "description": "Number of normalized source tokens in the clone group. Tokens are language-aware (keywords, identifiers, operators, punctuation). Higher token count = larger duplicate.",
+        "range": "[1, ∞)",
+        "interpretation": "larger clones have higher refactoring value"
+      },
+      "line_count": {
+        "name": "Line Count",
+        "description": "Number of source lines spanned by the clone instance. Approximation of clone size for human readability.",
+        "range": "[1, ∞)",
+        "interpretation": "larger clones are more impactful to deduplicate"
+      },
+      "clone_groups": {
+        "name": "Clone Groups",
+        "description": "A set of code fragments with identical or near-identical normalized token sequences. Each group has 2+ instances across different locations.",
+        "interpretation": "each group is a single refactoring opportunity"
+      },
+      "clone_groups_below_min_occurrences": {
+        "name": "Clone Groups Below minOccurrences",
+        "description": "Number of clone groups detected but hidden by the `duplicates.minOccurrences` filter. Always 0 (or absent) when the filter is at its default of 2. Pre-filter group count = `clone_groups + clone_groups_below_min_occurrences`.",
+        "range": "[0, ∞)",
+        "interpretation": "high values suggest noisy pair-only duplication; lower `minOccurrences` to inspect"
+      },
+      "clone_families": {
+        "name": "Clone Families",
+        "description": "Groups of clone groups that share the same set of files. Indicates systematic duplication patterns (e.g., mirrored directory structures).",
+        "interpretation": "families suggest extract-module refactoring opportunities"
+      }
+    }
+  }
+}

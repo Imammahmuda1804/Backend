@@ -17,6 +17,10 @@ export declare class ReviewsService {
         message: string;
     }>;
     recalculateUserRating(destinationId: number): Promise<void>;
+    private getUserReviewRatingSummary;
+    private calculateUserRecommendationScore;
+    private findReviewsWithSentiment;
+    private countPositiveReviews;
     getReviewsByDestination(destinationId: number, page: number, limit: number, sentiment?: string, topicId?: number, dateFrom?: string, dateTo?: string, sortBy?: 'newest' | 'oldest', nlpStatus?: 'all' | 'processed' | 'unprocessed'): Promise<{
         data: ({
             topic: {
@@ -48,6 +52,12 @@ export declare class ReviewsService {
             totalPages: number;
         };
     }>;
+    private buildDestinationReviewFilter;
+    private buildReviewDateFilter;
+    private buildReviewDateRange;
+    private endOfDay;
+    private buildReviewNlpFilter;
+    private getReviewOrder;
     deleteBulkReviews(destinationId: number, category: 'all' | 'processed' | 'unprocessed'): Promise<{
         message: string;
     }>;

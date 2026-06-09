@@ -20,18 +20,22 @@ function emptyStringToUndefined(value: unknown): unknown {
 
 function parseNumberArray(value: unknown): number[] | undefined {
   if (value == null || value === '') return undefined;
-  const rawValues =
-    Array.isArray(value) ||
-    typeof value === 'string' ||
-    typeof value === 'number'
-      ? Array.isArray(value)
-        ? value
-        : String(value).split(',')
-      : [];
-  const parsed = rawValues
+  const parsed = toRawNumberValues(value)
     .map((item) => Number(item))
-    .filter((item) => Number.isInteger(item) && item > 0);
+    .filter(isPositiveInteger);
   return parsed.length > 0 ? parsed : undefined;
+}
+
+function toRawNumberValues(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value as unknown[];
+  if (typeof value === 'string' || typeof value === 'number') {
+    return String(value).split(',');
+  }
+  return [];
+}
+
+function isPositiveInteger(value: number) {
+  return Number.isInteger(value) && value > 0;
 }
 
 export class SearchQueryDto {

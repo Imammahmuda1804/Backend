@@ -1,22 +1,30 @@
-export interface TopicGroupCandidate {
-    id: number;
-    groupName: string;
-    keywords: string[];
-}
+import { TopicGroupClassifierService } from './topic-group-classifier.service';
+import type { TopicGroupCandidate } from './topic-group-classifier.service';
+import { TopicNamePolicyService } from './topic-name-policy.service';
+export type { TopicGroupCandidate } from './topic-group-classifier.service';
 export declare class AiNamingService {
+    private readonly topicNamePolicy;
+    private readonly groupClassifier;
     private readonly logger;
     private genAI;
     private lastRequestTime;
     private exhaustedModels;
-    constructor();
+    constructor(topicNamePolicy: TopicNamePolicyService, groupClassifier: TopicGroupClassifierService);
+    generateTopicName(topicId: number, keywords: string[], representativeDocs?: string[]): Promise<string>;
+    classifyTopicGroup(topicName: string, keywords: string[], representativeDocs: string[] | undefined, groups: TopicGroupCandidate[]): number | null;
+    private tryGenerateTopicName;
+    private tryGenerateTopicNameWithModel;
+    private tryOneTopicNameGeneration;
+    private generateTopicNameFromModel;
+    private requestTopicNameText;
+    private handleModelError;
+    private isRateLimitError;
+    private warnModelFailure;
+    private handleDailyQuotaExhaustion;
+    private warnRetryLimitReached;
+    private waitBeforeRetry;
     private isModelExhausted;
     private isDailyQuotaExhausted;
     private throttle;
     private getAvailableModels;
-    private fallbackTopicName;
-    private sanitizeTopicName;
-    private extractValidTopicName;
-    private isValidTopicName;
-    generateTopicName(topicId: number, keywords: string[], representativeDocs?: string[]): Promise<string>;
-    classifyTopicGroup(topicName: string, keywords: string[], representativeDocs: string[] | undefined, groups: TopicGroupCandidate[]): number | null;
 }

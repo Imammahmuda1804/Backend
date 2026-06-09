@@ -162,6 +162,7 @@ npx prisma validate
 npx prisma migrate status
 npx prisma generate
 npm run lint
+npx fallow health
 npm run build
 npm run start:dev
 ```
@@ -175,43 +176,43 @@ GET http://localhost:3000/api/docs
 
 ## Integrasi Service Lain
 
-| Service | URL default | Keterangan |
-| --- | --- | --- |
-| Model Python | `http://localhost:8001` | Dipakai `NlpService` untuk embedding dan pipeline NLP. |
-| Web Next.js | `http://localhost:3001` | Memanggil backend melalui Axios. |
+| Service        | URL default                                       | Keterangan                                                   |
+| -------------- | ------------------------------------------------- | ------------------------------------------------------------ |
+| Model Python   | `http://localhost:8001`                           | Dipakai `NlpService` untuk embedding dan pipeline NLP.       |
+| Web Next.js    | `http://localhost:3001`                           | Memanggil backend melalui Axios.                             |
 | Mobile Flutter | IP LAN backend, contoh `http://192.168.1.10:3000` | Device fisik harus satu jaringan atau memakai `adb reverse`. |
-| PostgreSQL | sesuai `DATABASE_URL` | Menyimpan data utama. |
-| Redis | `localhost:6379` | Queue scraper dan NLP background. |
+| PostgreSQL     | sesuai `DATABASE_URL`                             | Menyimpan data utama.                                        |
+| Redis          | `localhost:6379`                                  | Queue scraper dan NLP background.                            |
 
 ## Struktur Folder
 
-| Path | Kegunaan |
-| --- | --- |
-| `src/main.ts` | Entrypoint NestJS, global prefix, CORS, Swagger, filter, interceptor, dan server. |
-| `src/app.module.ts` | Root module yang menggabungkan semua module. |
-| `src/config/` | Konfigurasi env, multer upload, dan Swagger. |
-| `src/prisma/` | Prisma module/service untuk akses database. |
-| `src/common/` | Decorator, guard, filter, interceptor, DTO, constants, dan utility bersama. |
-| `src/modules/auth/` | Login/logout, JWT, DTO auth, dan strategy. |
-| `src/modules/users/` | Profile user, update profile, avatar upload, dan admin user helper. |
-| `src/modules/admin/` | Controller admin lintas domain seperti user dan moderation. |
-| `src/modules/destinations/` | Public/admin destination, kategori, CRUD, media, detail, dan topic aggregation. |
-| `src/modules/search/` | Keyword/semantic search, history, filter kota/kategori/topic/sentimen. |
-| `src/modules/routes/` | Route wisata shareable, route pribadi user, saved route, progress kunjungan, auto-sort jarak, dan curated route admin. |
-| `src/modules/vector/` | Query pgvector dan normalisasi embedding. |
-| `src/modules/nlp/` | Integrasi Python Model, preflight/dedup review, history proses NLP, penyimpanan hasil NLP, AI naming topic. |
-| `src/modules/topics/` | Topic, topic group, visibility, rename, dan destination-topic query. |
-| `src/modules/reviews/` | Review user dan admin review management. |
-| `src/modules/favorites/` | Favorite destination user. |
-| `src/modules/analytics/` | Analytics public dan admin dashboard. |
-| `src/modules/scraper/` | Scraper Apify, queue, CSV/Excel export, dan processor. |
-| `src/modules/uploads/` | Penyajian file upload. |
-| `prisma/` | Schema, migration database, dan `seed.ts` untuk admin awal serta topic group. |
-| `uploads/` | File gambar destinasi/profile hasil upload lokal. |
-| `test/` | E2E test NestJS. |
-| `docs/`, `Requirements/`, `Plans/` | Dokumen pendukung project. |
-| `BACKEND_CODE_FLOW.md` | Penjelasan flow source code backend. |
-| `API_DOCUMENTATION.md` | Dokumentasi endpoint backend lengkap. |
+| Path                               | Kegunaan                                                                                                               |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `src/main.ts`                      | Entrypoint NestJS, global prefix, CORS, Swagger, filter, interceptor, dan server.                                      |
+| `src/app.module.ts`                | Root module yang menggabungkan semua module.                                                                           |
+| `src/config/`                      | Konfigurasi env, multer upload, dan Swagger.                                                                           |
+| `src/prisma/`                      | Prisma module/service untuk akses database.                                                                            |
+| `src/common/`                      | Decorator, guard, filter, interceptor, DTO, constants, dan utility bersama.                                            |
+| `src/modules/auth/`                | Login/logout, JWT, DTO auth, dan strategy.                                                                             |
+| `src/modules/users/`               | Profile user, update profile, avatar upload, dan admin user helper.                                                    |
+| `src/modules/admin/`               | Controller admin lintas domain seperti user dan moderation.                                                            |
+| `src/modules/destinations/`        | Public/admin destination, kategori, CRUD, media, detail, dan topic aggregation.                                        |
+| `src/modules/search/`              | Keyword/semantic search, history, filter kota/kategori/topic/sentimen.                                                 |
+| `src/modules/routes/`              | Route wisata shareable, route pribadi user, saved route, progress kunjungan, auto-sort jarak, dan curated route admin. |
+| `src/modules/vector/`              | Query pgvector dan normalisasi embedding.                                                                              |
+| `src/modules/nlp/`                 | Integrasi Python Model, preflight/dedup review, history proses NLP, penyimpanan hasil NLP, AI naming topic.            |
+| `src/modules/topics/`              | Topic, topic group, visibility, rename, dan destination-topic query.                                                   |
+| `src/modules/reviews/`             | Review user dan admin review management.                                                                               |
+| `src/modules/favorites/`           | Favorite destination user.                                                                                             |
+| `src/modules/analytics/`           | Analytics public dan admin dashboard.                                                                                  |
+| `src/modules/scraper/`             | Scraper Apify, queue, CSV/Excel export, dan processor.                                                                 |
+| `src/modules/uploads/`             | Penyajian file upload.                                                                                                 |
+| `prisma/`                          | Schema, migration database, dan `seed.ts` untuk admin awal serta topic group.                                          |
+| `uploads/`                         | File gambar destinasi/profile hasil upload lokal.                                                                      |
+| `test/`                            | E2E test NestJS.                                                                                                       |
+| `docs/`, `Requirements/`, `Plans/` | Dokumen pendukung project.                                                                                             |
+| `BACKEND_CODE_FLOW.md`             | Penjelasan flow source code backend.                                                                                   |
+| `API_DOCUMENTATION.md`             | Dokumentasi endpoint backend lengkap.                                                                                  |
 
 ## Swagger
 
@@ -268,20 +269,58 @@ Admin NLP memakai preflight dan history agar upload file review tidak membuat da
 5. Review scraped memiliki `review_hash` unik per destinasi/source agar file yang sama tidak menggandakan analisis.
 6. Upload NLP wajib memakai Python Model service aktif. Jika service mati atau pipeline tidak mengembalikan topik, run menjadi `failed` agar data ulasan tidak terlihat sukses tanpa analisis topik.
 
+## Catatan Clean Code Backend
+
+Refactor backend mempertahankan semua endpoint, tetapi memecah service besar
+berdasarkan satu tanggung jawab. Controller tetap memanggil facade dengan nama
+lama sehingga web dan mobile tidak perlu diubah.
+
+Pola membaca kode:
+
+1. Buka controller untuk melihat endpoint.
+2. Buka facade seperti `DestinationsService`, `RoutesService`,
+   `TopicsService`, `AnalyticsService`, atau `NlpUploadService`.
+3. Ikuti provider yang dipanggil facade sesuai pekerjaan yang dicari.
+
+Pembagian provider utama:
+
+- Destination: `DestinationAdminService`, `DestinationCatalogService`, dan
+  `DestinationDetailService`.
+- Analytics: dashboard, public dashboard, detail destinasi, compare, export,
+  insight, dan recalculation berada pada service terpisah.
+- Topic: query, review, merge, group, serta management berada pada provider
+  terpisah; `TopicsService` hanya facade.
+- Route: akses/ownership, query, progress saved route, perencanaan jarak, dan
+  mutasi route dipisahkan.
+- NLP upload: persiapan file, history run, pipeline runner, execution, dedup,
+  serta penyimpanan hasil dipisahkan.
+- NLP storage: topic, review/embedding, dan analytics destinasi disimpan oleh
+  provider khusus.
+- AI naming: komunikasi Gemini, aturan nama topik, dan classifier topic group
+  dipisahkan.
+- Scraper: worker queue tidak lagi memuat detail styling Excel;
+  `ScraperWorkbookService` menangani workbook.
+
+`ExcelParserUtil` tetap memisahkan pembacaan Excel/CSV, header mapping, parsing
+row, dan normalisasi tanggal. `npx fallow` dipakai bersama TypeScript, ESLint,
+dan build untuk memeriksa complexity, dead code, dependency, circular import,
+dan duplication.
+
 ## Perintah Penting
 
-| Perintah | Kegunaan |
-| --- | --- |
-| `npm run start:dev` | Menjalankan server development. |
-| `npm run build` | Build TypeScript ke `dist`. |
-| `npm run start:prod` | Menjalankan hasil build. |
-| `npm run lint` | Lint backend. |
-| `npm test` | Unit test. |
-| `npm run test:e2e` | E2E test. |
-| `npx prisma migrate dev` | Menjalankan migration development. |
-| `npx prisma generate` | Generate Prisma Client. |
-| `npm run db:seed` | Membuat/memperbarui admin awal dan topic group bawaan. |
-| `npx prisma studio` | Membuka Prisma Studio. |
+| Perintah                 | Kegunaan                                                                                |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| `npm run start:dev`      | Menjalankan server development.                                                         |
+| `npm run build`          | Build TypeScript ke `dist`.                                                             |
+| `npm run start:prod`     | Menjalankan hasil build.                                                                |
+| `npm run lint`           | Lint backend.                                                                           |
+| `npx fallow health`      | Audit statis backend untuk complexity, dead code, duplication, dependency, dan hotspot. |
+| `npm test`               | Unit test.                                                                              |
+| `npm run test:e2e`       | E2E test.                                                                               |
+| `npx prisma migrate dev` | Menjalankan migration development.                                                      |
+| `npx prisma generate`    | Generate Prisma Client.                                                                 |
+| `npm run db:seed`        | Membuat/memperbarui admin awal dan topic group bawaan.                                  |
+| `npx prisma studio`      | Membuka Prisma Studio.                                                                  |
 
 ## Troubleshooting
 

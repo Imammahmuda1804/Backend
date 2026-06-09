@@ -64,36 +64,58 @@ let VectorService = class VectorService {
     }
     async hybridSearch(queryEmbedding, limit = 10, sortType = 'hybrid', filters = {}) {
         const vectorStr = `[${queryEmbedding.join(',')}]`;
+        const whereSql = client_1.Prisma.join(this.buildHybridWhereClauses(filters), ' AND ');
+        if (sortType === 'relevance') {
+            return this.searchByRelevance(vectorStr, whereSql, limit);
+        }
+        return this.searchByHybridScore(vectorStr, whereSql, limit);
+    }
+    buildHybridWhereClauses(filters) {
         const whereClauses = [
             client_1.Prisma.sql `d.embedding IS NOT NULL`,
             client_1.Prisma.sql `d.deleted_at IS NULL`,
         ];
-        if (filters.city) {
-            whereClauses.push(client_1.Prisma.sql `LOWER(d.city) = LOWER(${filters.city})`);
-        }
-        if (filters.category) {
-            whereClauses.push(client_1.Prisma.sql `LOWER(d.category) = LOWER(${filters.category})`);
-        }
-        if (filters.minRating != null) {
-            whereClauses.push(client_1.Prisma.sql `COALESCE(d.user_rating, d.google_rating, 0) >= ${filters.minRating}`);
-        }
-        if (filters.topicIds && filters.topicIds.length > 0) {
-            whereClauses.push(client_1.Prisma.sql `EXISTS (
+        this.addCityFilter(whereClauses, filters.city);
+        this.addCategoryFilter(whereClauses, filters.category);
+        this.addMinRatingFilter(whereClauses, filters.minRating);
+        this.addTopicFilter(whereClauses, filters.topicIds);
+        this.addSentimentFilter(whereClauses, filters.sentiment);
+        return whereClauses;
+    }
+    addCityFilter(whereClauses, city) {
+        if (city)
+            whereClauses.push(client_1.Prisma.sql `LOWER(d.city) = LOWER(${city})`);
+    }
+    addCategoryFilter(whereClauses, category) {
+        if (!category)
+            return;
+        whereClauses.push(client_1.Prisma.sql `LOWER(d.category) = LOWER(${category})`);
+    }
+    addMinRatingFilter(whereClauses, minRating) {
+        if (minRating == null)
+            return;
+        whereClauses.push(client_1.Prisma.sql `COALESCE(d.user_rating, d.google_rating, 0) >= ${minRating}`);
+    }
+    addTopicFilter(whereClauses, topicIds) {
+        if (!topicIds || topicIds.length === 0)
+            return;
+        whereClauses.push(client_1.Prisma.sql `EXISTS (
         SELECT 1 FROM destination_topics dt
         WHERE dt.destination_id = d.id
-          AND dt.topic_id IN (${client_1.Prisma.join(filters.topicIds)})
+          AND dt.topic_id IN (${client_1.Prisma.join(topicIds)})
       )`);
-        }
-        if (filters.sentiment) {
-            whereClauses.push(client_1.Prisma.sql `EXISTS (
+    }
+    addSentimentFilter(whereClauses, sentiment) {
+        if (!sentiment)
+            return;
+        whereClauses.push(client_1.Prisma.sql `EXISTS (
         SELECT 1 FROM reviews r
         WHERE r.destination_id = d.id
-          AND r.sentiment = ${filters.sentiment}
+          AND r.sentiment = ${sentiment}
       )`);
-        }
-        const whereSql = client_1.Prisma.join(whereClauses, ' AND ');
-        if (sortType === 'relevance') {
-            return this.prisma.$queryRaw `
+    }
+    searchByRelevance(vectorStr, whereSql, limit) {
+        return this.prisma.$queryRaw `
         SELECT
           d.id, d.name, d.slug, d.city, d.province, d.category,
           d.thumbnail_url, d.google_rating, d.user_rating,
@@ -104,7 +126,8 @@ let VectorService = class VectorService {
         ORDER BY similarity DESC
         LIMIT ${limit}
       `;
-        }
+    }
+    searchByHybridScore(vectorStr, whereSql, limit) {
         return this.prisma.$queryRaw `
       SELECT
         d.id, d.name, d.slug, d.city, d.province, d.category,

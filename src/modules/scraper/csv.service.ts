@@ -1,36 +1,32 @@
 import { Injectable } from '@nestjs/common';
-
-function serializeCsvValue(value: unknown): string {
-  if (value === null || value === undefined) return '';
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value);
-  }
-  if (value instanceof Date) return value.toISOString();
-  if (typeof value === 'object') return JSON.stringify(value) ?? '';
-  return '';
-}
+import { escapeCsvValue } from './csv-value.util';
 
 @Injectable()
 export class CsvService {
   generateCsv(data: Record<string, unknown>[]): string {
     if (!data || data.length === 0) return '';
-    const headers = Object.keys(data[0]);
-    const rows = [headers.join(',')];
 
-    for (const item of data) {
-      const values = headers.map((header) => {
-        const val = item[header];
-        const stringVal = serializeCsvValue(val);
-        return `"${stringVal.replace(/"/g, '""')}"`;
-      });
-      rows.push(values.join(','));
-    }
+    const headers = Object.keys(data[0]);
+    const rows = [
+      this.createHeaderRow(headers),
+      ...data.map((item) => this.createDataRow(item, headers)),
+    ];
 
     return rows.join('\n');
   }
 
   generateInternalCsv(data: Record<string, unknown>[]): string {
     return this.generateCsv(data);
+  }
+
+  private createHeaderRow(headers: string[]): string {
+    return headers.join(',');
+  }
+
+  private createDataRow(
+    item: Record<string, unknown>,
+    headers: string[],
+  ): string {
+    return headers.map((header) => escapeCsvValue(item[header])).join(',');
   }
 }

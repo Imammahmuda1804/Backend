@@ -18,6 +18,7 @@ const swagger_1 = require("@nestjs/swagger");
 const reviews_service_1 = require("./reviews.service");
 const reviews_query_dto_1 = require("./dto/reviews-query.dto");
 const roles_decorator_1 = require("../../common/decorators/roles.decorator");
+const api_admin_auth_responses_decorator_1 = require("../../common/decorators/api-admin-auth-responses.decorator");
 let AdminReviewsController = class AdminReviewsController {
     reviewsService;
     constructor(reviewsService) {
@@ -40,8 +41,7 @@ __decorate([
     (0, common_1.Get)('destination/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Mendapatkan daftar review untuk sebuah destinasi' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Daftar review berhasil diambil' }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
-    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
+    (0, api_admin_auth_responses_decorator_1.ApiAdminAuthResponses)(),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Query)()),
     __metadata("design:type", Function),
@@ -56,8 +56,7 @@ __decorate([
         status: 200,
         description: 'Review berhasil dihapus secara masal',
     }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
-    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
+    (0, api_admin_auth_responses_decorator_1.ApiAdminAuthResponses)(),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __param(1, (0, common_1.Query)('category')),
     __metadata("design:type", Function),
@@ -69,8 +68,7 @@ __decorate([
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     (0, swagger_1.ApiOperation)({ summary: 'Menghapus review (scraped review)' }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Review berhasil dihapus' }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized' }),
-    (0, swagger_1.ApiResponse)({ status: 403, description: 'Forbidden — ADMIN only' }),
+    (0, api_admin_auth_responses_decorator_1.ApiAdminAuthResponses)(),
     (0, swagger_1.ApiResponse)({ status: 404, description: 'Review tidak ditemukan' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
     __metadata("design:type", Function),

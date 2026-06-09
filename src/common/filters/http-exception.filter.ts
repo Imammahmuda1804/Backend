@@ -14,27 +14,53 @@ export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
 
   catch(exception: HttpException, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
+    const { request, response } = this.getHttpContext(host);
+    const message = this.getExceptionMessage(exception);
+    const errorResponse = this.buildErrorResponse(status, message, request);
 
+    this.logException(status, request, message, exception);
+    response.status(status).json(errorResponse);
+  }
+
+  private getHttpContext(host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    return {
+      response: ctx.getResponse<Response>(),
+      request: ctx.getRequest<Request>(),
+    };
+  }
+
+  private getExceptionMessage(exception: HttpException) {
     const exceptionResponse = exception.getResponse();
-    const message =
-      typeof exceptionResponse === 'string'
-        ? exceptionResponse
-        : (exceptionResponse as { message?: string | string[] }).message ||
-          exception.message;
+    if (typeof exceptionResponse === 'string') return exceptionResponse;
 
-    const errorResponse = {
+    return (
+      (exceptionResponse as { message?: string | string[] }).message ||
+      exception.message
+    );
+  }
+
+  private buildErrorResponse(
+    status: number,
+    message: string | string[],
+    request: Request,
+  ) {
+    return {
       statusCode: status,
       message: Array.isArray(message) ? message : [message],
       error: HttpStatus[status] || 'Error',
       timestamp: new Date().toISOString(),
       path: request.url,
     };
+  }
 
-    // Log error server untuk troubleshooting.
+  private logException(
+    status: number,
+    request: Request,
+    message: string | string[],
+    exception: HttpException,
+  ) {
     if (status >= 500) {
       this.logger.error(
         `${request.method} ${request.url} - ${status}`,
@@ -45,7 +71,5 @@ export class HttpExceptionFilter implements ExceptionFilter {
         `${request.method} ${request.url} - ${status}: ${JSON.stringify(message)}`,
       );
     }
-
-    response.status(status).json(errorResponse);
   }
 }

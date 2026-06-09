@@ -1,0 +1,426 @@
+{
+  "kind": "dead-code",
+  "schema_version": 7,
+  "version": "2.89.0",
+  "elapsed_ms": 159,
+  "total_issues": 11,
+  "entry_points": {
+    "total": 129,
+    "sources": {
+      "package.json": 3,
+      "plugin": 126
+    }
+  },
+  "summary": {
+    "total_issues": 11,
+    "unused_files": 1,
+    "unused_exports": 0,
+    "unused_types": 0,
+    "private_type_leaks": 0,
+    "unused_dependencies": 8,
+    "unused_enum_members": 0,
+    "unused_class_members": 0,
+    "unresolved_imports": 0,
+    "unlisted_dependencies": 2,
+    "duplicate_exports": 0,
+    "type_only_dependencies": 0,
+    "test_only_dependencies": 0,
+    "circular_dependencies": 0,
+    "re_export_cycles": 0,
+    "boundary_violations": 0,
+    "stale_suppressions": 0,
+    "unused_catalog_entries": 0,
+    "empty_catalog_groups": 0,
+    "unresolved_catalog_references": 0,
+    "unused_dependency_overrides": 0,
+    "misconfigured_dependency_overrides": 0
+  },
+  "unused_files": [
+    {
+      "path": "scripts/create-admin.ts",
+      "actions": [
+        {
+          "type": "delete-file",
+          "auto_fixable": false,
+          "description": "Delete this file",
+          "note": "File deletion may remove runtime functionality not visible to static analysis"
+        },
+        {
+          "type": "suppress-file",
+          "auto_fixable": false,
+          "description": "Suppress with a file-level comment at the top of the file",
+          "comment": "// fallow-ignore-file unused-file"
+        }
+      ]
+    }
+  ],
+  "unused_exports": [],
+  "unused_types": [],
+  "private_type_leaks": [],
+  "unused_dependencies": [
+    {
+      "package_name": "csv-parser",
+      "location": "dependencies",
+      "path": "package.json",
+      "line": 48,
+      "actions": [
+        {
+          "type": "remove-dependency",
+          "auto_fixable": true,
+          "description": "Remove from dependencies in package.json"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"csv-parser\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "csv-parser",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    },
+    {
+      "package_name": "ioredis",
+      "location": "dependencies",
+      "path": "package.json",
+      "line": 53,
+      "actions": [
+        {
+          "type": "remove-dependency",
+          "auto_fixable": true,
+          "description": "Remove from dependencies in package.json"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"ioredis\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "ioredis",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    },
+    {
+      "package_name": "xlsx",
+      "location": "dependencies",
+      "path": "package.json",
+      "line": 60,
+      "actions": [
+        {
+          "type": "remove-dependency",
+          "auto_fixable": true,
+          "description": "Remove from dependencies in package.json"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"xlsx\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "xlsx",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    }
+  ],
+  "unused_dev_dependencies": [
+    {
+      "package_name": "@eslint/eslintrc",
+      "location": "devDependencies",
+      "path": "package.json",
+      "line": 63,
+      "actions": [
+        {
+          "type": "remove-dependency",
+          "auto_fixable": true,
+          "description": "Remove from devDependencies in package.json"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"@eslint/eslintrc\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "@eslint/eslintrc",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    },
+    {
+      "package_name": "@nestjs/schematics",
+      "location": "devDependencies",
+      "path": "package.json",
+      "line": 66,
+      "actions": [
+        {
+          "type": "remove-dependency",
+          "auto_fixable": true,
+          "description": "Remove from devDependencies in package.json"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"@nestjs/schematics\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "@nestjs/schematics",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    },
+    {
+      "package_name": "eslint-config-prettier",
+      "location": "devDependencies",
+      "path": "package.json",
+      "line": 76,
+      "actions": [
+        {
+          "type": "remove-dependency",
+          "auto_fixable": true,
+          "description": "Remove from devDependencies in package.json"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"eslint-config-prettier\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "eslint-config-prettier",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    },
+    {
+      "package_name": "source-map-support",
+      "location": "devDependencies",
+      "path": "package.json",
+      "line": 82,
+      "actions": [
+        {
+          "type": "remove-dependency",
+          "auto_fixable": true,
+          "description": "Remove from devDependencies in package.json"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"source-map-support\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "source-map-support",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    },
+    {
+      "package_name": "tsconfig-paths",
+      "location": "devDependencies",
+      "path": "package.json",
+      "line": 87,
+      "actions": [
+        {
+          "type": "remove-dependency",
+          "auto_fixable": true,
+          "description": "Remove from devDependencies in package.json"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"tsconfig-paths\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "tsconfig-paths",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    }
+  ],
+  "unused_optional_dependencies": [],
+  "unused_enum_members": [],
+  "unused_class_members": [],
+  "unresolved_imports": [],
+  "unlisted_dependencies": [
+    {
+      "package_name": "axios",
+      "imported_from": [
+        {
+          "path": "src/modules/nlp/nlp.service.ts",
+          "line": 5,
+          "col": 9
+        }
+      ],
+      "actions": [
+        {
+          "type": "install-dependency",
+          "auto_fixable": false,
+          "description": "Add this package to dependencies in package.json",
+          "note": "Verify this package should be a direct dependency before adding"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"axios\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "axios",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    },
+    {
+      "package_name": "dotenv",
+      "imported_from": [
+        {
+          "path": "prisma.config.ts",
+          "line": 3,
+          "col": 0
+        }
+      ],
+      "actions": [
+        {
+          "type": "install-dependency",
+          "auto_fixable": false,
+          "description": "Add this package to dependencies in package.json",
+          "note": "Verify this package should be a direct dependency before adding"
+        },
+        {
+          "type": "add-to-config",
+          "auto_fixable": false,
+          "description": "Add \"dotenv\" to ignoreDependencies in fallow config",
+          "config_key": "ignoreDependencies",
+          "value": "dotenv",
+          "value_schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json#/properties/ignoreDependencies/items"
+        }
+      ]
+    }
+  ],
+  "duplicate_exports": [],
+  "type_only_dependencies": [],
+  "test_only_dependencies": [],
+  "circular_dependencies": [],
+  "re_export_cycles": [],
+  "boundary_violations": [],
+  "stale_suppressions": [],
+  "unused_catalog_entries": [],
+  "empty_catalog_groups": [],
+  "unresolved_catalog_references": [],
+  "unused_dependency_overrides": [],
+  "misconfigured_dependency_overrides": [],
+  "_meta": {
+    "docs": "https://docs.fallow.tools/cli/dead-code",
+    "rules": {
+      "unused-file": {
+        "name": "Unused Files",
+        "description": "Source files that are not imported by any other module and are not entry points (scripts, tests, configs). These files can safely be deleted. Detection uses graph reachability from configured entry points.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-files"
+      },
+      "unused-export": {
+        "name": "Unused Exports",
+        "description": "Named exports that are never imported by any other module in the project. Includes both direct exports and re-exports through barrel files. The export may still be used locally within the same file.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-exports"
+      },
+      "unused-type": {
+        "name": "Unused Type Exports",
+        "description": "Type-only exports (interfaces, type aliases, enums used only as types) that are never imported. These do not generate runtime code but add maintenance burden.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-types"
+      },
+      "private-type-leak": {
+        "name": "Private Type Leaks",
+        "description": "Exported values or types whose public TypeScript signature references a same-file type declaration that is not exported. Consumers cannot name that private type directly, so the backing type should be exported or removed from the public signature.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#private-type-leaks"
+      },
+      "unused-dependency": {
+        "name": "Unused Dependencies",
+        "description": "Packages listed in dependencies that are never imported or required by any source file. Framework plugins and CLI tools may be false positives; use the ignore_dependencies config to suppress.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-dependencies"
+      },
+      "unused-dev-dependency": {
+        "name": "Unused Dev Dependencies",
+        "description": "Packages listed in devDependencies that are never imported by test files, config files, or scripts. Build tools and jest presets that are referenced only in config may appear as false positives.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-devdependencies"
+      },
+      "unused-optional-dependency": {
+        "name": "Unused Optional Dependencies",
+        "description": "Packages listed in optionalDependencies that are never imported. Optional dependencies are typically platform-specific; verify they are not needed on any supported platform before removing.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-optionaldependencies"
+      },
+      "type-only-dependency": {
+        "name": "Type-only Dependencies",
+        "description": "Production dependencies that are only imported via `import type` statements. These can be moved to devDependencies since they generate no runtime code and are stripped during compilation.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#type-only-dependencies"
+      },
+      "test-only-dependency": {
+        "name": "Test-only Dependencies",
+        "description": "Production dependencies that are only imported from test files. These can usually move to devDependencies because production entry points do not require them at runtime.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#test-only-dependencies"
+      },
+      "unused-enum-member": {
+        "name": "Unused Enum Members",
+        "description": "Enum members that are never referenced in the codebase. Uses scope-aware binding analysis to track all references including computed access patterns.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-enum-members"
+      },
+      "unused-class-member": {
+        "name": "Unused Class Members",
+        "description": "Class methods and properties that are never referenced outside the class. Private members are checked within the class scope; public members are checked project-wide.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-class-members"
+      },
+      "unresolved-import": {
+        "name": "Unresolved Imports",
+        "description": "Import specifiers that could not be resolved to a file on disk. Common causes: deleted files, typos in paths, missing path aliases in tsconfig, or uninstalled packages.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unresolved-imports"
+      },
+      "unlisted-dependency": {
+        "name": "Unlisted Dependencies",
+        "description": "Packages that are imported in source code but not listed in package.json. These work by accident (hoisted from another workspace package or transitive dep) and will break in strict package managers.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unlisted-dependencies"
+      },
+      "duplicate-export": {
+        "name": "Duplicate Exports",
+        "description": "The same export name is defined in multiple modules. Consumers may import from the wrong module, leading to subtle bugs. Consider renaming or consolidating.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#duplicate-exports"
+      },
+      "circular-dependency": {
+        "name": "Circular Dependencies",
+        "description": "A cycle in the module import graph. Circular dependencies cause undefined behavior with CommonJS (partial modules) and initialization ordering issues with ESM. Break cycles by extracting shared code.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#circular-dependencies"
+      },
+      "re-export-cycle": {
+        "name": "Re-Export Cycles",
+        "description": "A barrel file re-exports from another barrel that ultimately re-exports back. When this happens, imports from any file in the loop may silently come up empty, because the re-export chain has no terminating module to resolve names against. To fix this: open any one file in the loop and remove the `export * from` (or `export { ... } from`) statement that points back into the cycle. Any single removal will break the cycle and restore working re-exports. A self-loop (a single barrel re-exporting from itself, often a rename leftover) is reported under the same rule with kind `self-loop`.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#re-export-cycles"
+      },
+      "boundary-violation": {
+        "name": "Boundary Violations",
+        "description": "A module imports from a zone that its configured boundary rules do not allow. Boundary checks help keep layered architecture, feature slices, and package ownership rules enforceable.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#boundary-violations"
+      },
+      "stale-suppression": {
+        "name": "Stale Suppressions",
+        "description": "A fallow-ignore-next-line, fallow-ignore-file, or @expected-unused suppression that no longer matches any active issue. The underlying problem was fixed but the suppression was left behind. Remove it to keep the codebase clean.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#stale-suppressions"
+      },
+      "unused-catalog-entry": {
+        "name": "Unused pnpm catalog entry",
+        "description": "An entry in the `catalog:` or `catalogs:` section of pnpm-workspace.yaml that no workspace package.json references via the `catalog:` protocol. Catalog entries are leftover dependency metadata once a package is removed from every consumer; delete the entry to keep the catalog truthful. See also: fallow/unresolved-catalog-reference (the inverse: consumer references a catalog that does not declare the package).",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-catalog-entries"
+      },
+      "empty-catalog-group": {
+        "name": "Empty pnpm catalog group",
+        "description": "A named group under `catalogs:` in pnpm-workspace.yaml has no package entries. Empty named groups are leftover catalog structure after the last entry is removed. The top-level `catalog:` map is intentionally ignored because some projects keep it as a stable hook.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#empty-catalog-groups"
+      },
+      "unresolved-catalog-reference": {
+        "name": "Unresolved pnpm catalog reference",
+        "description": "A workspace package.json declares a dependency with the `catalog:` or `catalog:<name>` protocol, but the catalog has no entry for that package. `pnpm install` will fail with ERR_PNPM_CATALOG_ENTRY_NOT_FOUND_FOR_CATALOG_PROTOCOL. To fix: add the package to the named catalog, switch the reference to a different catalog that does declare it, or remove the reference and pin a hardcoded version. Scope: the detector scans `dependencies`, `devDependencies`, `peerDependencies`, and `optionalDependencies` in every workspace `package.json`. See also: fallow/unused-catalog-entry (the inverse: catalog entries no consumer references).",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unresolved-catalog-references"
+      },
+      "unused-dependency-override": {
+        "name": "Unused pnpm dependency override",
+        "description": "An entry in `pnpm-workspace.yaml`'s `overrides:` section, or the root `package.json`'s `pnpm.overrides` block, whose target package is not declared by any workspace package and is not present in `pnpm-lock.yaml`. Override entries linger after their target package leaves the resolved dependency tree. For projects without a readable lockfile, fallow falls back to workspace package.json manifests and keeps a `hint` so transitive CVE pins can be reviewed before removal. To fix: delete the entry, refresh `pnpm-lock.yaml` if it is stale, or add the entry to `ignoreDependencyOverrides` when the override is intentionally retained. See also: fallow/misconfigured-dependency-override.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#unused-dependency-overrides"
+      },
+      "misconfigured-dependency-override": {
+        "name": "Misconfigured pnpm dependency override",
+        "description": "An entry in `pnpm-workspace.yaml`'s `overrides:` or `package.json`'s `pnpm.overrides` whose key or value does not parse as a valid pnpm override spec. Common shapes: empty key, empty value, malformed version selector on the target (`@types/react@<<18`), unbalanced parent matcher (`react>`), or unsupported `npm:alias@` syntax in the version (only the `-`, `$ref`, and `npm:alias` pnpm idioms are allowed). pnpm rejects the workspace at install time with a parser error. To fix: correct the key/value shape, or remove the entry. See also: fallow/unused-dependency-override.",
+        "docs": "https://docs.fallow.tools/explanations/dead-code#misconfigured-dependency-overrides"
+      }
+    },
+    "field_definitions": {
+      "actions[]": "Per-finding fix and suppression suggestions. Each entry carries a `type` discriminant (kebab-case) plus a per-action `auto_fixable` bool. Consumers dispatch on `type` to choose the remediation and filter on `auto_fixable` of each individual entry.",
+      "actions[].auto_fixable": "Evaluated PER FINDING, not per action type. The same `type` may carry `auto_fixable: true` on one finding and `auto_fixable: false` on another when per-instance guards in the `fallow fix` applier discriminate. Filter on this bool of each individual action, not on `type` alone. Current per-instance flips: (1) `remove-catalog-entry` is `true` only when the finding's `hardcoded_consumers` array is empty (else fallow fix skips the entry to avoid breaking `pnpm install`); (2) the primary dependency action flips between `remove-dependency` (`auto_fixable: true`) and `move-dependency` (`auto_fixable: false`) based on `used_in_workspaces`; (3) `add-to-config` for `ignoreExports` is `true` when fallow fix can safely apply the action, which means EITHER a fallow config file already exists OR no config exists and the working directory is NOT inside a monorepo subpackage (the applier then creates `.fallowrc.json` using `fallow init`'s framework-aware scaffolding and layers the new rules on top); `false` inside a monorepo subpackage with no workspace-root config because the applier refuses to fragment per-package configs; (4) `update-catalog-reference` is always `false` today (catalog-switching applier not yet wired). All `suppress-line` and `suppress-file` actions are uniformly `false`."
+    }
+  }
+}

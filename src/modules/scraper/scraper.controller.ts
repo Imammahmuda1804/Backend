@@ -124,6 +124,7 @@ export class ScraperController {
       'Content-Disposition',
       `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`,
     );
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
 
     return res.sendFile(filePath);
   }

@@ -105,12 +105,9 @@ export class ScraperProcessor extends WorkerHost {
   }
 
   private async handleScrapingFailure(jobId: number, error: unknown) {
-    this.logger.error(`Error in scraping job ${jobId}`, error);
-    await this.failJob(jobId, this.getErrorMessage(error));
-  }
-
-  private getErrorMessage(error: unknown) {
-    return error instanceof Error ? error.message : 'Unknown error';
+    const readableError = this.apifyService.toReadableError(error);
+    this.logger.error(`Error in scraping job ${jobId}: ${readableError}`, error);
+    await this.failJob(jobId, readableError);
   }
 
   private async markJobRunning(jobId: number) {

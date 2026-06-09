@@ -19,6 +19,48 @@ export class ApifyService {
     });
   }
 
+  // Mengubah error teknis Apify menjadi pesan yang bisa langsung dipahami admin.
+  toReadableError(error: unknown) {
+    const message = this.extractErrorMessage(error);
+    const normalized = message.toLowerCase();
+
+    if (
+      normalized.includes('token') ||
+      normalized.includes('unauthorized') ||
+      normalized.includes('authentication') ||
+      normalized.includes('401')
+    ) {
+      return 'Token Apify tidak valid atau belum dikonfigurasi. Periksa APIFY_API_TOKEN di environment backend.';
+    }
+
+    if (
+      normalized.includes('quota') ||
+      normalized.includes('limit') ||
+      normalized.includes('credit') ||
+      normalized.includes('insufficient') ||
+      normalized.includes('payment') ||
+      normalized.includes('billing')
+    ) {
+      return 'Limit atau credit Apify habis. Tambah credit/kuota Apify atau tunggu kuota tersedia sebelum menjalankan scraper lagi.';
+    }
+
+    if (normalized.includes('timeout') || normalized.includes('timed out')) {
+      return 'Scraper Apify timeout. Coba kurangi jumlah ulasan atau ulangi job beberapa menit lagi.';
+    }
+
+    return message || 'Scraper Apify gagal. Periksa log backend dan dashboard Apify.';
+  }
+
+  private extractErrorMessage(error: unknown) {
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'string') return error;
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return '';
+    }
+  }
+
   // Mencari tempat di Google Maps.
   async searchPlaces(query: string) {
     this.logger.log(`Searching Google Maps for: ${query}`);

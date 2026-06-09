@@ -44,8 +44,9 @@ export class ScraperService {
     try {
       return await this.apifyService.searchPlaces(query.trim());
     } catch (error: unknown) {
-      this.logger.error('Error searching maps', error);
-      throw new BadRequestException('Failed to search maps via Apify');
+      const readableError = this.apifyService.toReadableError(error);
+      this.logger.error(`Error searching maps: ${readableError}`, error);
+      throw new BadRequestException(readableError);
     }
   }
 

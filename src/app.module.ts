@@ -96,10 +96,28 @@ import { join } from 'path';
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
+        const redisUrl = configService.get<string>('REDIS_URL');
         const redisUsername = configService.get<string>('REDIS_USERNAME');
         const redisPassword = configService.get<string>('REDIS_PASSWORD');
         const useRedisTls =
           configService.get<string>('REDIS_TLS', 'false') === 'true';
+
+        if (redisUrl) {
+          const parsedRedisUrl = new URL(redisUrl);
+          const protocolUsesTls = parsedRedisUrl.protocol === 'rediss:';
+
+          return {
+            connection: {
+              host: parsedRedisUrl.hostname,
+              port: Number(parsedRedisUrl.port || 6379),
+              username: decodeURIComponent(parsedRedisUrl.username || ''),
+              password: decodeURIComponent(parsedRedisUrl.password || ''),
+              tls: protocolUsesTls ? {} : undefined,
+              maxRetriesPerRequest: null,
+              enableReadyCheck: false,
+            },
+          };
+        }
 
         return {
           connection: {
@@ -108,6 +126,8 @@ import { join } from 'path';
             username: redisUsername || undefined,
             password: redisPassword || undefined,
             tls: useRedisTls ? {} : undefined,
+            maxRetriesPerRequest: null,
+            enableReadyCheck: false,
           },
         };
       },

@@ -82,6 +82,7 @@ export function validateEnv(env: RawEnv): ValidatedEnv {
 
   validateUrl(env, 'FASTAPI_URL', errors);
   validateUrl(env, 'NLP_SERVICE_URL', errors);
+  validateUrl(env, 'SUPABASE_URL', errors);
   validateCommaSeparatedOrigins(env, 'CORS_ORIGINS', errors);
 
   const port = parsePort(env, 'PORT', 3000, errors);

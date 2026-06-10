@@ -16,6 +16,17 @@ type ScraperDestination = {
   id: number;
   name: string;
   googleMapsUrl: string | null;
+  googleRating: number | null;
+  googleReviewCount: number | null;
+};
+
+type MapsPlaceSnapshot = {
+  title?: string;
+  address?: string;
+  rating?: number;
+  totalReviews?: number;
+  placeId?: string;
+  url?: string;
 };
 
 type ScrapingJobForDownload = {
@@ -72,16 +83,164 @@ export class ScraperService {
     );
   }
 
+  // Mengambil angka live Google Maps dan progres data yang sudah masuk database.
+  async getScrapingOverview(destinationId: number, mapsUrl?: string) {
+    const destination = await this.findScraperDestination(destinationId);
+    const finalMapsUrl = this.resolveOverviewMapsUrl(destination, mapsUrl);
+    const [
+      livePlace,
+      storedTextReviews,
+      processedReviews,
+      latestNlpRun,
+      latestJob,
+    ] = await Promise.all([
+      this.fetchLivePlaceSnapshot(finalMapsUrl),
+      this.countStoredTextReviews(destination.id),
+      this.countProcessedReviews(destination.id),
+      this.findLatestNlpRun(destination.id),
+      this.findLatestScrapingJob(destination.id),
+    ]);
+    const liveTotalReviews = livePlace?.totalReviews ?? null;
+
+    return {
+      destination_id: destination.id,
+      destination_name: destination.name,
+      maps_url: finalMapsUrl,
+      live_google: {
+        title: livePlace?.title ?? null,
+        address: livePlace?.address ?? null,
+        rating: livePlace?.rating ?? null,
+        total_reviews: liveTotalReviews,
+        place_id: livePlace?.placeId ?? null,
+        fetched_at: new Date().toISOString(),
+      },
+      cached_destination: {
+        google_rating: destination.googleRating,
+        google_review_count: destination.googleReviewCount,
+      },
+      database: {
+        stored_text_reviews: storedTextReviews,
+        processed_reviews: processedReviews,
+        latest_nlp_run: latestNlpRun,
+        latest_scraping_job: latestJob,
+      },
+      coverage: {
+        stored_text_reviews_percent: this.toPercent(
+          storedTextReviews,
+          liveTotalReviews,
+        ),
+        processed_reviews_percent: this.toPercent(
+          processedReviews,
+          liveTotalReviews,
+        ),
+      },
+      text_filter_note:
+        'Scraper tetap menyimpan ulasan yang memiliki teks. Rating tanpa teks tidak masuk ke file hasil scraping.',
+    };
+  }
+
   private async findScraperDestination(
     destinationId: number,
   ): Promise<ScraperDestination> {
     const destination = await this.prisma.destination.findUnique({
       where: { id: destinationId },
-      select: { id: true, name: true, googleMapsUrl: true },
+      select: {
+        id: true,
+        name: true,
+        googleMapsUrl: true,
+        googleRating: true,
+        googleReviewCount: true,
+      },
     });
 
     if (!destination) throw new NotFoundException('Destination not found');
     return destination;
+  }
+
+  private resolveOverviewMapsUrl(
+    destination: ScraperDestination,
+    mapsUrl?: string,
+  ) {
+    const finalMapsUrl = mapsUrl?.trim() || destination.googleMapsUrl;
+
+    if (!finalMapsUrl) {
+      throw new BadRequestException(
+        'Destinasi belum memiliki URL Google Maps. Isi URL Maps untuk melihat ringkasan live.',
+      );
+    }
+    return finalMapsUrl;
+  }
+
+  private async fetchLivePlaceSnapshot(
+    mapsUrl: string,
+  ): Promise<MapsPlaceSnapshot | null> {
+    try {
+      const places = (await this.apifyService.searchPlaces(
+        mapsUrl,
+      )) as MapsPlaceSnapshot[];
+      return places[0] ?? null;
+    } catch (error: unknown) {
+      const readableError = this.apifyService.toReadableError(error);
+      this.logger.error(`Error fetching scraper overview: ${readableError}`);
+      throw new BadRequestException(readableError);
+    }
+  }
+
+  private countStoredTextReviews(destinationId: number) {
+    return this.prisma.review.count({
+      where: {
+        destinationId,
+        reviewText: { not: null },
+      },
+    });
+  }
+
+  private countProcessedReviews(destinationId: number) {
+    return this.prisma.review.count({
+      where: {
+        destinationId,
+        sentiment: { not: null },
+      },
+    });
+  }
+
+  private findLatestNlpRun(destinationId: number) {
+    return this.prisma.nlpProcessingRun.findFirst({
+      where: { destinationId },
+      orderBy: { startedAt: 'desc' },
+      select: {
+        id: true,
+        fileName: true,
+        mode: true,
+        status: true,
+        totalRows: true,
+        insertedReviews: true,
+        skippedDuplicates: true,
+        processedReviews: true,
+        startedAt: true,
+        finishedAt: true,
+      },
+    });
+  }
+
+  private findLatestScrapingJob(destinationId: number) {
+    return this.prisma.scrapingJob.findFirst({
+      where: { destinationId },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        status: true,
+        totalReviews: true,
+        startedAt: true,
+        finishedAt: true,
+        createdAt: true,
+      },
+    });
+  }
+
+  private toPercent(current: number, total: number | null) {
+    if (!total || total <= 0) return null;
+    return Math.min(100, Math.round((current / total) * 100));
   }
 
   private resolveMapsUrl(

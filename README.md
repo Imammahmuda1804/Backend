@@ -28,6 +28,7 @@ Disarankan:
 - Redis untuk queue scraping/NLP.
 - Python Model service aktif di port `8001` jika ingin memakai NLP.
 - Apify token jika ingin menjalankan scraper.
+- Supabase Storage jika backend di-hosting dan perlu menyimpan gambar destinasi/avatar di luar filesystem container.
 
 ## Instalasi dari Clone Baru
 
@@ -66,8 +67,13 @@ NLP_SERVICE_URL=http://localhost:8001
 APIFY_TOKEN=isi-token-apify
 REDIS_HOST=localhost
 REDIS_PORT=6379
+SUPABASE_URL=https://project-ref.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=isi-service-role-key
+SUPABASE_STORAGE_BUCKET=ranahinsight-images
 CORS_ORIGINS=http://localhost:3000,http://localhost:3001
 ```
+
+Untuk setup bucket dan env storage, baca [SUPABASE_STORAGE_SETUP_GUIDE.md](./SUPABASE_STORAGE_SETUP_GUIDE.md).
 
 Generate secret aman:
 

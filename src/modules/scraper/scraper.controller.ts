@@ -22,6 +22,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import {
   HistoryQueryDto,
   JobQueryDto,
+  ScraperOverviewQueryDto,
   SearchQueryDto,
   StartScrapingDto,
 } from './dto';
@@ -47,6 +48,24 @@ export class ScraperController {
   @ApiResponse({ status: 403, description: 'Forbidden - ADMIN only' })
   async searchMaps(@Query() query: SearchQueryDto) {
     return this.scraperService.searchMaps(query.q);
+  }
+
+  // Mengambil ringkasan real-time sebelum scraping.
+  @Get('overview')
+  @ApiOperation({
+    summary: 'Ringkasan live Google Maps dan jumlah review yang sudah diproses',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ringkasan scraper berhasil diambil',
+  })
+  @ApiResponse({ status: 400, description: 'URL Maps belum tersedia' })
+  @ApiResponse({ status: 404, description: 'Destinasi tidak ditemukan' })
+  async getOverview(@Query() query: ScraperOverviewQueryDto) {
+    return this.scraperService.getScrapingOverview(
+      query.destination_id,
+      query.maps_url,
+    );
   }
 
   // Memulai job scraping review.

@@ -6,6 +6,8 @@ import {
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MediaStorageService } from '../storage/media-storage.service';
+import type { UploadableImage } from '../storage/media-storage.types';
 import {
   UpdateProfileDto,
   AdminUpdateUserDto,
@@ -33,7 +35,10 @@ const USER_PROFILE_SELECT = {
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mediaStorage: MediaStorageService,
+  ) {}
 
   async findById(id: number) {
     const user = await this.prisma.user.findUnique({
@@ -64,6 +69,24 @@ export class UsersService {
       select: USER_PROFILE_SELECT,
     });
 
+    return updatedUser;
+  }
+
+  async uploadAvatar(userId: number, file: UploadableImage) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, profilePicture: true },
+    });
+    if (!user) throw new NotFoundException('User tidak ditemukan');
+
+    const uploaded = await this.mediaStorage.uploadImage(file, 'profiles');
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { profilePicture: uploaded.publicUrl },
+      select: USER_PROFILE_SELECT,
+    });
+
+    await this.mediaStorage.deleteByPublicUrl(user.profilePicture);
     return updatedUser;
   }
 

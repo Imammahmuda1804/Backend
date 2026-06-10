@@ -4,10 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import { promises as fs } from 'fs';
-import * as path from 'path';
 import { generateUniqueSlug } from '../../common/utils/slug.util';
 import { PrismaService } from '../../prisma/prisma.service';
+import { MediaStorageService } from '../storage/media-storage.service';
+import type { UploadableImage } from '../storage/media-storage.types';
 import {
   CreateDestinationDto,
   UpdateDestinationDto,
@@ -16,7 +16,10 @@ import {
 
 @Injectable()
 export class DestinationAdminService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly mediaStorage: MediaStorageService,
+  ) {}
   // Membuat destinasi baru dan menghasilkan slug unik.
   async create(dto: CreateDestinationDto) {
     const uniqueSlug = await this.createUniqueSlug(dto.name);
@@ -159,40 +162,34 @@ export class DestinationAdminService {
     });
   }
 
-  // Mengganti thumbnail destinasi dan menghapus file lokal lama.
-  async uploadThumbnail(destinationId: number, filename: string) {
-    const destination = await this.getDestinationOrCleanupUpload(
-      destinationId,
-      filename,
-    );
+  // Mengganti thumbnail destinasi dan menghapus media lama setelah database diperbarui.
+  async uploadThumbnail(destinationId: number, file: UploadableImage) {
+    const destination = await this.getDestinationOrThrow(destinationId);
+    const uploaded = await this.mediaStorage.uploadImage(file, 'destinations');
 
-    if (destination.thumbnailUrl?.startsWith('/uploads/')) {
-      const oldFilename = path.basename(destination.thumbnailUrl);
-      await this.removeFileIfExists(this.getDestinationUploadPath(oldFilename));
-    }
-
-    const thumbnailUrl = `/uploads/destinations/${filename}`;
-    return this.prisma.destination.update({
+    const updatedDestination = await this.prisma.destination.update({
       where: { id: destinationId },
-      data: { thumbnailUrl },
+      data: { thumbnailUrl: uploaded.publicUrl },
     });
+
+    await this.mediaStorage.deleteByPublicUrl(destination.thumbnailUrl);
+    return updatedDestination;
   }
 
   // Menambahkan satu gambar galeri destinasi.
-  async uploadImage(destinationId: number, filename: string) {
-    await this.getDestinationOrCleanupUpload(destinationId, filename);
-
-    const imageUrl = `/uploads/destinations/${filename}`;
+  async uploadImage(destinationId: number, file: UploadableImage) {
+    await this.assertDestinationExists(destinationId);
+    const uploaded = await this.mediaStorage.uploadImage(file, 'destinations');
 
     return this.prisma.destinationImage.create({
       data: {
         destinationId,
-        imageUrl,
+        imageUrl: uploaded.publicUrl,
       },
     });
   }
 
-  // Menghapus gambar galeri dari database dan file lokal.
+  // Menghapus gambar galeri dari database dan object storage/lokal.
   async deleteImage(imageId: number) {
     const image = await this.prisma.destinationImage.findUnique({
       where: { id: imageId },
@@ -201,18 +198,11 @@ export class DestinationAdminService {
       throw new NotFoundException('Image tidak ditemukan');
     }
 
-    const filename = path.basename(image.imageUrl);
-    const filepath = path.join(
-      process.cwd(),
-      'uploads',
-      'destinations',
-      filename,
-    );
-    await this.removeFileIfExists(filepath);
-
-    return this.prisma.destinationImage.delete({
+    const deletedImage = await this.prisma.destinationImage.delete({
       where: { id: imageId },
     });
+    await this.mediaStorage.deleteByPublicUrl(image.imageUrl);
+    return deletedImage;
   }
 
   private async assertDestinationExists(id: number) {
@@ -226,31 +216,15 @@ export class DestinationAdminService {
     }
   }
 
-  private async getDestinationOrCleanupUpload(
-    destinationId: number,
-    filename: string,
-  ) {
+  private async getDestinationOrThrow(destinationId: number) {
     const destination = await this.prisma.destination.findUnique({
       where: { id: destinationId },
     });
 
     if (!destination) {
-      await this.removeFileIfExists(this.getDestinationUploadPath(filename));
       throw new NotFoundException('Destinasi tidak ditemukan');
     }
 
     return destination;
-  }
-
-  private getDestinationUploadPath(filename: string) {
-    // Multer menghasilkan filename, tetapi basename tetap dipakai agar path
-    // dari luar tidak pernah dapat keluar dari folder upload destinasi.
-    const safeFilename = path.basename(filename);
-    return path.join(process.cwd(), 'uploads', 'destinations', safeFilename);
-  }
-
-  // Menghapus file lokal jika ada tanpa melempar error saat file hilang.
-  private async removeFileIfExists(filepath: string): Promise<void> {
-    await fs.rm(filepath, { force: true });
   }
 }

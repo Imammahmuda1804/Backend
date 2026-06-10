@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DestinationAdminService } from './destination-admin.service';
 import { DestinationCatalogService } from './destination-catalog.service';
 import { DestinationDetailService } from './destination-detail.service';
+import type { UploadableImage } from '../storage/media-storage.types';
 import {
   CreateDestinationDto,
   UpdateDestinationDto,
@@ -72,12 +73,12 @@ export class DestinationsService {
     return this.admin.updateMapsUrl(id, dto);
   }
 
-  uploadThumbnail(destinationId: number, filename: string) {
-    return this.admin.uploadThumbnail(destinationId, filename);
+  uploadThumbnail(destinationId: number, file: UploadableImage) {
+    return this.admin.uploadThumbnail(destinationId, file);
   }
 
-  uploadImage(destinationId: number, filename: string) {
-    return this.admin.uploadImage(destinationId, filename);
+  uploadImage(destinationId: number, file: UploadableImage) {
+    return this.admin.uploadImage(destinationId, file);
   }
 
   deleteImage(imageId: number) {

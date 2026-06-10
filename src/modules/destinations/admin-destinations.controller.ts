@@ -170,7 +170,7 @@ export class AdminDestinationsController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    return this.destinationsService.uploadThumbnail(id, file.filename);
+    return this.destinationsService.uploadThumbnail(id, file);
   }
 
   @Post(':id/images')
@@ -203,7 +203,7 @@ export class AdminDestinationsController {
     if (!file) {
       throw new BadRequestException('File is required');
     }
-    return this.destinationsService.uploadImage(id, file.filename);
+    return this.destinationsService.uploadImage(id, file);
   }
 
   @Delete('images/:imageId')

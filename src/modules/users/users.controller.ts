@@ -68,7 +68,6 @@ export class UsersController {
       throw new BadRequestException('File is required');
     }
 
-    const profilePicture = `/uploads/profiles/${file.filename}`;
-    return this.usersService.updateProfile(user.id, { profilePicture });
+    return this.usersService.uploadAvatar(user.id, file);
   }
 }

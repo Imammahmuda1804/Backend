@@ -31,7 +31,8 @@ export class RegisterDto {
 
   @ApiPropertyOptional({
     description: 'URL foto profil user (opsional)',
-    example: '/uploads/profiles/user-123.jpg',
+    example:
+      'https://project-ref.supabase.co/storage/v1/object/public/ranahinsight-images/profiles/2026-06-10/avatar.jpg',
   })
   @IsOptional()
   @IsString()

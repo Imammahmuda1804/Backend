@@ -5,8 +5,10 @@ import {
   IsNumber,
   IsUrl,
   IsIn,
+  Matches,
   Min,
   Max,
+  ValidateIf,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { DESTINATION_CATEGORY_VALUES } from '../destination-categories';
@@ -76,9 +78,19 @@ export class CreateDestinationDto {
   @IsString()
   googlePlaceId?: string;
 
-  @ApiPropertyOptional({ description: 'Thumbnail URL', example: 'https://...' })
-  @IsOptional()
-  @IsUrl()
+  @ApiPropertyOptional({
+    description:
+      'Thumbnail URL. Mendukung URL penuh storage atau path legacy /uploads.',
+    example:
+      'https://project-ref.supabase.co/storage/v1/object/public/ranahinsight-images/destinations/2026-06-10/photo.jpg',
+  })
+  @ValidateIf(
+    (_object, value) => value !== undefined && value !== null && value !== '',
+  )
+  @IsString()
+  @Matches(/^(https?:\/\/|\/uploads\/)/i, {
+    message: 'thumbnailUrl must be a full URL or legacy /uploads path',
+  })
   thumbnailUrl?: string;
 
   @ApiPropertyOptional({

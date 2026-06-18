@@ -4,6 +4,8 @@ export declare class ApifyService {
     private readonly MAPS_EXTRACTOR_ACTOR_ID;
     private readonly MAPS_REVIEWS_ACTOR_ID;
     constructor();
+    toReadableError(error: unknown): string;
+    private extractErrorMessage;
     searchPlaces(query: string): Promise<{
         title: string | undefined;
         address: string | undefined;

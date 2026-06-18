@@ -35,8 +35,7 @@ let UsersController = class UsersController {
         if (!file) {
             throw new common_1.BadRequestException('File is required');
         }
-        const profilePicture = `/uploads/profiles/${file.filename}`;
-        return this.usersService.updateProfile(user.id, { profilePicture });
+        return this.usersService.uploadAvatar(user.id, file);
     }
 };
 exports.UsersController = UsersController;

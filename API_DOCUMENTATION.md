@@ -347,6 +347,30 @@ Query:
 - `page`: halaman.
 - `limit`: jumlah data.
 
+Catatan response: setiap item review dapat membawa `topicAssignments` berisi
+aspek topic yang terdeteksi untuk review tersebut:
+
+```json
+{
+  "id": 91,
+  "reviewText": "Pemandangan bagus, akses parkir sempit.",
+  "topicAssignments": [
+    {
+      "topicId": 6,
+      "score": 0.91,
+      "isPrimary": true,
+      "assignmentMethod": "primary_transform"
+    },
+    {
+      "topicId": 11,
+      "score": 0.42,
+      "isPrimary": false,
+      "assignmentMethod": "aspect_distribution"
+    }
+  ]
+}
+```
+
 ### GET `/destinations/:id/reviews-by-topic-group`
 
 Role: Public.
@@ -363,6 +387,9 @@ Query:
 - `groupId`: ID topic group.
 - `page`: halaman.
 - `limit`: jumlah data.
+
+Catatan response: item review juga dapat membawa `topicAssignments`, sama
+seperti endpoint `reviews-by-topic`.
 
 ## Search
 
@@ -570,6 +597,39 @@ Response utama:
 
 ## Topics
 
+### Kontrak Topic Multi-Aspek pada NLP
+
+Response internal Model tetap memiliki `topic_id` untuk kompatibilitas dan
+menambahkan `topic_assignments`:
+
+```json
+{
+  "topic_id": 6,
+  "topic_assignments": [
+    {
+      "topic_id": 6,
+      "score": 0.72,
+      "is_primary": true,
+      "assignment_method": "primary_transform"
+    },
+    {
+      "topic_id": 11,
+      "score": 0.41,
+      "is_primary": false,
+      "assignment_method": "aspect_distribution"
+    }
+  ]
+}
+```
+
+- Field bersifat additive dan tidak mengubah endpoint web/mobile.
+- Backend menyimpan topic primer di `reviews.topic_id`.
+- Semua assignment disimpan di `review_topics`.
+- Endpoint ulasan dan agregasi topic menghitung assignment primer/sekunder.
+- Endpoint public detail memakai `topicAssignments`, sedangkan endpoint admin
+  topic review memakai `topic_assignments`.
+- Satu review hanya dihitung satu kali untuk topic yang sama.
+
 ### GET `/topics`
 
 Role: Public.
@@ -649,7 +709,7 @@ File:
 
 Role: Admin.
 
-Kegunaan: menggabungkan dua atau lebih topic sempit ke satu topic target. Review, relasi `destination_topics`, dan keyword source dipindahkan ke target, lalu topic source dihapus.
+Kegunaan: menggabungkan dua atau lebih topic sempit ke satu topic target. Review, relasi `destination_topics`, keyword source, dan mapping topic dari setiap versi model dipindahkan ke target, lalu topic source dihapus. Karena mapping dipertahankan, hasil NLP berikutnya untuk model topic yang pernah digabung tetap masuk ke target dan tidak membuat ulang topic source.
 
 File:
 

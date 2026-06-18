@@ -256,9 +256,15 @@ Komentar penting:
 - `healthCheck`: cek kesehatan FastAPI.
 - `handleAxiosError`: mapping error Axios ke exception backend.
 - `NlpResultStorageService`: facade urutan penyimpanan hasil pipeline.
-- `NlpTopicStorageService`: upsert/mapping topik dan mencegah nama topik duplikat.
-- `NlpReviewStorageService`: update review dan embedding.
+- `NlpTopicStorageService`: menyimpan topik model, mencari topik kanonis, dan mencegah nama topik duplikat.
+- `TopicModelMappingService`: memisahkan `topic_id` milik satu hasil training model dari ID topik kanonis database. Identitas model dibentuk dari `topic_model_version + topic_trained_at`.
+- `NlpReviewStorageService`: update review, topic primer, assignment
+  multi-aspek, dan embedding.
 - `NlpDestinationAnalyticsStorageService`: menghitung ulang score, topic, trend, dan embedding destinasi.
+- `ReviewTopicPersistenceService`: replace/move assignment multi-aspek dalam
+  transaction.
+- `ReviewTopicQueryService`: query terpusat untuk count, sentiment, dan
+  pagination review berdasarkan aspek.
 - `logPipelineResult`: mencatat ringkasan pipeline lewat helper kecil agar log summary, topik baru, warning, dan metadata tidak bercampur dengan logic simpan data.
 - `saveTopics`: upsert topic dari hasil NLP.
 - `updateReviews`: update sentiment, confidence, cleaned text, dan topic.
@@ -281,9 +287,29 @@ Alur NLP upload:
 6. Mode `skip_existing` hanya menyimpan review baru, `reprocess_existing` menghitung ulang review yang sudah ada, dan `replace_existing` mengganti data scraping destinasi.
 7. `NlpPipelineRunnerService` membuat CSV sementara untuk review yang benar-benar diproses.
 8. `NlpService.processPipeline` mengirim file ke FastAPI.
-9. Python mengembalikan sentiment, confidence, topic, embedding, metadata.
+9. Python mengembalikan sentiment, confidence, topic, embedding, serta metadata versi dan waktu training model.
 10. Backend menolak hasil kosong atau hasil tanpa topik agar run tidak terlihat sukses saat Model mati atau BERTopic gagal dimuat.
-11. `NlpResultStorageService` mengatur urutan provider penyimpanan topic, review/embedding, dan analytics destinasi.
+11. `NlpTopicStorageService` mencari mapping `(identitas model, model topic ID)`. Mapping existing langsung memakai topik kanonis; mapping baru diselesaikan melalui nama AI/topik existing lalu disimpan permanen.
+12. `NlpReviewStorageService` mempertahankan `topic_id` primer pada tabel
+    `reviews`, lalu menyimpan seluruh `topic_assignments` ke
+    `review_topics`.
+13. `NlpResultStorageService` mengatur urutan provider penyimpanan topic,
+    review/embedding, dan analytics destinasi.
+
+### Flow Aspect-Based Topic Assignment
+
+1. Model mengirim satu `topic_id` primer dan maksimal tiga
+   `topic_assignments`.
+2. Backend memetakan setiap topic ID model ke topic kanonis melalui
+   `TopicModelMappingService`.
+3. Assignment yang menuju topic kanonis sama digabung dengan score tertinggi.
+4. `reviews.topic_id` tetap menyimpan topic primer untuk kompatibilitas.
+5. `review_topics` menyimpan topic primer dan sekunder beserta `score`,
+   `is_primary`, dan `assignment_method`.
+6. Detail destinasi, ulasan per topic, risk matrix, dan recalculation membaca
+   aspek melalui `ReviewTopicQueryService`.
+7. `destination_topics.total_reviews` dihitung dari semua assignment unik.
+8. Merge topic memindahkan assignment source ke target sebelum source dihapus.
 
 ### `backend/src/modules/topics`
 
@@ -303,11 +329,13 @@ Komentar penting:
 - `TopicsService`: facade stabil yang dipakai controller.
 - `TopicQueryService`: daftar topic/group dan destinasi per topic.
 - `TopicReviewService`: ulasan, pagination, filter, dan ringkasan sentimen per topic.
-- `TopicMergeService`: pencarian nama normal, pemindahan relasi, dan merge keyword.
+- `TopicMergeService`: pencarian nama normal, pemindahan relasi, pemindahan mapping model, dan merge keyword.
 - `TopicGroupService`: CRUD topic group.
 - `TopicManagementService`: rename AI/manual, visibility/group topic, dan delete.
 - `renameUnnamedTopics`: rename topic fallback memakai AI.
-- `mergeTopics`: menggabungkan relasi review dan destinasi dari beberapa topic source ke satu topic target.
+- `mergeTopics`: menggabungkan review primer, assignment multi-aspek, relasi
+  destinasi, keyword, dan seluruh mapping model dari beberapa topic source ke
+  satu topic target.
 - `createGroup`, `updateGroup`, `deleteGroup`: CRUD topic group luas untuk taxonomy admin.
 - `findAll`: topic atau topic group sesuai scope.
 - `findGroups`: semua group dan topic di dalamnya.
@@ -450,9 +478,10 @@ Kegunaan:
 5. Backend mengirim review target ke Python `Model`.
 6. Python mengembalikan hasil NLP.
 7. Jika service Model gagal atau hasil tidak memuat topik untuk review target, backend menandai run sebagai `failed` agar analisis kosong tidak tersimpan sebagai sukses.
-8. Saat nama topic hasil AI sama dengan topic existing, backend memetakan review ke topic existing agar tidak membuat nama topic duplikat.
-9. Backend menyimpan topic, sentiment confidence, embedding, score, dan trend, lalu menandai run sebagai `completed` atau `failed`.
-10. Data unik tersebut dipakai search, detail, compare, dashboard admin, dan history NLP.
+8. Backend memakai `topic_model_version` dan `topic_trained_at` sebagai identitas hasil training. Nomor topik yang sama dari dua hasil training berbeda tidak dianggap sebagai topik yang sama.
+9. Saat nama topic hasil AI sama dengan topic existing, backend memetakan review ke topic existing agar tidak membuat nama topic duplikat.
+10. Backend menyimpan mapping model-ke-topik kanonis, topic, sentiment confidence, embedding, score, dan trend, lalu menandai run sebagai `completed` atau `failed`.
+11. Data unik tersebut dipakai search, detail, compare, dashboard admin, dan history NLP.
 
 ### Flow Topic Two-Level
 
@@ -461,16 +490,20 @@ Kegunaan:
 1. Admin membuka halaman `/admin/topics`.
 2. Admin memilih topic target dan satu atau lebih topic source.
 3. `TopicsController` menerima `POST /api/topics/merge`.
-4. `TopicsService.mergeTopics` memindahkan review dan relasi `destination_topics` source ke target.
-5. Keyword source digabung ke target, lalu topic source dihapus.
-6. Rename manual atau AI naming yang menghasilkan nama topic existing memakai flow merge yang sama.
+4. `TopicsService.mergeTopics` memindahkan review primer, assignment
+   `review_topics`, dan relasi `destination_topics` source ke target.
+5. Semua baris `topic_model_mappings` yang menunjuk source dipindahkan ke target sebelum source dihapus.
+6. Keyword source digabung ke target, lalu topic source dihapus.
+7. NLP berikutnya tetap menuju target karena mapping model tidak ikut hilang atau dibuat ulang.
+8. Rename manual atau AI naming yang menghasilkan nama topic existing memakai flow merge yang sama.
 
 ### Flow Ulasan Berdasarkan Topic
 
 1. Admin membuka `/admin/topics` dan menekan aksi ulasan pada satu topic.
 2. Web memanggil `GET /api/admin/topics/:id/reviews` dengan filter sentimen/pagination.
 3. `AdminTopicsController` meneruskan query ke `TopicsService.findReviewsByTopic`.
-4. Service mengambil review dari relasi `Review.topicId`, menghitung ringkasan sentimen, dan mengirim data review serta destinasi terkait.
+4. Service mengambil review dari `review_topics`, sehingga topic sekunder juga
+   ikut ditemukan, lalu menghitung ringkasan sentimen dan data destinasi.
 5. Drawer admin menampilkan ulasan secara lazy-load agar table taxonomy tetap ringan.
 
 ### Flow CRUD Topic Group

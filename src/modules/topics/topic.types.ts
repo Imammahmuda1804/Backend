@@ -30,6 +30,12 @@ export type TopicReviewRow = {
   sentiment: string | null;
   sentimentConfidence: number | null;
   destination: unknown;
+  topicAssignments?: Array<{
+    topicId: number;
+    score: number;
+    isPrimary: boolean;
+    assignmentMethod: string;
+  }>;
 };
 
 export type SentimentSummaryRow = {

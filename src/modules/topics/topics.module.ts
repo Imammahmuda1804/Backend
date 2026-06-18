@@ -7,9 +7,10 @@ import { TopicManagementService } from './topic-management.service';
 import { TopicMergeService } from './topic-merge.service';
 import { TopicQueryService } from './topic-query.service';
 import { TopicReviewService } from './topic-review.service';
+import { TopicModelMappingModule } from '../topic-mapping/topic-model-mapping.module';
 
 @Module({
-  imports: [NlpModule],
+  imports: [NlpModule, TopicModelMappingModule],
   controllers: [TopicsController, AdminTopicsController],
   providers: [
     TopicsService,

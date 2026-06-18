@@ -39,9 +39,26 @@ export class TopicsController {
   @Get()
   @Public()
   @ApiOperation({ summary: 'List semua topics dengan jumlah destinasi' })
+  @ApiQuery({ name: 'scope', required: false, enum: ['search', 'detail'] })
+  @ApiQuery({
+    name: 'destinationId',
+    required: false,
+    type: Number,
+    description: 'Filter topik yang muncul pada destinasi tertentu',
+  })
   @ApiResponse({ status: 200, description: 'Topics berhasil diambil' })
-  async findAll(@Query('scope') scope?: 'search' | 'detail') {
-    return this.topicsService.findAll(scope);
+  async findAll(
+    @Query('scope') scope?: 'search' | 'detail',
+    @Query('destinationId') destinationId?: string,
+  ) {
+    const parsedDestinationId = destinationId
+      ? parseInt(destinationId, 10)
+      : undefined;
+
+    return this.topicsService.findAll(
+      scope,
+      Number.isFinite(parsedDestinationId) ? parsedDestinationId : undefined,
+    );
   }
 
   @Get('groups')

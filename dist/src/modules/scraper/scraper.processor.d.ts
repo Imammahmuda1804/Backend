@@ -28,7 +28,6 @@ export declare class ScraperProcessor extends WorkerHost {
     private logFilteredReviewCount;
     private logJobSuccess;
     private handleScrapingFailure;
-    private getErrorMessage;
     private markJobRunning;
     private scrapeReviews;
     private getTextReviews;

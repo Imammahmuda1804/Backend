@@ -26,12 +26,13 @@ const nlp_pipeline_runner_service_1 = require("./nlp-pipeline-runner.service");
 const nlp_upload_execution_service_1 = require("./nlp-upload-execution.service");
 const topic_name_policy_service_1 = require("./topic-name-policy.service");
 const topic_group_classifier_service_1 = require("./topic-group-classifier.service");
+const topic_model_mapping_module_1 = require("../topic-mapping/topic-model-mapping.module");
 let NlpModule = class NlpModule {
 };
 exports.NlpModule = NlpModule;
 exports.NlpModule = NlpModule = __decorate([
     (0, common_1.Module)({
-        imports: [axios_1.HttpModule, vector_module_1.VectorModule],
+        imports: [axios_1.HttpModule, vector_module_1.VectorModule, topic_model_mapping_module_1.TopicModelMappingModule],
         controllers: [nlp_controller_1.NlpController],
         providers: [
             nlp_service_1.NlpService,

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { upsertSentimentTrend } from '../../common/utils/sentiment-trend.util';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ReviewTopicQueryService } from '../topic-mapping/review-topic-query.service';
 
 type ReviewSentimentSummary = Array<{ sentiment: string | null }>;
 
@@ -11,7 +12,10 @@ type DestinationRatingSummary = {
 
 @Injectable()
 export class NlpDestinationAnalyticsStorageService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reviewTopics: ReviewTopicQueryService,
+  ) {}
 
   async refresh(destinationId: number) {
     await this.calculateRecommendationScore(destinationId);
@@ -86,19 +90,9 @@ export class NlpDestinationAnalyticsStorageService {
       where: { destinationId },
     });
 
-    const reviews = await this.prisma.review.findMany({
-      where: { destinationId, topicId: { not: null } },
-      select: { topicId: true },
-    });
+    const topicCounts = await this.reviewTopics.getTopicCounts(destinationId);
 
-    const topicCounts: Record<number, number> = {};
-    for (const review of reviews) {
-      const topicId = review.topicId as number;
-      topicCounts[topicId] = (topicCounts[topicId] || 0) + 1;
-    }
-
-    for (const [topicIdStr, count] of Object.entries(topicCounts)) {
-      const topicId = Number(topicIdStr);
+    for (const { topicId, totalReviews } of topicCounts) {
       await this.prisma.destinationTopic.upsert({
         where: {
           destinationId_topicId: {
@@ -109,10 +103,10 @@ export class NlpDestinationAnalyticsStorageService {
         create: {
           destinationId,
           topicId,
-          totalReviews: count,
+          totalReviews,
         },
         update: {
-          totalReviews: count,
+          totalReviews,
         },
       });
     }

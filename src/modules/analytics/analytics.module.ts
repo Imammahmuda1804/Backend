@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { TopicModelMappingModule } from '../topic-mapping/topic-model-mapping.module';
 import { AnalyticsController } from './analytics.controller';
 import { AdminAnalyticsController } from './admin-analytics.controller';
 import { AnalyticsExportService } from './analytics-export.service';
@@ -11,6 +12,7 @@ import { DestinationComparisonService } from './destination-comparison.service';
 import { PublicDashboardAnalyticsService } from './public-dashboard-analytics.service';
 
 @Module({
+  imports: [TopicModelMappingModule],
   controllers: [AnalyticsController, AdminAnalyticsController],
   providers: [
     AnalyticsService,

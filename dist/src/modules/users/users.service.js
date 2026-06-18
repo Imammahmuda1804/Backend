@@ -46,6 +46,7 @@ exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
 const bcrypt = __importStar(require("bcrypt"));
 const prisma_service_1 = require("../../prisma/prisma.service");
+const media_storage_service_1 = require("../storage/media-storage.service");
 const USER_PUBLIC_SELECT = {
     id: true,
     name: true,
@@ -65,8 +66,10 @@ const USER_PROFILE_SELECT = {
 };
 let UsersService = class UsersService {
     prisma;
-    constructor(prisma) {
+    mediaStorage;
+    constructor(prisma, mediaStorage) {
         this.prisma = prisma;
+        this.mediaStorage = mediaStorage;
     }
     async findById(id) {
         const user = await this.prisma.user.findUnique({
@@ -91,6 +94,22 @@ let UsersService = class UsersService {
             data: this.buildProfileUpdateData(dto, hashedPassword),
             select: USER_PROFILE_SELECT,
         });
+        return updatedUser;
+    }
+    async uploadAvatar(userId, file) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, profilePicture: true },
+        });
+        if (!user)
+            throw new common_1.NotFoundException('User tidak ditemukan');
+        const uploaded = await this.mediaStorage.uploadImage(file, 'profiles');
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: { profilePicture: uploaded.publicUrl },
+            select: USER_PROFILE_SELECT,
+        });
+        await this.mediaStorage.deleteByPublicUrl(user.profilePicture);
         return updatedUser;
     }
     async findAll(page, limit, search) {
@@ -258,6 +277,7 @@ let UsersService = class UsersService {
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [prisma_service_1.PrismaService,
+        media_storage_service_1.MediaStorageService])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

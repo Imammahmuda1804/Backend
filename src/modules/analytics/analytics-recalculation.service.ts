@@ -4,11 +4,15 @@ import {
   upsertSentimentTrend,
 } from '../../common/utils/sentiment-trend.util';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ReviewTopicQueryService } from '../topic-mapping/review-topic-query.service';
 import { normalizeAnalyticsSentiment } from './analytics.utils';
 
 @Injectable()
 export class AnalyticsRecalculationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reviewTopics: ReviewTopicQueryService,
+  ) {}
 
   async recalculate(destinationId: number) {
     const destination = await this.prisma.destination.findFirst({
@@ -83,32 +87,21 @@ export class AnalyticsRecalculationService {
   }
 
   private async refreshTopicCounts(destinationId: number) {
-    const reviews = await this.prisma.review.findMany({
-      where: { destinationId, topicId: { not: null } },
-      select: { topicId: true },
-    });
-    const topicCounts = this.countTopicReviews(reviews);
+    const topicCounts = await this.reviewTopics.getTopicCounts(destinationId);
 
-    for (const [topicId, count] of topicCounts) {
+    await this.prisma.destinationTopic.deleteMany({
+      where: { destinationId },
+    });
+
+    for (const { topicId, totalReviews } of topicCounts) {
       await this.prisma.destinationTopic.upsert({
         where: { destinationId_topicId: { destinationId, topicId } },
-        create: { destinationId, topicId, totalReviews: count },
-        update: { totalReviews: count },
+        create: { destinationId, topicId, totalReviews },
+        update: { totalReviews },
       });
     }
 
-    return topicCounts.size;
-  }
-
-  private countTopicReviews(reviews: Array<{ topicId: number | null }>) {
-    const counts = new Map<number, number>();
-
-    for (const review of reviews) {
-      if (review.topicId === null) continue;
-      counts.set(review.topicId, (counts.get(review.topicId) ?? 0) + 1);
-    }
-
-    return counts;
+    return topicCounts.length;
   }
 
   private async refreshSentimentTrends(destinationId: number) {

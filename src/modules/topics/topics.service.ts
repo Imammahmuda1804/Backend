@@ -28,8 +28,8 @@ export class TopicsService {
     private readonly managementService: TopicManagementService,
   ) {}
 
-  findAll(scope?: TopicScope) {
-    return this.queryService.findAll(scope);
+  findAll(scope?: TopicScope, destinationId?: number) {
+    return this.queryService.findAll(scope, destinationId);
   }
 
   findGroups() {

@@ -1,6 +1,7 @@
 import { DestinationAdminService } from './destination-admin.service';
 import { DestinationCatalogService } from './destination-catalog.service';
 import { DestinationDetailService } from './destination-detail.service';
+import type { UploadableImage } from '../storage/media-storage.types';
 import { CreateDestinationDto, UpdateDestinationDto, UpdateMapsUrlDto } from './dto';
 export declare class DestinationsService {
     private readonly admin;
@@ -270,7 +271,7 @@ export declare class DestinationsService {
         recommendationScore: number | null;
         deletedAt: Date | null;
     }>;
-    uploadThumbnail(destinationId: number, filename: string): Promise<{
+    uploadThumbnail(destinationId: number, file: UploadableImage): Promise<{
         id: number;
         name: string;
         createdAt: Date;
@@ -294,7 +295,7 @@ export declare class DestinationsService {
         recommendationScore: number | null;
         deletedAt: Date | null;
     }>;
-    uploadImage(destinationId: number, filename: string): Promise<{
+    uploadImage(destinationId: number, file: UploadableImage): Promise<{
         id: number;
         createdAt: Date;
         destinationId: number;
@@ -674,7 +675,7 @@ export declare class DestinationsService {
         recommendationScore: number | null;
     }[]>;
     getReviewsByTopic(destinationId: number, topicId: number, page: number, limit: number): Promise<{
-        data: {
+        data: ({
             id: number;
             rating: number | null;
             reviewText: string | null;
@@ -682,7 +683,9 @@ export declare class DestinationsService {
             reviewDate: Date | null;
             likesCount: number | null;
             sentiment: string | null;
-        }[];
+        } & {
+            topicAssignments: import("../topic-mapping/review-topic-query.service").ReviewTopicAssignment[];
+        })[];
         meta: {
             total: number;
             page: number;
@@ -691,7 +694,7 @@ export declare class DestinationsService {
         };
     }>;
     getReviewsByTopicGroup(destinationId: number, groupId: number, page: number, limit: number): Promise<{
-        data: {
+        data: ({
             id: number;
             rating: number | null;
             reviewText: string | null;
@@ -704,7 +707,9 @@ export declare class DestinationsService {
             likesCount: number | null;
             sentiment: string | null;
             topicId: number | null;
-        }[];
+        } & {
+            topicAssignments: import("../topic-mapping/review-topic-query.service").ReviewTopicAssignment[];
+        })[];
         meta: {
             total: number;
             page: number;

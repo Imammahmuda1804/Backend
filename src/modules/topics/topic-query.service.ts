@@ -6,11 +6,25 @@ import type { TopicScope } from './topic.types';
 export class TopicQueryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(scope?: TopicScope) {
+  async findAll(scope?: TopicScope, destinationId?: number) {
     if (scope === 'detail') return this.findGroups();
 
+    const selectedDestination = destinationId
+      ? await this.prisma.destination.findUnique({
+          where: { id: destinationId },
+          select: { id: true, name: true, slug: true, city: true },
+        })
+      : null;
+
+    const where = {
+      ...(scope === 'search' ? { isSearchVisible: true } : {}),
+      ...(destinationId
+        ? { destinationTopics: { some: { destinationId } } }
+        : {}),
+    };
+
     const topics = await this.prisma.topic.findMany({
-      where: scope === 'search' ? { isSearchVisible: true } : undefined,
+      where,
       orderBy: { id: 'asc' },
       select: {
         id: true,
@@ -21,6 +35,15 @@ export class TopicQueryService {
         isDetailVisible: true,
         groupId: true,
         group: { select: { id: true, groupName: true } },
+        destinationTopics: destinationId
+          ? {
+              where: { destinationId },
+              select: {
+                totalReviews: true,
+              },
+              take: 1,
+            }
+          : false,
         _count: { select: { destinationTopics: true } },
       },
     });
@@ -38,6 +61,9 @@ export class TopicQueryService {
         ? { id: topic.group.id, group_name: topic.group.groupName }
         : null,
       total_destinations: topic._count.destinationTopics,
+      selected_destination: selectedDestination,
+      selected_destination_reviews:
+        topic.destinationTopics?.[0]?.totalReviews ?? null,
     }));
   }
 

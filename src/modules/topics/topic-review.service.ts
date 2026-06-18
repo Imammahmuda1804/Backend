@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  ReviewTopicAssignment,
+  ReviewTopicQueryService,
+} from '../topic-mapping/review-topic-query.service';
 import type {
   SentimentSummaryRow,
   TopicHeader,
@@ -27,7 +30,10 @@ const SENTIMENT_FILTER_VALUES: Record<TopicReviewSentiment, string[]> = {
 
 @Injectable()
 export class TopicReviewService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reviewTopics: ReviewTopicQueryService,
+  ) {}
 
   async findReviewsByTopic(
     topicId: number,
@@ -40,23 +46,36 @@ export class TopicReviewService {
     const take = Math.min(Math.max(limit, 1), 50);
     const normalizedPage = Math.max(page, 1);
     const skip = (normalizedPage - 1) * take;
-    const where = this.buildReviewFilter(topicId, sentiment, destinationId);
-
-    const [reviews, total, sentimentRows] = await Promise.all([
-      this.findReviews(where, skip, take),
-      this.prisma.review.count({ where }),
-      this.findSentimentSummary(topicId, destinationId),
+    const sentimentValues = sentiment ? SENTIMENT_FILTER_VALUES[sentiment] : [];
+    const [pageResult, sentimentRows] = await Promise.all([
+      this.reviewTopics.findReviewPage({
+        topicIds: [topicId],
+        destinationId,
+        sentiments: sentimentValues,
+        skip,
+        take,
+      }),
+      this.reviewTopics.getSentimentSummary([topicId], destinationId),
     ]);
+    const reviews = await this.findReviews(pageResult.reviewIds);
+    const assignmentsByReviewId: Map<number, ReviewTopicAssignment[]> =
+      pageResult.assignmentsByReviewId;
+    const reviewsWithAssignments = reviews.map((review) => ({
+      ...review,
+      topicAssignments: assignmentsByReviewId.get(review.id) ?? [],
+    }));
 
     return {
       topic: this.toTopicResponse(topic),
       sentiment_summary: this.normalizeSentimentSummary(sentimentRows),
-      data: reviews.map((review) => this.toReviewResponse(review)),
+      data: reviewsWithAssignments.map((review) =>
+        this.toReviewResponse(review),
+      ),
       meta: {
         page: normalizedPage,
         limit: take,
-        total,
-        total_pages: Math.ceil(total / take),
+        total: pageResult.total,
+        total_pages: Math.ceil(pageResult.total / take),
       },
     };
   }
@@ -75,33 +94,11 @@ export class TopicReviewService {
     return topic;
   }
 
-  private buildReviewFilter(
-    topicId: number,
-    sentiment?: TopicReviewSentiment,
-    destinationId?: number,
-  ): Prisma.ReviewWhereInput {
-    const sentimentValues = sentiment ? SENTIMENT_FILTER_VALUES[sentiment] : [];
+  private async findReviews(reviewIds: number[]): Promise<TopicReviewRow[]> {
+    if (reviewIds.length === 0) return [];
 
-    return {
-      topicId,
-      ...(destinationId ? { destinationId } : {}),
-      ...(sentimentValues.length > 0
-        ? { sentiment: { in: sentimentValues } }
-        : {}),
-      destination: { deletedAt: null },
-    };
-  }
-
-  private findReviews(
-    where: Prisma.ReviewWhereInput,
-    skip: number,
-    take: number,
-  ): Promise<TopicReviewRow[]> {
-    return this.prisma.review.findMany({
-      where,
-      skip,
-      take,
-      orderBy: [{ reviewDate: 'desc' }, { createdAt: 'desc' }],
+    const reviews = await this.prisma.review.findMany({
+      where: { id: { in: reviewIds } },
       select: {
         id: true,
         reviewerName: true,
@@ -122,29 +119,28 @@ export class TopicReviewService {
         },
       },
     });
+
+    const order = new Map(reviewIds.map((id, index) => [id, index]));
+    return reviews.sort(
+      (left, right) =>
+        (order.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
+        (order.get(right.id) ?? Number.MAX_SAFE_INTEGER),
+    );
   }
 
-  private async findSentimentSummary(
-    topicId: number,
-    destinationId?: number,
-  ): Promise<SentimentSummaryRow[]> {
-    const rows = await this.prisma.review.groupBy({
-      by: ['sentiment'],
-      where: {
-        topicId,
-        ...(destinationId ? { destinationId } : {}),
-        destination: { deletedAt: null },
-      },
-      _count: { _all: true },
-    });
-
+  private normalizeSentimentRows(
+    rows: Array<{ sentiment: string | null; count: number }>,
+  ): SentimentSummaryRow[] {
     return rows.map((row) => ({
       sentiment: row.sentiment,
-      _count: { _all: row._count._all },
+      _count: { _all: row.count },
     }));
   }
 
-  private normalizeSentimentSummary(rows: SentimentSummaryRow[]) {
+  private normalizeSentimentSummary(
+    rawRows: Array<{ sentiment: string | null; count: number }>,
+  ) {
+    const rows = this.normalizeSentimentRows(rawRows);
     const summary = { positive: 0, neutral: 0, negative: 0, unknown: 0 };
 
     for (const row of rows) {
@@ -175,6 +171,7 @@ export class TopicReviewService {
       review_date: review.reviewDate,
       sentiment: review.sentiment,
       sentiment_confidence: review.sentimentConfidence,
+      topic_assignments: review.topicAssignments ?? [],
       destination: review.destination,
     };
   }

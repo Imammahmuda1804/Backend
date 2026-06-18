@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AnalyticsModule = void 0;
 const common_1 = require("@nestjs/common");
+const topic_model_mapping_module_1 = require("../topic-mapping/topic-model-mapping.module");
 const analytics_controller_1 = require("./analytics.controller");
 const admin_analytics_controller_1 = require("./admin-analytics.controller");
 const analytics_export_service_1 = require("./analytics-export.service");
@@ -23,6 +24,7 @@ let AnalyticsModule = class AnalyticsModule {
 exports.AnalyticsModule = AnalyticsModule;
 exports.AnalyticsModule = AnalyticsModule = __decorate([
     (0, common_1.Module)({
+        imports: [topic_model_mapping_module_1.TopicModelMappingModule],
         controllers: [analytics_controller_1.AnalyticsController, admin_analytics_controller_1.AdminAnalyticsController],
         providers: [
             analytics_service_1.AnalyticsService,

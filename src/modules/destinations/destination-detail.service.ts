@@ -1,6 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  ReviewTopicAssignment,
+  ReviewTopicQueryService,
+} from '../topic-mapping/review-topic-query.service';
 
 type TopicGroupAggregation = {
   groupId: number;
@@ -40,7 +44,10 @@ function normalizeSentimentBucket(sentiment: string | null): SentimentBucket {
 
 @Injectable()
 export class DestinationDetailService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reviewTopics: ReviewTopicQueryService,
+  ) {}
   // Mengambil detail publik destinasi berdasarkan id.
   async findOnePublic(id: number) {
     return this.findPublicDestination({ id, deletedAt: null }, 'desc');
@@ -112,35 +119,58 @@ export class DestinationDetailService {
 
     const skip = (page - 1) * limit;
 
-    const total = await this.prisma.review.count({
-      where: { destinationId, topicId },
-    });
-
-    const reviews = await this.prisma.review.findMany({
-      where: { destinationId, topicId },
+    const pageResult = await this.reviewTopics.findReviewPage({
+      topicIds: [topicId],
+      destinationId,
       skip,
       take: limit,
-      orderBy: { reviewDate: 'desc' },
-      select: {
-        id: true,
-        reviewerName: true,
-        reviewText: true,
-        rating: true,
-        reviewDate: true,
-        sentiment: true,
-        likesCount: true,
-      },
+    });
+    const reviews = await this.findOrderedReviews(pageResult.reviewIds, {
+      id: true,
+      reviewerName: true,
+      reviewText: true,
+      rating: true,
+      reviewDate: true,
+      sentiment: true,
+      likesCount: true,
     });
 
     return {
-      data: reviews,
+      data: this.withTopicAssignments(
+        reviews,
+        pageResult.assignmentsByReviewId,
+      ),
       meta: {
-        total,
+        total: pageResult.total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(pageResult.total / limit),
       },
     };
+  }
+
+  private async findOrderedReviews<TSelect extends Prisma.ReviewSelect>(
+    reviewIds: number[],
+    select: TSelect,
+  ) {
+    if (reviewIds.length === 0) return [];
+
+    const reviews = await this.prisma.review.findMany({
+      where: { id: { in: reviewIds } },
+      select: {
+        ...select,
+      },
+    });
+
+    const order = new Map(reviewIds.map((id, index) => [id, index]));
+    return reviews.sort((left, right) => {
+      const leftId = Number((left as { id: number }).id);
+      const rightId = Number((right as { id: number }).id);
+      return (
+        (order.get(leftId) ?? Number.MAX_SAFE_INTEGER) -
+        (order.get(rightId) ?? Number.MAX_SAFE_INTEGER)
+      );
+    });
   }
 
   // Mengambil review dari semua topik sempit dalam satu topic group.
@@ -167,46 +197,51 @@ export class DestinationDetailService {
 
     const skip = (page - 1) * limit;
 
-    const where = {
+    const pageResult = await this.reviewTopics.findReviewPage({
+      topicIds,
       destinationId,
-      topicId: { in: topicIds },
-    };
-
-    const [total, reviews] = await Promise.all([
-      this.prisma.review.count({ where }),
-      this.prisma.review.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { reviewDate: 'desc' },
+      skip,
+      take: limit,
+    });
+    const reviews = await this.findOrderedReviews(pageResult.reviewIds, {
+      id: true,
+      reviewerName: true,
+      reviewText: true,
+      rating: true,
+      reviewDate: true,
+      sentiment: true,
+      likesCount: true,
+      topicId: true,
+      topic: {
         select: {
           id: true,
-          reviewerName: true,
-          reviewText: true,
-          rating: true,
-          reviewDate: true,
-          sentiment: true,
-          likesCount: true,
-          topicId: true,
-          topic: {
-            select: {
-              id: true,
-              topicName: true,
-            },
-          },
+          topicName: true,
         },
-      }),
-    ]);
+      },
+    });
 
     return {
-      data: reviews,
+      data: this.withTopicAssignments(
+        reviews,
+        pageResult.assignmentsByReviewId,
+      ),
       meta: {
-        total,
+        total: pageResult.total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(pageResult.total / limit),
       },
     };
+  }
+
+  private withTopicAssignments<TReview extends { id: number }>(
+    reviews: TReview[],
+    assignmentsByReviewId: Map<number, ReviewTopicAssignment[]>,
+  ) {
+    return reviews.map((review) => ({
+      ...review,
+      topicAssignments: assignmentsByReviewId.get(review.id) ?? [],
+    }));
   }
 
   // Mengelompokkan topik sempit menjadi topic group untuk halaman detail.
@@ -224,14 +259,13 @@ export class DestinationDetailService {
   }
 
   private async loadTopicGroupRows(destinationId: number) {
-    return this.prisma.review.groupBy({
-      by: ['topicId', 'sentiment'],
-      where: {
-        destinationId,
-        topicId: { not: null },
-      },
-      _count: { sentiment: true },
-    });
+    const rows = await this.reviewTopics.getTopicSentimentCounts(destinationId);
+
+    return rows.map((row) => ({
+      topicId: row.topicId,
+      sentiment: row.sentiment,
+      _count: { sentiment: row.count },
+    }));
   }
 
   private extractTopicIds(rows: Array<{ topicId: number | null }>) {
@@ -437,15 +471,8 @@ export class DestinationDetailService {
   ): Promise<
     Record<number, { positive: number; negative: number; neutral: number }>
   > {
-    const grouped = await this.prisma.review.groupBy({
-      by: ['topicId', 'sentiment'],
-      where: {
-        destinationId,
-        topicId: { not: null },
-        sentiment: { not: null },
-      },
-      _count: { sentiment: true },
-    });
+    const grouped =
+      await this.reviewTopics.getTopicSentimentCounts(destinationId);
 
     const breakdown: Record<
       number,
@@ -453,12 +480,11 @@ export class DestinationDetailService {
     > = {};
 
     for (const row of grouped) {
-      if (row.topicId === null) continue;
       if (!breakdown[row.topicId]) {
         breakdown[row.topicId] = { positive: 0, negative: 0, neutral: 0 };
       }
       const bucket = normalizeSentimentBucket(row.sentiment);
-      breakdown[row.topicId][bucket] = row._count.sentiment;
+      breakdown[row.topicId][bucket] = row.count;
     }
 
     return breakdown;

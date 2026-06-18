@@ -23,7 +23,60 @@ export declare class ScraperService {
         maps_url: string;
         message: string;
     }>;
+    getScrapingOverview(destinationId: number, mapsUrl?: string): Promise<{
+        destination_id: number;
+        destination_name: string;
+        maps_url: string;
+        live_google: {
+            title: string | null;
+            address: string | null;
+            rating: number | null;
+            total_reviews: number | null;
+            place_id: string | null;
+            fetched_at: string;
+        };
+        cached_destination: {
+            google_rating: number | null;
+            google_review_count: number | null;
+        };
+        database: {
+            stored_text_reviews: number;
+            processed_reviews: number;
+            latest_nlp_run: {
+                id: number;
+                status: string;
+                startedAt: Date;
+                finishedAt: Date | null;
+                fileName: string;
+                mode: string;
+                totalRows: number;
+                insertedReviews: number;
+                skippedDuplicates: number;
+                processedReviews: number;
+            } | null;
+            latest_scraping_job: {
+                id: number;
+                status: string;
+                createdAt: Date;
+                totalReviews: number | null;
+                startedAt: Date | null;
+                finishedAt: Date | null;
+            } | null;
+        };
+        coverage: {
+            stored_text_reviews_percent: number | null;
+            processed_reviews_percent: number | null;
+        };
+        text_filter_note: string;
+    }>;
     private findScraperDestination;
+    private resolveOverviewMapsUrl;
+    private fetchLivePlaceSnapshot;
+    private countStoredTextReviews;
+    private countProcessedReviews;
+    private findLatestNlpRun;
+    private findLatestScrapingJob;
+    private toPercent;
     private resolveMapsUrl;
     private resolveMaxReviews;
     private createPendingScrapingJob;

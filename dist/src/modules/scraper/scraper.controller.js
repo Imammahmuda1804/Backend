@@ -27,6 +27,9 @@ let ScraperController = class ScraperController {
     async searchMaps(query) {
         return this.scraperService.searchMaps(query.q);
     }
+    async getOverview(query) {
+        return this.scraperService.getScrapingOverview(query.destination_id, query.maps_url);
+    }
     async startScraping(dto, user) {
         return this.scraperService.startScraping(dto, user?.id);
     }
@@ -43,6 +46,7 @@ let ScraperController = class ScraperController {
         const { filePath, filename } = await this.scraperService.downloadExcel(jobId);
         res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
+        res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
         return res.sendFile(filePath);
     }
 };
@@ -58,6 +62,22 @@ __decorate([
     __metadata("design:paramtypes", [dto_1.SearchQueryDto]),
     __metadata("design:returntype", Promise)
 ], ScraperController.prototype, "searchMaps", null);
+__decorate([
+    (0, common_1.Get)('overview'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Ringkasan live Google Maps dan jumlah review yang sudah diproses',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Ringkasan scraper berhasil diambil',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'URL Maps belum tersedia' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Destinasi tidak ditemukan' }),
+    __param(0, (0, common_1.Query)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [dto_1.ScraperOverviewQueryDto]),
+    __metadata("design:returntype", Promise)
+], ScraperController.prototype, "getOverview", null);
 __decorate([
     (0, common_1.Post)('start'),
     (0, swagger_1.ApiOperation)({ summary: 'Mulai scraping review destinasi' }),

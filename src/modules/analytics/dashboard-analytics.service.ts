@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ReviewTopicQueryService } from '../topic-mapping/review-topic-query.service';
 import { AnalyticsPeriod } from './analytics.types';
 import {
   buildSentimentDistribution,
@@ -14,9 +15,9 @@ type StatusCountRow = {
 };
 
 type TopicSentimentRow = {
-  topicId: number | null;
+  topicId: number;
   sentiment: string | null;
-  _count: { _all: number };
+  count: number;
 };
 
 type TopicRiskMetric = {
@@ -30,7 +31,10 @@ type TopicRiskMetric = {
 
 @Injectable()
 export class DashboardAnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly reviewTopics: ReviewTopicQueryService,
+  ) {}
   // Mengambil ringkasan dashboard admin.
   async getAdminSummary() {
     const data = await this.loadAdminSummaryData();
@@ -221,11 +225,7 @@ export class DashboardAnalyticsService {
           destination: { select: { id: true, name: true, city: true } },
         },
       }),
-      this.prisma.review.groupBy({
-        by: ['topicId', 'sentiment'],
-        where: { topicId: { not: null }, sentiment: { not: null } },
-        _count: { _all: true },
-      }),
+      this.reviewTopics.getTopicSentimentCounts(),
       this.prisma.destination.findMany({
         where: {
           deletedAt: null,
@@ -279,20 +279,17 @@ export class DashboardAnalyticsService {
   }
 
   private async buildTopicRiskMatrix(rows: TopicSentimentRow[]) {
-    const topicIds = rows
-      .map((row) => row.topicId)
-      .filter((id): id is number => id !== null);
+    const topicIds = rows.map((row) => row.topicId);
     const topicNameMap = await this.fetchTopicNameMap(topicIds);
     const riskMap = new Map<number, TopicRiskMetric>();
 
     for (const row of rows) {
-      if (row.topicId === null) continue;
       const metric = this.getTopicRiskMetric(
         riskMap,
         row.topicId,
         topicNameMap,
       );
-      this.applySentimentCount(metric, row.sentiment, row._count._all);
+      this.applySentimentCount(metric, row.sentiment, row.count);
       riskMap.set(row.topicId, metric);
     }
 

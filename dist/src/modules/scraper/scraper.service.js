@@ -72,8 +72,9 @@ let ScraperService = ScraperService_1 = class ScraperService {
             return await this.apifyService.searchPlaces(query.trim());
         }
         catch (error) {
-            this.logger.error('Error searching maps', error);
-            throw new common_1.BadRequestException('Failed to search maps via Apify');
+            const readableError = this.apifyService.toReadableError(error);
+            this.logger.error(`Error searching maps: ${readableError}`, error);
+            throw new common_1.BadRequestException(readableError);
         }
     }
     async startScraping(dto, adminId) {
@@ -85,14 +86,131 @@ let ScraperService = ScraperService_1 = class ScraperService {
         this.logQueuedJob(job.id, destination.name, effectiveMaxReviews);
         return this.buildStartScrapingResponse(job.id, destination.name, finalMapsUrl);
     }
+    async getScrapingOverview(destinationId, mapsUrl) {
+        const destination = await this.findScraperDestination(destinationId);
+        const finalMapsUrl = this.resolveOverviewMapsUrl(destination, mapsUrl);
+        const [livePlace, storedTextReviews, processedReviews, latestNlpRun, latestJob,] = await Promise.all([
+            this.fetchLivePlaceSnapshot(finalMapsUrl),
+            this.countStoredTextReviews(destination.id),
+            this.countProcessedReviews(destination.id),
+            this.findLatestNlpRun(destination.id),
+            this.findLatestScrapingJob(destination.id),
+        ]);
+        const liveTotalReviews = livePlace?.totalReviews ?? null;
+        return {
+            destination_id: destination.id,
+            destination_name: destination.name,
+            maps_url: finalMapsUrl,
+            live_google: {
+                title: livePlace?.title ?? null,
+                address: livePlace?.address ?? null,
+                rating: livePlace?.rating ?? null,
+                total_reviews: liveTotalReviews,
+                place_id: livePlace?.placeId ?? null,
+                fetched_at: new Date().toISOString(),
+            },
+            cached_destination: {
+                google_rating: destination.googleRating,
+                google_review_count: destination.googleReviewCount,
+            },
+            database: {
+                stored_text_reviews: storedTextReviews,
+                processed_reviews: processedReviews,
+                latest_nlp_run: latestNlpRun,
+                latest_scraping_job: latestJob,
+            },
+            coverage: {
+                stored_text_reviews_percent: this.toPercent(storedTextReviews, liveTotalReviews),
+                processed_reviews_percent: this.toPercent(processedReviews, liveTotalReviews),
+            },
+            text_filter_note: 'Scraper tetap menyimpan ulasan yang memiliki teks. Rating tanpa teks tidak masuk ke file hasil scraping.',
+        };
+    }
     async findScraperDestination(destinationId) {
         const destination = await this.prisma.destination.findUnique({
             where: { id: destinationId },
-            select: { id: true, name: true, googleMapsUrl: true },
+            select: {
+                id: true,
+                name: true,
+                googleMapsUrl: true,
+                googleRating: true,
+                googleReviewCount: true,
+            },
         });
         if (!destination)
             throw new common_1.NotFoundException('Destination not found');
         return destination;
+    }
+    resolveOverviewMapsUrl(destination, mapsUrl) {
+        const finalMapsUrl = mapsUrl?.trim() || destination.googleMapsUrl;
+        if (!finalMapsUrl) {
+            throw new common_1.BadRequestException('Destinasi belum memiliki URL Google Maps. Isi URL Maps untuk melihat ringkasan live.');
+        }
+        return finalMapsUrl;
+    }
+    async fetchLivePlaceSnapshot(mapsUrl) {
+        try {
+            const places = (await this.apifyService.searchPlaces(mapsUrl));
+            return places[0] ?? null;
+        }
+        catch (error) {
+            const readableError = this.apifyService.toReadableError(error);
+            this.logger.error(`Error fetching scraper overview: ${readableError}`);
+            throw new common_1.BadRequestException(readableError);
+        }
+    }
+    countStoredTextReviews(destinationId) {
+        return this.prisma.review.count({
+            where: {
+                destinationId,
+                reviewText: { not: null },
+            },
+        });
+    }
+    countProcessedReviews(destinationId) {
+        return this.prisma.review.count({
+            where: {
+                destinationId,
+                sentiment: { not: null },
+            },
+        });
+    }
+    findLatestNlpRun(destinationId) {
+        return this.prisma.nlpProcessingRun.findFirst({
+            where: { destinationId },
+            orderBy: { startedAt: 'desc' },
+            select: {
+                id: true,
+                fileName: true,
+                mode: true,
+                status: true,
+                totalRows: true,
+                insertedReviews: true,
+                skippedDuplicates: true,
+                processedReviews: true,
+                startedAt: true,
+                finishedAt: true,
+            },
+        });
+    }
+    findLatestScrapingJob(destinationId) {
+        return this.prisma.scrapingJob.findFirst({
+            where: { destinationId },
+            orderBy: { createdAt: 'desc' },
+            select: {
+                id: true,
+                status: true,
+                totalReviews: true,
+                startedAt: true,
+                finishedAt: true,
+                createdAt: true,
+            },
+        });
+    }
+    toPercent(current, total) {
+        if (!total || total <= 0)
+            return null;
+        return Math.min(100, Math.round((current / total) * 100));
     }
     resolveMapsUrl(dto, destination) {
         const finalMapsUrl = dto.maps_url || destination.googleMapsUrl;

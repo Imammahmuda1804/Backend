@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TopicModelMappingService } from '../topic-mapping/topic-model-mapping.service';
 import { normalizeTopicNameForMatch } from '../topics/topics.service';
 import { AiNamingService } from './ai-naming.service';
 import { NlpPipelineResult } from './interfaces/nlp-pipeline-result.interface';
@@ -13,9 +14,12 @@ type TopicGroupCandidate = {
 };
 
 type PipelineTopicDraft = {
-  topicId: number;
+  modelTopicId: number;
+  modelVersion: string;
+  canonicalTopicId: number | null;
   topicName: string;
   keywords: string[];
+  existingKeywords: unknown;
   groupId: number | null;
   hasExistingGroup: boolean;
 };
@@ -23,6 +27,7 @@ type PipelineTopicDraft = {
 type ExistingPipelineTopic = {
   id: number;
   topicName: string | null;
+  keywords: unknown;
   groupId: number | null;
 } | null;
 
@@ -33,18 +38,28 @@ export class NlpTopicStorageService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly aiNamingService: AiNamingService,
+    private readonly topicMapping: TopicModelMappingService,
   ) {}
+
   // Membuat atau memperbarui topik dari hasil pipeline.
   async saveTopics(nlpResult: NlpPipelineResult): Promise<Map<number, number>> {
     const savedTopicIds = new Map<number, number>();
     const groupCandidates = await this.loadTopicGroupCandidates();
+    const modelIdentity = this.topicMapping.normalizeModelVersion(
+      nlpResult.metadata?.topic_model_version,
+      nlpResult.metadata?.topic_trained_at,
+    );
 
     if (!Array.isArray(nlpResult.topics)) return savedTopicIds;
 
     for (const topic of nlpResult.topics) {
-      const topicMapping = await this.savePipelineTopic(topic, groupCandidates);
-      if (topicMapping) {
-        savedTopicIds.set(topicMapping.sourceId, topicMapping.targetId);
+      const savedMapping = await this.savePipelineTopic(
+        topic,
+        groupCandidates,
+        modelIdentity,
+      );
+      if (savedMapping) {
+        savedTopicIds.set(savedMapping.sourceId, savedMapping.targetId);
       }
     }
 
@@ -54,36 +69,48 @@ export class NlpTopicStorageService {
   private async savePipelineTopic(
     topic: PipelineTopic,
     groupCandidates: TopicGroupCandidate[],
+    modelVersion: string,
   ) {
-    const draft = await this.preparePipelineTopic(topic, groupCandidates);
+    const draft = await this.preparePipelineTopic(
+      topic,
+      groupCandidates,
+      modelVersion,
+    );
     if (!draft) return null;
 
-    const targetId = await this.saveResolvedTopic(
-      draft.topicId,
-      draft.topicName,
-      {
-        keywords: draft.keywords,
-        groupId: draft.groupId,
-        hasExistingGroup: draft.hasExistingGroup,
-      },
+    const targetId = await this.saveResolvedTopic(draft);
+    await this.topicMapping.saveMapping(
+      draft.modelVersion,
+      draft.modelTopicId,
+      targetId,
     );
 
-    return { sourceId: draft.topicId, targetId };
+    return { sourceId: draft.modelTopicId, targetId };
   }
 
   private async preparePipelineTopic(
     topic: PipelineTopic,
     groupCandidates: TopicGroupCandidate[],
+    modelVersion: string,
   ): Promise<PipelineTopicDraft | null> {
-    const topicId = this.getValidPipelineTopicId(topic);
-    if (topicId === null) return null;
+    const modelTopicId = this.getValidPipelineTopicId(topic);
+    if (modelTopicId === null) return null;
 
     const keywords = this.getPipelineTopicKeywords(topic);
     const representativeDocs = this.getPipelineRepresentativeDocs(topic);
-    const existingTopic = await this.loadPipelineTopic(topicId);
+    const canonicalTopicId = await this.topicMapping.resolveCanonicalTopicId(
+      modelVersion,
+      modelTopicId,
+    );
+    const existingTopic =
+      canonicalTopicId === null
+        ? null
+        : await this.loadPipelineTopic(canonicalTopicId);
 
     return this.buildPipelineTopicDraft({
-      topicId,
+      modelTopicId,
+      modelVersion,
+      canonicalTopicId,
       keywords,
       representativeDocs,
       existingTopic,
@@ -114,19 +141,21 @@ export class NlpTopicStorageService {
   private loadPipelineTopic(topicId: number): Promise<ExistingPipelineTopic> {
     return this.prisma.topic.findUnique({
       where: { id: topicId },
-      select: { id: true, topicName: true, groupId: true },
+      select: { id: true, topicName: true, keywords: true, groupId: true },
     });
   }
 
   private async buildPipelineTopicDraft(input: {
-    topicId: number;
+    modelTopicId: number;
+    modelVersion: string;
+    canonicalTopicId: number | null;
     keywords: string[];
     representativeDocs: string[];
     existingTopic: ExistingPipelineTopic;
     groupCandidates: TopicGroupCandidate[];
   }): Promise<PipelineTopicDraft> {
     const topicName = await this.resolveTopicName(
-      input.topicId,
+      input.modelTopicId,
       input.keywords,
       input.representativeDocs,
       input.existingTopic?.topicName,
@@ -141,9 +170,12 @@ export class NlpTopicStorageService {
     );
 
     return {
-      topicId: input.topicId,
+      modelTopicId: input.modelTopicId,
+      modelVersion: input.modelVersion,
+      canonicalTopicId: input.canonicalTopicId,
       topicName,
       keywords: input.keywords,
+      existingKeywords: input.existingTopic?.keywords,
       groupId,
       hasExistingGroup: this.hasExistingTopicGroup(input.existingTopic),
     };
@@ -153,35 +185,53 @@ export class NlpTopicStorageService {
     return Boolean(topic?.groupId);
   }
 
-  private async saveResolvedTopic(
-    topicId: number,
-    topicName: string,
-    options: {
-      keywords: string[];
-      groupId: number | null;
-      hasExistingGroup: boolean;
-    },
-  ) {
+  private async saveResolvedTopic(draft: PipelineTopicDraft) {
+    if (draft.canonicalTopicId !== null) {
+      await this.updateCanonicalTopic(draft.canonicalTopicId, draft);
+      return draft.canonicalTopicId;
+    }
+
     const duplicateTopic = await this.findTopicByNormalizedName(
-      topicName,
-      topicId,
+      draft.topicName,
     );
     if (duplicateTopic) {
-      await this.mergeDuplicateTopic(topicId, topicName, duplicateTopic, {
-        keywords: options.keywords,
-        groupId: options.groupId,
-      });
+      await this.mergeDuplicateTopic(
+        draft.modelTopicId,
+        draft.topicName,
+        duplicateTopic,
+        {
+          keywords: draft.keywords,
+          groupId: draft.groupId,
+        },
+      );
       return duplicateTopic.id;
     }
 
-    await this.upsertPipelineTopic(
-      topicId,
-      topicName,
-      options.keywords,
-      options.groupId,
-      { hasExistingGroup: options.hasExistingGroup },
-    );
-    return topicId;
+    const createdTopic = await this.prisma.topic.create({
+      data: {
+        topicName: draft.topicName,
+        keywords: draft.keywords,
+        groupId: draft.groupId,
+      },
+      select: { id: true },
+    });
+    return createdTopic.id;
+  }
+
+  private async updateCanonicalTopic(
+    topicId: number,
+    draft: PipelineTopicDraft,
+  ) {
+    await this.prisma.topic.update({
+      where: { id: topicId },
+      data: {
+        keywords: this.mergeTopicKeywords(
+          draft.existingKeywords,
+          draft.keywords,
+        ),
+        ...(draft.hasExistingGroup ? {} : { groupId: draft.groupId }),
+      },
+    });
   }
 
   private async loadTopicGroupCandidates(): Promise<TopicGroupCandidate[]> {
@@ -266,35 +316,9 @@ export class NlpTopicStorageService {
     });
   }
 
-  private async upsertPipelineTopic(
-    topicId: number,
-    topicName: string,
-    keywords: string[],
-    groupId: number | null,
-    options: { hasExistingGroup: boolean },
-  ) {
-    await this.prisma.topic.upsert({
-      where: { id: topicId },
-      create: {
-        id: topicId,
-        topicName,
-        keywords,
-        groupId,
-      },
-      update: {
-        keywords,
-        ...(options.hasExistingGroup ? {} : { groupId }),
-      },
-    });
-  }
-
-  private async findTopicByNormalizedName(
-    topicName: string,
-    excludeId: number,
-  ) {
+  private async findTopicByNormalizedName(topicName: string) {
     const normalized = normalizeTopicNameForMatch(topicName);
     const candidates = await this.prisma.topic.findMany({
-      where: { id: { not: excludeId } },
       select: { id: true, topicName: true, keywords: true, groupId: true },
     });
     return (

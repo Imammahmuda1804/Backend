@@ -207,7 +207,8 @@ GET http://localhost:3000/api/docs
 | `src/modules/routes/`              | Route wisata shareable, route pribadi user, saved route, progress kunjungan, auto-sort jarak, dan curated route admin. |
 | `src/modules/vector/`              | Query pgvector dan normalisasi embedding.                                                                              |
 | `src/modules/nlp/`                 | Integrasi Python Model, preflight/dedup review, history proses NLP, penyimpanan hasil NLP, AI naming topic.            |
-| `src/modules/topics/`              | Topic, topic group, visibility, rename, dan destination-topic query.                                                   |
+| `src/modules/topics/`              | Topic, topic group, visibility, rename, merge, dan destination-topic query.                                            |
+| `src/modules/topic-mapping/`       | Mapping ID cluster milik satu hasil training model ke topic kanonis database.                                          |
 | `src/modules/reviews/`             | Review user dan admin review management.                                                                               |
 | `src/modules/favorites/`           | Favorite destination user.                                                                                             |
 | `src/modules/analytics/`           | Analytics public dan admin dashboard.                                                                                  |
@@ -263,6 +264,10 @@ Admin topic mendukung merge taxonomy agar nama topik tidak duplikat:
 2. `PUT /api/topics/:id/rename` otomatis merge jika nama baru sama dengan topic existing.
 3. `POST /api/topics/rename-ai` otomatis merge jika AI naming menghasilkan nama yang sudah ada.
 4. Penyimpanan hasil NLP memetakan topic baru ke topic existing jika nama AI-nya sama, sehingga upload review tidak membuat topik bermakna sama.
+5. Mapping disimpan berdasarkan gabungan versi model dan waktu training. Retraining yang menghasilkan cluster baru tidak memakai mapping model lama walaupun nomor `topic_id` sama.
+6. Saat admin merge topic, seluruh mapping model source dipindahkan ke target sebelum source dihapus. NLP berikutnya karena itu tetap memakai hasil merge admin.
+
+Jangan menganggap `topic_id` dari BERTopic sama dengan primary key tabel `topics`. ID model hanya stabil untuk satu artefak training.
 
 ## Catatan Admin NLP Processing
 
@@ -274,6 +279,25 @@ Admin NLP memakai preflight dan history agar upload file review tidak membuat da
 4. Semua proses dicatat di tabel `nlp_processing_runs` dan bisa dibaca lewat `GET /api/admin/nlp/history`.
 5. Review scraped memiliki `review_hash` unik per destinasi/source agar file yang sama tidak menggandakan analisis.
 6. Upload NLP wajib memakai Python Model service aktif. Jika service mati atau pipeline tidak mengembalikan topik, run menjadi `failed` agar data ulasan tidak terlihat sukses tanpa analisis topik.
+
+## Topic Multi-Aspek
+
+- `reviews.topic_id` tetap menyimpan satu topic primer.
+- `review_topics` menyimpan maksimal tiga assignment primer/sekunder.
+- `destination_topics` dihitung ulang dari seluruh assignment.
+- Merge topic memindahkan mapping model, review primer, dan assignment aspek.
+- Migration `20260613100000_add_review_topic_aspects` membackfill topic lama
+  sebagai assignment primer.
+
+Setelah menarik perubahan schema:
+
+```powershell
+npx prisma migrate deploy
+npx prisma generate
+```
+
+Hentikan proses Node yang memakai Prisma Client jika `prisma generate` gagal
+dengan `EPERM ... node_modules/.prisma/client/index.js`.
 
 ## Catatan Clean Code Backend
 

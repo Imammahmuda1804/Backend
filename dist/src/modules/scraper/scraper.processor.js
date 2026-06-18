@@ -69,11 +69,9 @@ let ScraperProcessor = ScraperProcessor_1 = class ScraperProcessor extends bullm
         this.logger.log(`Successfully finished scraping job ${jobId}, generated Excel with ${savedCount} reviews at ${filePath}`);
     }
     async handleScrapingFailure(jobId, error) {
-        this.logger.error(`Error in scraping job ${jobId}`, error);
-        await this.failJob(jobId, this.getErrorMessage(error));
-    }
-    getErrorMessage(error) {
-        return error instanceof Error ? error.message : 'Unknown error';
+        const readableError = this.apifyService.toReadableError(error);
+        this.logger.error(`Error in scraping job ${jobId}: ${readableError}`, error);
+        await this.failJob(jobId, readableError);
     }
     async markJobRunning(jobId) {
         await this.prisma.scrapingJob.update({

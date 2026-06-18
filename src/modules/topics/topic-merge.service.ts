@@ -5,13 +5,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ReviewTopicPersistenceService } from '../topic-mapping/review-topic-persistence.service';
+import { TopicModelMappingService } from '../topic-mapping/topic-model-mapping.service';
 import { normalizeTopicNameForMatch } from './topic-name.util';
 
 @Injectable()
 export class TopicMergeService {
   private readonly logger = new Logger(TopicMergeService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly topicMapping: TopicModelMappingService,
+    private readonly reviewTopicPersistence: ReviewTopicPersistenceService,
+  ) {}
 
   async findTopicByNormalizedName(topicName: string, excludeId?: number) {
     const normalizedName = normalizeTopicNameForMatch(topicName);
@@ -56,7 +62,17 @@ export class TopicMergeService {
     );
 
     await this.prisma.$transaction(async (transaction) => {
+      await this.topicMapping.moveMappings(
+        transaction,
+        targetTopicId,
+        uniqueSourceIds,
+      );
       await this.moveDestinationRelations(
+        transaction,
+        targetTopicId,
+        uniqueSourceIds,
+      );
+      await this.reviewTopicPersistence.moveAssignments(
         transaction,
         targetTopicId,
         uniqueSourceIds,

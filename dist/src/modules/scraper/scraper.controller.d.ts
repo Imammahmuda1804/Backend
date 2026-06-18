@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 import { ScraperService } from './scraper.service';
-import { HistoryQueryDto, JobQueryDto, SearchQueryDto, StartScrapingDto } from './dto';
+import { HistoryQueryDto, JobQueryDto, ScraperOverviewQueryDto, SearchQueryDto, StartScrapingDto } from './dto';
 type AdminUser = {
     id: number;
     email: string;
@@ -17,6 +17,52 @@ export declare class ScraperController {
         placeId: string | undefined;
         url: string | undefined;
     }[]>;
+    getOverview(query: ScraperOverviewQueryDto): Promise<{
+        destination_id: number;
+        destination_name: string;
+        maps_url: string;
+        live_google: {
+            title: string | null;
+            address: string | null;
+            rating: number | null;
+            total_reviews: number | null;
+            place_id: string | null;
+            fetched_at: string;
+        };
+        cached_destination: {
+            google_rating: number | null;
+            google_review_count: number | null;
+        };
+        database: {
+            stored_text_reviews: number;
+            processed_reviews: number;
+            latest_nlp_run: {
+                id: number;
+                status: string;
+                startedAt: Date;
+                finishedAt: Date | null;
+                fileName: string;
+                mode: string;
+                totalRows: number;
+                insertedReviews: number;
+                skippedDuplicates: number;
+                processedReviews: number;
+            } | null;
+            latest_scraping_job: {
+                id: number;
+                status: string;
+                createdAt: Date;
+                totalReviews: number | null;
+                startedAt: Date | null;
+                finishedAt: Date | null;
+            } | null;
+        };
+        coverage: {
+            stored_text_reviews_percent: number | null;
+            processed_reviews_percent: number | null;
+        };
+        text_filter_note: string;
+    }>;
     startScraping(dto: StartScrapingDto, user?: AdminUser): Promise<{
         job_id: number;
         status: string;

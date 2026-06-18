@@ -1,8 +1,11 @@
 import { PrismaService } from '../../prisma/prisma.service';
+import { MediaStorageService } from '../storage/media-storage.service';
+import type { UploadableImage } from '../storage/media-storage.types';
 import { UpdateProfileDto, AdminUpdateUserDto, AdminCreateUserDto } from './dto';
 export declare class UsersService {
     private readonly prisma;
-    constructor(prisma: PrismaService);
+    private readonly mediaStorage;
+    constructor(prisma: PrismaService, mediaStorage: MediaStorageService);
     findById(id: number): Promise<{
         id: number;
         email: string;
@@ -27,6 +30,14 @@ export declare class UsersService {
         updatedAt: Date;
     } | null>;
     updateProfile(userId: number, dto: UpdateProfileDto): Promise<{
+        id: number;
+        email: string;
+        name: string;
+        role: import("@prisma/client").$Enums.Role;
+        profilePicture: string | null;
+        createdAt: Date;
+    }>;
+    uploadAvatar(userId: number, file: UploadableImage): Promise<{
         id: number;
         email: string;
         name: string;

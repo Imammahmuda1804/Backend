@@ -2,21 +2,18 @@ import { NestFactory } from '@nestjs/core';
 import * as fs from 'fs';
 import * as path from 'path';
 import { AppModule } from './app.module';
-import { AiNamingService } from './modules/nlp/ai-naming.service';
-import { PrismaService } from './prisma/prisma.service';
+import type { NlpPipelineResult } from './modules/nlp/interfaces/nlp-pipeline-result.interface';
+import { NlpTopicStorageService } from './modules/nlp/nlp-topic-storage.service';
 
-interface TrainingMetadata {
+export interface TrainingTopicMetadata {
+  model_version?: string;
+  trained_at?: string;
   topic_keywords?: Record<string, string[]>;
 }
 
-type SyncDependencies = {
-  prisma: PrismaService;
-  aiNaming: AiNamingService;
-};
-
-type SyncSummary = {
-  newTopicsCount: number;
-  updatedTopicsCount: number;
+export type TopicSyncSummary = {
+  processedTopicsCount: number;
+  canonicalTopicsCount: number;
 };
 
 async function bootstrap() {
@@ -24,32 +21,34 @@ async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
 
   try {
-    const summary = await syncTopicsFromMetadata({
-      prisma: app.get(PrismaService),
-      aiNaming: app.get(AiNamingService),
-    });
+    const metadata = readTrainingMetadata(getTrainingMetadataPath());
+    const summary = await syncTopicsFromMetadata(
+      metadata,
+      app.get(NlpTopicStorageService),
+    );
     logSummary(summary);
   } finally {
     await app.close();
   }
 }
 
-async function syncTopicsFromMetadata(
-  dependencies: SyncDependencies,
-): Promise<SyncSummary> {
-  const metadataPath = getTrainingMetadataPath();
-  const topicKeywords = readTopicKeywords(metadataPath);
-  const topicIds = getTopicIds(topicKeywords);
-  const summary: SyncSummary = { newTopicsCount: 0, updatedTopicsCount: 0 };
+/**
+ * Menyinkronkan metadata model melalui resolver topik kanonis yang sama dengan
+ * pipeline NLP, sehingga topik yang sudah digabung admin tidak dibuat ulang.
+ */
+export async function syncTopicsFromMetadata(
+  metadata: TrainingTopicMetadata,
+  topicStorage: Pick<NlpTopicStorageService, 'saveTopics'>,
+): Promise<TopicSyncSummary> {
+  const topics = buildPipelineTopics(metadata.topic_keywords ?? {});
+  const mappings = await topicStorage.saveTopics(
+    buildPipelineResult(metadata.model_version, metadata.trained_at, topics),
+  );
 
-  console.log(`Found ${topicIds.length} topics in metadata.`);
-
-  for (const topicId of topicIds) {
-    const status = await syncOneTopic(topicId, topicKeywords, dependencies);
-    summary[status === 'created' ? 'newTopicsCount' : 'updatedTopicsCount']++;
-  }
-
-  return summary;
+  return {
+    processedTopicsCount: topics.length,
+    canonicalTopicsCount: new Set(mappings.values()).size,
+  };
 }
 
 function getTrainingMetadataPath() {
@@ -59,15 +58,13 @@ function getTrainingMetadataPath() {
   );
 }
 
-function readTopicKeywords(metadataPath: string) {
+function readTrainingMetadata(metadataPath: string): TrainingTopicMetadata {
   assertMetadataFileExists(metadataPath);
-
   console.log(`Reading file: ${metadataPath}`);
-  const metadata = JSON.parse(
-    fs.readFileSync(metadataPath, 'utf-8'),
-  ) as TrainingMetadata;
 
-  return metadata.topic_keywords ?? {};
+  return JSON.parse(
+    fs.readFileSync(metadataPath, 'utf-8'),
+  ) as TrainingTopicMetadata;
 }
 
 function assertMetadataFileExists(metadataPath: string) {
@@ -78,73 +75,44 @@ function assertMetadataFileExists(metadataPath: string) {
   );
 }
 
-function getTopicIds(topicKeywords: Record<string, string[]>) {
-  return Object.keys(topicKeywords)
-    .map((id) => parseInt(id, 10))
-    .filter((id) => id !== -1);
+function buildPipelineTopics(topicKeywords: Record<string, string[]>) {
+  return Object.entries(topicKeywords)
+    .map(([topicId, keywords]) => ({
+      topic_id: Number.parseInt(topicId, 10),
+      keywords: Array.isArray(keywords) ? keywords : [],
+    }))
+    .filter(
+      (topic) => Number.isInteger(topic.topic_id) && topic.topic_id !== -1,
+    );
 }
 
-async function syncOneTopic(
-  topicId: number,
-  topicKeywords: Record<string, string[]>,
-  dependencies: SyncDependencies,
-) {
-  const keywords = topicKeywords[String(topicId)] ?? [];
-  const existing = await dependencies.prisma.topic.findUnique({
-    where: { id: topicId },
-  });
-
-  if (!existing) {
-    await createTopic(topicId, keywords, dependencies);
-    return 'created';
-  }
-
-  await updateTopicKeywords(topicId, keywords, dependencies.prisma);
-  return 'updated';
-}
-
-async function createTopic(
-  topicId: number,
-  keywords: string[],
-  dependencies: SyncDependencies,
-) {
-  console.log(`Generating AI name for topic ${topicId}...`);
-  const topicName = await dependencies.aiNaming.generateTopicName(
-    topicId,
-    keywords,
-  );
-
-  await dependencies.prisma.topic.create({
-    data: {
-      id: topicId,
-      topicName,
-      keywords,
+function buildPipelineResult(
+  modelVersion: string | undefined,
+  trainedAt: string | undefined,
+  topics: NlpPipelineResult['topics'],
+): NlpPipelineResult {
+  return {
+    summary: { total: 0, positive: 0, negative: 0, neutral: 0 },
+    results: [],
+    topics,
+    metadata: {
+      topic_model_version: modelVersion,
+      topic_trained_at: trainedAt,
     },
-  });
-  console.log(`Created topic [${topicId}]: ${topicName}`);
+  };
 }
 
-async function updateTopicKeywords(
-  topicId: number,
-  keywords: string[],
-  prisma: PrismaService,
-) {
-  await prisma.topic.update({
-    where: { id: topicId },
-    data: { keywords },
-  });
-  console.log(`Updated keywords for topic [${topicId}]`);
-}
-
-function logSummary(summary: SyncSummary) {
+function logSummary(summary: TopicSyncSummary) {
   console.log('Topic sync completed.');
-  console.log(`- New topics generated by AI: ${summary.newTopicsCount}`);
-  console.log(`- Existing topics updated: ${summary.updatedTopicsCount}`);
+  console.log(`- Model topics processed: ${summary.processedTopicsCount}`);
+  console.log(`- Canonical database topics: ${summary.canonicalTopicsCount}`);
 }
 
-bootstrap()
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error(err);
-    process.exit(1);
-  });
+if (require.main === module) {
+  bootstrap()
+    .then(() => process.exit(0))
+    .catch((error: unknown) => {
+      console.error(error);
+      process.exit(1);
+    });
+}

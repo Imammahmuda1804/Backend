@@ -12,6 +12,12 @@ export interface NlpPipelineResult {
         sentiment: string;
         sentiment_confidence?: number;
         topic_id: number | null;
+        topic_assignments?: Array<{
+            topic_id: number;
+            score: number;
+            is_primary: boolean;
+            assignment_method: 'primary_transform' | 'aspect_distribution' | string;
+        }>;
         embedding: number[];
     }>;
     topics: Array<{
@@ -27,6 +33,7 @@ export interface NlpPipelineResult {
     metadata?: {
         sentiment_model_version?: string;
         topic_model_version?: string;
+        topic_trained_at?: string;
         embedding_model_name?: string;
         trained_at?: string;
         dataset?: string;

@@ -31,8 +31,8 @@ let TopicsService = class TopicsService {
         this.groupService = groupService;
         this.managementService = managementService;
     }
-    findAll(scope) {
-        return this.queryService.findAll(scope);
+    findAll(scope, destinationId) {
+        return this.queryService.findAll(scope, destinationId);
     }
     findGroups() {
         return this.queryService.findGroups();

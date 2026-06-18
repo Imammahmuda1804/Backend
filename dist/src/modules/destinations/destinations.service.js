@@ -47,11 +47,11 @@ let DestinationsService = class DestinationsService {
     updateMapsUrl(id, dto) {
         return this.admin.updateMapsUrl(id, dto);
     }
-    uploadThumbnail(destinationId, filename) {
-        return this.admin.uploadThumbnail(destinationId, filename);
+    uploadThumbnail(destinationId, file) {
+        return this.admin.uploadThumbnail(destinationId, file);
     }
-    uploadImage(destinationId, filename) {
-        return this.admin.uploadImage(destinationId, filename);
+    uploadImage(destinationId, file) {
+        return this.admin.uploadImage(destinationId, file);
     }
     deleteImage(imageId) {
         return this.admin.deleteImage(imageId);

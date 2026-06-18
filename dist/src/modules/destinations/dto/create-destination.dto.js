@@ -104,9 +104,15 @@ __decorate([
     __metadata("design:type", String)
 ], CreateDestinationDto.prototype, "googlePlaceId", void 0);
 __decorate([
-    (0, swagger_1.ApiPropertyOptional)({ description: 'Thumbnail URL', example: 'https://...' }),
-    (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsUrl)(),
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Thumbnail URL. Mendukung URL penuh storage atau path legacy /uploads.',
+        example: 'https://project-ref.supabase.co/storage/v1/object/public/ranahinsight-images/destinations/2026-06-10/photo.jpg',
+    }),
+    (0, class_validator_1.ValidateIf)((_object, value) => value !== undefined && value !== null && value !== ''),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.Matches)(/^(https?:\/\/|\/uploads\/)/i, {
+        message: 'thumbnailUrl must be a full URL or legacy /uploads path',
+    }),
     __metadata("design:type", String)
 ], CreateDestinationDto.prototype, "thumbnailUrl", void 0);
 __decorate([

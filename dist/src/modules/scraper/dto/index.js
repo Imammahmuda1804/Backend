@@ -18,4 +18,5 @@ __exportStar(require("./search-query.dto"), exports);
 __exportStar(require("./start-scraping.dto"), exports);
 __exportStar(require("./job-query.dto"), exports);
 __exportStar(require("./history-query.dto"), exports);
+__exportStar(require("./scraper-overview-query.dto"), exports);
 //# sourceMappingURL=index.js.map

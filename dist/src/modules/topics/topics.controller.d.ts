@@ -3,7 +3,7 @@ import { RenameTopicDto, RenameTopicGroupDto, UpdateTopicSettingsDto, MergeTopic
 export declare class TopicsController {
     private readonly topicsService;
     constructor(topicsService: TopicsService);
-    findAll(scope?: 'search' | 'detail'): Promise<{
+    findAll(scope?: 'search' | 'detail', destinationId?: string): Promise<{
         id: number;
         group_name: string;
         description: string | null;
@@ -31,6 +31,13 @@ export declare class TopicsController {
             group_name: string;
         } | null;
         total_destinations: number;
+        selected_destination: {
+            id: number;
+            name: string;
+            city: string;
+            slug: string;
+        } | null;
+        selected_destination_reviews: number;
     }[]>;
     findGroups(): Promise<{
         id: number;
@@ -158,6 +165,12 @@ export declare class AdminTopicsController {
             review_date: Date | null;
             sentiment: string | null;
             sentiment_confidence: number | null;
+            topic_assignments: {
+                topicId: number;
+                score: number;
+                isPrimary: boolean;
+                assignmentMethod: string;
+            }[];
             destination: unknown;
         }[];
         meta: {

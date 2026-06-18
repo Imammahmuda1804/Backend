@@ -20,8 +20,44 @@ let ApifyService = ApifyService_1 = class ApifyService {
     MAPS_REVIEWS_ACTOR_ID = 'compass/google-maps-reviews-scraper';
     constructor() {
         this.client = new apify_client_1.ApifyClient({
-            token: process.env.APIFY_API_TOKEN || 'apify_dummy_token',
+            token: process.env.APIFY_API_TOKEN ||
+                process.env.APIFY_TOKEN ||
+                'apify_dummy_token',
         });
+    }
+    toReadableError(error) {
+        const message = this.extractErrorMessage(error);
+        const normalized = message.toLowerCase();
+        if (normalized.includes('token') ||
+            normalized.includes('unauthorized') ||
+            normalized.includes('authentication') ||
+            normalized.includes('401')) {
+            return 'Token Apify tidak valid atau belum dikonfigurasi. Periksa APIFY_API_TOKEN di environment backend.';
+        }
+        if (normalized.includes('quota') ||
+            normalized.includes('limit') ||
+            normalized.includes('credit') ||
+            normalized.includes('insufficient') ||
+            normalized.includes('payment') ||
+            normalized.includes('billing')) {
+            return 'Limit atau credit Apify habis. Tambah credit/kuota Apify atau tunggu kuota tersedia sebelum menjalankan scraper lagi.';
+        }
+        if (normalized.includes('timeout') || normalized.includes('timed out')) {
+            return 'Scraper Apify timeout. Coba kurangi jumlah ulasan atau ulangi job beberapa menit lagi.';
+        }
+        return message || 'Scraper Apify gagal. Periksa log backend dan dashboard Apify.';
+    }
+    extractErrorMessage(error) {
+        if (error instanceof Error)
+            return error.message;
+        if (typeof error === 'string')
+            return error;
+        try {
+            return JSON.stringify(error);
+        }
+        catch {
+            return '';
+        }
     }
     async searchPlaces(query) {
         this.logger.log(`Searching Google Maps for: ${query}`);

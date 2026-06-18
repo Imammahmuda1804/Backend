@@ -58,13 +58,13 @@ let AdminDestinationsController = class AdminDestinationsController {
         if (!file) {
             throw new common_1.BadRequestException('File is required');
         }
-        return this.destinationsService.uploadThumbnail(id, file.filename);
+        return this.destinationsService.uploadThumbnail(id, file);
     }
     async uploadImage(id, file) {
         if (!file) {
             throw new common_1.BadRequestException('File is required');
         }
-        return this.destinationsService.uploadImage(id, file.filename);
+        return this.destinationsService.uploadImage(id, file);
     }
     async deleteImage(imageId) {
         return this.destinationsService.deleteImage(imageId);

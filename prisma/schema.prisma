@@ -147,6 +147,7 @@ model Review {
 
   destination     Destination      @relation(fields: [destinationId], references: [id], onDelete: Cascade)
   topic           Topic?           @relation(fields: [topicId], references: [id])
+  topicAssignments ReviewTopic[]
   scrapingJob     ScrapingJob?     @relation(fields: [scrapingJobId], references: [id])
   reviewEmbedding ReviewEmbedding?
 
@@ -218,10 +219,46 @@ model Topic {
   group             TopicGroup?        @relation(fields: [groupId], references: [id], onDelete: SetNull)
   reviews           Review[]
   destinationTopics DestinationTopic[]
+  modelMappings     TopicModelMapping[]
+  reviewAssignments ReviewTopic[]
 
   @@index([groupId])
   @@index([isSearchVisible])
   @@map("topics")
+}
+
+model ReviewTopic {
+  id               Int      @id @default(autoincrement())
+  reviewId         Int      @map("review_id")
+  topicId          Int      @map("topic_id")
+  score            Float
+  isPrimary        Boolean  @default(false) @map("is_primary")
+  assignmentMethod String   @default("aspect_distribution") @map("assignment_method")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  topic  Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, topicId])
+  @@index([topicId])
+  @@index([reviewId, isPrimary])
+  @@map("review_topics")
+}
+
+model TopicModelMapping {
+  id           Int      @id @default(autoincrement())
+  modelVersion String   @map("model_version")
+  modelTopicId Int      @map("model_topic_id")
+  topicId      Int      @map("topic_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  topic Topic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([modelVersion, modelTopicId])
+  @@index([topicId])
+  @@map("topic_model_mappings")
 }
 
 model TopicGroup {

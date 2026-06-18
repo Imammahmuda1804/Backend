@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+  CanonicalReviewTopicAssignment,
+  ReviewTopicPersistenceService,
+} from '../topic-mapping/review-topic-persistence.service';
 import { VectorService } from '../vector/vector.service';
 import { NlpPipelineResult } from './interfaces/nlp-pipeline-result.interface';
 import {
@@ -13,13 +18,17 @@ type ReviewUpdatePayload = {
   sentiment: string;
   sentimentConfidence?: number;
   topicId: number | null;
+  topicAssignments: ReviewTopicAssignmentPayload[];
 };
+
+type ReviewTopicAssignmentPayload = CanonicalReviewTopicAssignment;
 
 @Injectable()
 export class NlpReviewStorageService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly vectorService: VectorService,
+    private readonly reviewTopicPersistence: ReviewTopicPersistenceService,
   ) {}
 
   async save(
@@ -28,12 +37,12 @@ export class NlpReviewStorageService {
     reviewIds: number[],
     savedTopicIds: Map<number, number>,
   ) {
-    await this.updateReviews(nlpResult, reviewIds, savedTopicIds);
+    await this.updateReviewsAndTopics(nlpResult, reviewIds, savedTopicIds);
     await this.saveReviewEmbeddings(nlpResult, reviewIds);
     await this.saveDestinationEmbedding(destinationId, nlpResult);
   }
   // Memperbarui review dengan teks bersih, sentimen, confidence, dan topik.
-  private async updateReviews(
+  private async updateReviewsAndTopics(
     nlpResult: NlpPipelineResult,
     reviewIds: number[],
     savedTopicIds: Map<number, number>,
@@ -44,17 +53,31 @@ export class NlpReviewStorageService {
       savedTopicIds,
     );
 
-    for (const update of updates) {
-      await this.prisma.review.update({
-        where: { id: update.reviewId },
-        data: {
-          cleanedText: update.cleanedText,
-          sentiment: update.sentiment,
-          sentimentConfidence: update.sentimentConfidence,
-          topicId: update.topicId,
-        },
-      });
-    }
+    await this.prisma.$transaction(async (transaction) => {
+      for (const update of updates) {
+        await this.saveReviewUpdate(transaction, update);
+      }
+    });
+  }
+
+  private async saveReviewUpdate(
+    transaction: Prisma.TransactionClient,
+    update: ReviewUpdatePayload,
+  ) {
+    await transaction.review.update({
+      where: { id: update.reviewId },
+      data: {
+        cleanedText: update.cleanedText,
+        sentiment: update.sentiment,
+        sentimentConfidence: update.sentimentConfidence,
+        topicId: update.topicId,
+      },
+    });
+    await this.reviewTopicPersistence.replaceAssignments(
+      transaction,
+      update.reviewId,
+      update.topicAssignments,
+    );
   }
 
   private buildReviewUpdates(
@@ -79,13 +102,75 @@ export class NlpReviewStorageService {
     const reviewId = review.review_id ?? fallbackReviewId;
     if (!reviewId) return null;
 
+    const topicId = this.resolveSavedTopicId(review.topic_id, savedTopicIds);
+
     return {
       reviewId,
       cleanedText: review.cleaned_text,
       sentiment: mapPipelineSentiment(review.sentiment),
       sentimentConfidence: review.sentiment_confidence,
-      topicId: this.resolveSavedTopicId(review.topic_id, savedTopicIds),
+      topicId,
+      topicAssignments: this.resolveTopicAssignments(
+        review,
+        topicId,
+        savedTopicIds,
+      ),
     };
+  }
+
+  private resolveTopicAssignments(
+    review: NlpPipelineResult['results'][number],
+    primaryTopicId: number | null,
+    savedTopicIds: Map<number, number>,
+  ): ReviewTopicAssignmentPayload[] {
+    const sourceAssignments =
+      review.topic_assignments && review.topic_assignments.length > 0
+        ? review.topic_assignments
+        : this.buildLegacyPrimaryAssignment(review.topic_id);
+    const canonicalAssignments = new Map<
+      number,
+      ReviewTopicAssignmentPayload
+    >();
+
+    for (const assignment of sourceAssignments) {
+      const topicId = this.resolveSavedTopicId(
+        assignment.topic_id,
+        savedTopicIds,
+      );
+      if (topicId === null) continue;
+
+      const existing = canonicalAssignments.get(topicId);
+      canonicalAssignments.set(topicId, {
+        topicId,
+        score: Math.max(existing?.score ?? 0, assignment.score),
+        isPrimary:
+          topicId === primaryTopicId ||
+          Boolean(existing?.isPrimary) ||
+          assignment.is_primary,
+        assignmentMethod:
+          topicId === primaryTopicId
+            ? 'primary_transform'
+            : (existing?.assignmentMethod ?? assignment.assignment_method),
+      });
+    }
+
+    return Array.from(canonicalAssignments.values()).map((assignment) => ({
+      ...assignment,
+      isPrimary: assignment.topicId === primaryTopicId,
+    }));
+  }
+
+  private buildLegacyPrimaryAssignment(topicId: number | null | undefined) {
+    return topicId == null
+      ? []
+      : [
+          {
+            topic_id: topicId,
+            score: 1,
+            is_primary: true,
+            assignment_method: 'legacy_primary',
+          },
+        ];
   }
 
   private resolveSavedTopicId(

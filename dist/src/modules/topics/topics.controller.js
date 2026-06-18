@@ -25,8 +25,11 @@ let TopicsController = class TopicsController {
     constructor(topicsService) {
         this.topicsService = topicsService;
     }
-    async findAll(scope) {
-        return this.topicsService.findAll(scope);
+    async findAll(scope, destinationId) {
+        const parsedDestinationId = destinationId
+            ? parseInt(destinationId, 10)
+            : undefined;
+        return this.topicsService.findAll(scope, Number.isFinite(parsedDestinationId) ? parsedDestinationId : undefined);
     }
     async findGroups() {
         return this.topicsService.findGroups();
@@ -68,10 +71,18 @@ __decorate([
     (0, common_1.Get)(),
     (0, public_decorator_1.Public)(),
     (0, swagger_1.ApiOperation)({ summary: 'List semua topics dengan jumlah destinasi' }),
+    (0, swagger_1.ApiQuery)({ name: 'scope', required: false, enum: ['search', 'detail'] }),
+    (0, swagger_1.ApiQuery)({
+        name: 'destinationId',
+        required: false,
+        type: Number,
+        description: 'Filter topik yang muncul pada destinasi tertentu',
+    }),
     (0, swagger_1.ApiResponse)({ status: 200, description: 'Topics berhasil diambil' }),
     __param(0, (0, common_1.Query)('scope')),
+    __param(1, (0, common_1.Query)('destinationId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], TopicsController.prototype, "findAll", null);
 __decorate([

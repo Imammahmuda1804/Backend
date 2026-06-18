@@ -71,9 +71,25 @@ exports.AppModule = AppModule = __decorate([
             bullmq_1.BullModule.forRootAsync({
                 imports: [config_1.ConfigModule],
                 useFactory: (configService) => {
+                    const redisUrl = configService.get('REDIS_URL');
                     const redisUsername = configService.get('REDIS_USERNAME');
                     const redisPassword = configService.get('REDIS_PASSWORD');
                     const useRedisTls = configService.get('REDIS_TLS', 'false') === 'true';
+                    if (redisUrl) {
+                        const parsedRedisUrl = new URL(redisUrl);
+                        const protocolUsesTls = parsedRedisUrl.protocol === 'rediss:';
+                        return {
+                            connection: {
+                                host: parsedRedisUrl.hostname,
+                                port: Number(parsedRedisUrl.port || 6379),
+                                username: decodeURIComponent(parsedRedisUrl.username || ''),
+                                password: decodeURIComponent(parsedRedisUrl.password || ''),
+                                tls: protocolUsesTls ? {} : undefined,
+                                maxRetriesPerRequest: null,
+                                enableReadyCheck: false,
+                            },
+                        };
+                    }
                     return {
                         connection: {
                             host: configService.get('REDIS_HOST', 'localhost'),
@@ -81,6 +97,8 @@ exports.AppModule = AppModule = __decorate([
                             username: redisUsername || undefined,
                             password: redisPassword || undefined,
                             tls: useRedisTls ? {} : undefined,
+                            maxRetriesPerRequest: null,
+                            enableReadyCheck: false,
                         },
                     };
                 },

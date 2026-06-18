@@ -298,7 +298,7 @@ export declare class DestinationsController {
         }[];
     }>;
     getReviewsByTopic(id: number, topicIdStr: string, pageStr: string, limitStr: string): Promise<{
-        data: {
+        data: ({
             id: number;
             rating: number | null;
             reviewText: string | null;
@@ -306,7 +306,9 @@ export declare class DestinationsController {
             reviewDate: Date | null;
             likesCount: number | null;
             sentiment: string | null;
-        }[];
+        } & {
+            topicAssignments: import("../topic-mapping/review-topic-query.service").ReviewTopicAssignment[];
+        })[];
         meta: {
             total: number;
             page: number;
@@ -315,7 +317,7 @@ export declare class DestinationsController {
         };
     }>;
     getReviewsByTopicGroup(id: number, groupIdStr: string, pageStr: string, limitStr: string): Promise<{
-        data: {
+        data: ({
             id: number;
             rating: number | null;
             reviewText: string | null;
@@ -328,7 +330,9 @@ export declare class DestinationsController {
             likesCount: number | null;
             sentiment: string | null;
             topicId: number | null;
-        }[];
+        } & {
+            topicAssignments: import("../topic-mapping/review-topic-query.service").ReviewTopicAssignment[];
+        })[];
         meta: {
             total: number;
             page: number;

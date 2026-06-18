@@ -16,12 +16,13 @@ const topic_management_service_1 = require("./topic-management.service");
 const topic_merge_service_1 = require("./topic-merge.service");
 const topic_query_service_1 = require("./topic-query.service");
 const topic_review_service_1 = require("./topic-review.service");
+const topic_model_mapping_module_1 = require("../topic-mapping/topic-model-mapping.module");
 let TopicsModule = class TopicsModule {
 };
 exports.TopicsModule = TopicsModule;
 exports.TopicsModule = TopicsModule = __decorate([
     (0, common_1.Module)({
-        imports: [nlp_module_1.NlpModule],
+        imports: [nlp_module_1.NlpModule, topic_model_mapping_module_1.TopicModelMappingModule],
         controllers: [topics_controller_1.TopicsController, topics_controller_1.AdminTopicsController],
         providers: [
             topics_service_1.TopicsService,

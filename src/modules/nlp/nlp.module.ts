@@ -17,9 +17,10 @@ import { NlpPipelineRunnerService } from './nlp-pipeline-runner.service';
 import { NlpUploadExecutionService } from './nlp-upload-execution.service';
 import { TopicNamePolicyService } from './topic-name-policy.service';
 import { TopicGroupClassifierService } from './topic-group-classifier.service';
+import { TopicModelMappingModule } from '../topic-mapping/topic-model-mapping.module';
 
 @Module({
-  imports: [HttpModule, VectorModule],
+  imports: [HttpModule, VectorModule, TopicModelMappingModule],
   controllers: [NlpController],
   providers: [
     NlpService,

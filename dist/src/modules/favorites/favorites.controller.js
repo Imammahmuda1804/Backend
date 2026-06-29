@@ -17,7 +17,6 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const favorites_service_1 = require("./favorites.service");
 const current_user_decorator_1 = require("../../common/decorators/current-user.decorator");
-const pagination_util_1 = require("../../common/utils/pagination.util");
 let FavoritesController = class FavoritesController {
     favoritesService;
     constructor(favoritesService) {
@@ -26,9 +25,10 @@ let FavoritesController = class FavoritesController {
     async addFavorite(destinationId, userId) {
         return this.favoritesService.addFavorite(userId, destinationId);
     }
-    async getFavorites(userId, page, limit) {
-        const pagination = (0, pagination_util_1.parsePaginationQuery)(page, limit, { defaultLimit: 20 });
-        return this.favoritesService.getFavorites(userId, pagination.page, pagination.limit);
+    async getFavorites(userId, page = '1', limit = '20') {
+        const pageNum = parseInt(page, 10) || 1;
+        const limitNum = Math.min(parseInt(limit, 10) || 20, 100);
+        return this.favoritesService.getFavorites(userId, pageNum, limitNum);
     }
     async removeFavorite(destinationId, userId) {
         return this.favoritesService.removeFavorite(userId, destinationId);

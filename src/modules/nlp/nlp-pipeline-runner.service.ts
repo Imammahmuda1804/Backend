@@ -23,7 +23,7 @@ export class NlpPipelineRunnerService {
 
   async run(destinationId: number, reviews: ProcessReview[]) {
     const rows = reviews.map((review) => this.toCsvRow(review));
-    const csvBuffer = Buffer.from(this.csvService.generateInternalCsv(rows));
+    const csvBuffer = Buffer.from(this.csvService.generateCsv(rows));
     const result = await this.callPipeline(destinationId, csvBuffer);
     this.assertValidResult(result, reviews.length);
     return result;

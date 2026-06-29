@@ -13,10 +13,7 @@ export declare class SearchController {
     private readonly logger;
     constructor(searchService: SearchService);
     search(dto: SearchQueryDto, req?: SearchRequest): Promise<import("../vector/interfaces/similar-destination.interface").SimilarDestination[]>;
-    getHistory(userId: number, query: {
-        page?: string;
-        limit?: string;
-    }): Promise<{
+    getHistory(userId: number, page?: string, limit?: string): Promise<{
         data: {
             id: number;
             createdAt: Date;

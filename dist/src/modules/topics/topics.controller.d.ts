@@ -34,8 +34,8 @@ export declare class TopicsController {
         selected_destination: {
             id: number;
             name: string;
-            city: string;
             slug: string;
+            city: string;
         } | null;
         selected_destination_reviews: number;
     }[]>;
@@ -124,8 +124,8 @@ export declare class TopicsController {
             total_reviews_in_topic: number;
             id: number;
             name: string;
-            city: string;
             slug: string;
+            city: string;
             province: string;
             thumbnailUrl: string | null;
             positiveRatio: number | null;

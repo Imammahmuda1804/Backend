@@ -1,9 +1,7 @@
-import { AppService } from './app.service';
 import { NlpService } from './modules/nlp/nlp.service';
 export declare class AppController {
-    private readonly appService;
     private readonly nlpService;
-    constructor(appService: AppService, nlpService: NlpService);
+    constructor(nlpService: NlpService);
     getHello(): string;
     testNlp(): Promise<{
         status: string;

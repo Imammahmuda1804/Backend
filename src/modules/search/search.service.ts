@@ -8,7 +8,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { NlpService } from '../nlp/nlp.service';
 import { VectorService } from '../vector/vector.service';
-import { NlpServiceUnavailableException } from '../nlp/exceptions/nlp-unavailable.exception';
+import { NlpServiceException } from '../nlp/exceptions/nlp-service.exception';
 import { SearchQueryDto } from './dto';
 
 @Injectable()
@@ -53,7 +53,7 @@ export class SearchService {
     try {
       return await this.nlpService.embedQuery(query);
     } catch (error) {
-      if (error instanceof NlpServiceUnavailableException) {
+      if (error instanceof NlpServiceException) {
         throw new ServiceUnavailableException(
           'NLP service sedang tidak tersedia, coba beberapa saat lagi',
         );

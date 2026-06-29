@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { findActiveDestinationIdentity } from '../../common/utils/destination-lookup.util';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 type AnalyticsExportReview = {
@@ -39,7 +38,14 @@ export class AnalyticsExportService {
   }
 
   private async findDestination(destinationId: number) {
-    return findActiveDestinationIdentity(this.prisma, destinationId);
+    const destination = await this.prisma.destination.findFirst({
+      where: { id: destinationId, deletedAt: null },
+      select: { id: true, name: true },
+    });
+    if (!destination) {
+      throw new NotFoundException('Destinasi tidak ditemukan');
+    }
+    return destination;
   }
 
   private findReviews(destinationId: number): Promise<AnalyticsExportReview[]> {

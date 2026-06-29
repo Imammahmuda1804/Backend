@@ -20,9 +20,6 @@ let CsvService = class CsvService {
         ];
         return rows.join('\n');
     }
-    generateInternalCsv(data) {
-        return this.generateCsv(data);
-    }
     createHeaderRow(headers) {
         return headers.join(',');
     }

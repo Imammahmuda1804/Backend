@@ -96,7 +96,7 @@ export class NlpProcessProcessor extends WorkerHost {
       this.toPipelineCsvRow(review, index),
     );
 
-    return Buffer.from(this.csvService.generateInternalCsv(nlpData));
+    return Buffer.from(this.csvService.generateCsv(nlpData));
   }
 
   private toPipelineCsvRow(

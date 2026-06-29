@@ -21,7 +21,6 @@ import {
 import { TopicsService } from './topics.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { parsePaginationQuery } from '../../common/utils/pagination.util';
 import {
   RenameTopicDto,
   RenameTopicGroupDto,
@@ -207,14 +206,13 @@ export class TopicsController {
   @ApiResponse({ status: 404, description: 'Topic tidak ditemukan' })
   async findDestinationsByTopic(
     @Param('id', ParseIntPipe) id: number,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
   ) {
-    const pagination = parsePaginationQuery(page, limit, { defaultLimit: 10 });
     return this.topicsService.findDestinationsByTopic(
       id,
-      pagination.page,
-      pagination.limit,
+      parseInt(page, 10) || 1,
+      Math.min(parseInt(limit, 10) || 10, 100),
     );
   }
 }
@@ -243,14 +241,13 @@ export class AdminTopicsController {
     @Param('id', ParseIntPipe) id: number,
     @Query('sentiment') sentiment?: 'positive' | 'neutral' | 'negative',
     @Query('destinationId') destinationId?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
   ) {
-    const pagination = parsePaginationQuery(page, limit, { defaultLimit: 10 });
     return this.topicsService.findReviewsByTopic(
       id,
-      pagination.page,
-      pagination.limit,
+      parseInt(page, 10) || 1,
+      Math.min(parseInt(limit, 10) || 10, 100),
       sentiment,
       destinationId ? parseInt(destinationId, 10) : undefined,
     );

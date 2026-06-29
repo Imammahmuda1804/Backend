@@ -1,5 +1,4 @@
-import { Injectable } from '@nestjs/common';
-import { findActiveDestinationIdentity } from '../../common/utils/destination-lookup.util';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
@@ -13,7 +12,13 @@ export class FavoritesService {
   }
 
   private async ensureDestinationExists(destinationId: number) {
-    await findActiveDestinationIdentity(this.prisma, destinationId);
+    const destination = await this.prisma.destination.findFirst({
+      where: { id: destinationId, deletedAt: null },
+      select: { id: true },
+    });
+    if (!destination) {
+      throw new NotFoundException('Destinasi tidak ditemukan');
+    }
   }
 
   private async createFavoriteOrReturnExisting(

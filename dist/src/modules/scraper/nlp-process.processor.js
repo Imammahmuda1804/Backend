@@ -68,7 +68,7 @@ let NlpProcessProcessor = NlpProcessProcessor_1 = class NlpProcessProcessor exte
     }
     createPipelineCsvBuffer(reviews) {
         const nlpData = reviews.map((review, index) => this.toPipelineCsvRow(review, index));
-        return Buffer.from(this.csvService.generateInternalCsv(nlpData));
+        return Buffer.from(this.csvService.generateCsv(nlpData));
     }
     toPipelineCsvRow(review, index) {
         return {

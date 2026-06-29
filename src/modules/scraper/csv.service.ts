@@ -15,10 +15,6 @@ export class CsvService {
     return rows.join('\n');
   }
 
-  generateInternalCsv(data: Record<string, unknown>[]): string {
-    return this.generateCsv(data);
-  }
-
   private createHeaderRow(headers: string[]): string {
     return headers.join(',');
   }

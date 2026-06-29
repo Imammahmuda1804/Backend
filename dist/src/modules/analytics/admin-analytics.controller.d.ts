@@ -35,11 +35,11 @@ export declare class AdminAnalyticsController {
             };
         } & {
             id: number;
-            status: string;
             createdAt: Date;
             destinationId: number;
             source: string;
             totalReviews: number | null;
+            status: string;
             startedAt: Date | null;
             finishedAt: Date | null;
             errorMessage: string | null;
@@ -57,11 +57,11 @@ export declare class AdminAnalyticsController {
                 };
             } & {
                 id: number;
-                status: string;
                 createdAt: Date;
                 destinationId: number;
                 source: string;
                 totalReviews: number | null;
+                status: string;
                 startedAt: Date | null;
                 finishedAt: Date | null;
                 errorMessage: string | null;
@@ -74,11 +74,11 @@ export declare class AdminAnalyticsController {
                 };
             } & {
                 id: number;
-                status: string;
                 createdAt: Date;
                 destinationId: number;
                 source: string;
                 totalReviews: number | null;
+                status: string;
                 startedAt: Date | null;
                 finishedAt: Date | null;
                 errorMessage: string | null;
@@ -93,15 +93,15 @@ export declare class AdminAnalyticsController {
             destinations_without_thumbnail: number;
             destinations_without_trends: number;
             recent_negative_reviews: {
-                id: number;
-                createdAt: Date;
-                rating: number | null;
-                reviewText: string | null;
                 destination: {
                     id: number;
                     name: string;
                     city: string;
                 };
+                id: number;
+                createdAt: Date;
+                reviewText: string | null;
+                rating: number | null;
             }[];
         };
         topic_risk_matrix: {
@@ -129,45 +129,45 @@ export declare class AdminAnalyticsController {
             };
         } & {
             id: number;
-            status: string;
             createdAt: Date;
             destinationId: number;
             source: string;
             totalReviews: number | null;
+            status: string;
             startedAt: Date | null;
             finishedAt: Date | null;
             errorMessage: string | null;
             createdBy: number | null;
         })[];
         recent_scraped_reviews: {
-            id: number;
-            createdAt: Date;
-            rating: number | null;
             destination: {
                 name: string;
             };
+            id: number;
+            createdAt: Date;
             reviewerName: string;
+            rating: number | null;
             sentiment: string | null;
         }[];
         recent_user_reviews: {
-            id: number;
-            createdAt: Date;
-            user: {
+            destination: {
                 name: string;
             };
-            rating: number;
+            id: number;
+            createdAt: Date;
             reviewText: string | null;
-            destination: {
+            rating: number;
+            user: {
                 name: string;
             };
         }[];
         recent_registrations: {
             id: number;
-            email: string;
             name: string;
+            createdAt: Date;
+            email: string;
             role: import("@prisma/client").$Enums.Role;
             status: string;
-            createdAt: Date;
         }[];
     }>;
     getAdminTrends(query: TrendsQueryDto): Promise<{

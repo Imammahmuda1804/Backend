@@ -19,8 +19,7 @@ const axios_1 = require("@nestjs/axios");
 const config_1 = require("@nestjs/config");
 const rxjs_1 = require("rxjs");
 const form_data_1 = __importDefault(require("form-data"));
-const nlp_unavailable_exception_1 = require("./exceptions/nlp-unavailable.exception");
-const nlp_processing_exception_1 = require("./exceptions/nlp-processing.exception");
+const nlp_service_exception_1 = require("./exceptions/nlp-service.exception");
 let NlpService = NlpService_1 = class NlpService {
     httpService;
     configService;
@@ -66,44 +65,43 @@ let NlpService = NlpService_1 = class NlpService {
             return response.data;
         }
         catch (error) {
-            if (error instanceof nlp_unavailable_exception_1.NlpServiceUnavailableException ||
-                error instanceof nlp_processing_exception_1.NlpProcessingException) {
+            if (error instanceof nlp_service_exception_1.NlpServiceException) {
                 throw error;
             }
             const message = error instanceof Error ? error.message : String(error);
             this.logger.error(`Unexpected error during ${operation}: ${message}`);
-            throw new nlp_processing_exception_1.NlpProcessingException(unexpectedMessage);
+            throw new nlp_service_exception_1.NlpServiceException(unexpectedMessage, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     handleAxiosError(error) {
         if (error.code === 'ECONNREFUSED') {
             this.logger.error('Connection refused. Is FastAPI running?');
-            throw new nlp_unavailable_exception_1.NlpServiceUnavailableException('NLP Service connection refused');
+            throw new nlp_service_exception_1.NlpServiceException('NLP Service connection refused');
         }
         if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
             this.logger.error('Request to FastAPI timed out');
-            throw new nlp_unavailable_exception_1.NlpServiceUnavailableException('NLP Service request timed out');
+            throw new nlp_service_exception_1.NlpServiceException('NLP Service request timed out');
         }
         if (error.response) {
             this.handleResponseError(error);
         }
         this.logger.error(`FastAPI communication error: ${error.message}`);
-        throw new nlp_processing_exception_1.NlpProcessingException('Error communicating with NLP Service');
+        throw new nlp_service_exception_1.NlpServiceException('Error communicating with NLP Service', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
     }
     handleResponseError(error) {
         const status = error.response?.status;
         const data = error.response?.data;
         this.logger.error(`FastAPI returned status ${status}: ${JSON.stringify(data)}`);
         if (status === 422) {
-            throw new nlp_processing_exception_1.NlpProcessingException('Invalid input format to NLP Service (422)');
+            throw new nlp_service_exception_1.NlpServiceException('Invalid input format to NLP Service (422)', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
         if (status === 429) {
-            throw new nlp_unavailable_exception_1.NlpServiceUnavailableException(`Terlalu banyak permintaan ke layanan AI (429)${this.getRetryMessage(error)}`);
+            throw new nlp_service_exception_1.NlpServiceException(`Terlalu banyak permintaan ke layanan AI (429)${this.getRetryMessage(error)}`);
         }
         if (status && status >= 500) {
-            throw new nlp_processing_exception_1.NlpProcessingException('NLP Service internal error');
+            throw new nlp_service_exception_1.NlpServiceException('NLP Service internal error', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        throw new nlp_processing_exception_1.NlpProcessingException('Error communicating with NLP Service');
+        throw new nlp_service_exception_1.NlpServiceException('Error communicating with NLP Service', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
     }
     getRetryMessage(error) {
         const headers = error.response?.headers;

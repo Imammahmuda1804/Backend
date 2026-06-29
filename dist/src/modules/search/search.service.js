@@ -15,7 +15,7 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../prisma/prisma.service");
 const nlp_service_1 = require("../nlp/nlp.service");
 const vector_service_1 = require("../vector/vector.service");
-const nlp_unavailable_exception_1 = require("../nlp/exceptions/nlp-unavailable.exception");
+const nlp_service_exception_1 = require("../nlp/exceptions/nlp-service.exception");
 let SearchService = SearchService_1 = class SearchService {
     prisma;
     nlpService;
@@ -42,7 +42,7 @@ let SearchService = SearchService_1 = class SearchService {
             return await this.nlpService.embedQuery(query);
         }
         catch (error) {
-            if (error instanceof nlp_unavailable_exception_1.NlpServiceUnavailableException) {
+            if (error instanceof nlp_service_exception_1.NlpServiceException) {
                 throw new common_1.ServiceUnavailableException('NLP service sedang tidak tersedia, coba beberapa saat lagi');
             }
             throw error;

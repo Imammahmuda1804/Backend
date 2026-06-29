@@ -25,7 +25,6 @@ import { SearchQueryDto } from './dto';
 import { Public } from '../../common/decorators/public.decorator';
 import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { parsePaginationQuery } from '../../common/utils/pagination.util';
 
 // Payload user yang tersedia dari JWT.
 interface AuthUser {
@@ -84,15 +83,15 @@ export class SearchController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getHistory(
     @CurrentUser('id') userId: number,
-    @Query() query: { page?: string; limit?: string },
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20',
   ) {
-    const pagination = parsePaginationQuery(query.page, query.limit, {
-      defaultLimit: 20,
-    });
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = Math.min(parseInt(limit, 10) || 20, 100);
     return this.searchService.getHistory(
       userId,
-      pagination.page,
-      pagination.limit,
+      pageNum,
+      limitNum,
     );
   }
   // Menghapus semua riwayat pencarian user.

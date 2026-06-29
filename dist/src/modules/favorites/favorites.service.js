@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.FavoritesService = void 0;
 const common_1 = require("@nestjs/common");
-const destination_lookup_util_1 = require("../../common/utils/destination-lookup.util");
 const prisma_service_1 = require("../../prisma/prisma.service");
 let FavoritesService = class FavoritesService {
     prisma;
@@ -23,7 +22,13 @@ let FavoritesService = class FavoritesService {
         return this.createFavoriteOrReturnExisting(userId, destinationId);
     }
     async ensureDestinationExists(destinationId) {
-        await (0, destination_lookup_util_1.findActiveDestinationIdentity)(this.prisma, destinationId);
+        const destination = await this.prisma.destination.findFirst({
+            where: { id: destinationId, deletedAt: null },
+            select: { id: true },
+        });
+        if (!destination) {
+            throw new common_1.NotFoundException('Destinasi tidak ditemukan');
+        }
     }
     async createFavoriteOrReturnExisting(userId, destinationId) {
         try {

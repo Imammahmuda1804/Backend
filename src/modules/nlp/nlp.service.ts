@@ -1,12 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, HttpStatus } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { catchError, firstValueFrom, Observable } from 'rxjs';
 import { AxiosError, AxiosResponse } from 'axios';
 import FormData from 'form-data';
 import { NlpPipelineResult } from './interfaces/nlp-pipeline-result.interface';
-import { NlpServiceUnavailableException } from './exceptions/nlp-unavailable.exception';
-import { NlpProcessingException } from './exceptions/nlp-processing.exception';
+import { NlpServiceException } from './exceptions/nlp-service.exception';
 
 @Injectable()
 // Menjadi client HTTP dari backend NestJS ke service FastAPI Model.
@@ -100,15 +99,12 @@ export class NlpService {
 
       return response.data;
     } catch (error: unknown) {
-      if (
-        error instanceof NlpServiceUnavailableException ||
-        error instanceof NlpProcessingException
-      ) {
+      if (error instanceof NlpServiceException) {
         throw error;
       }
       const message = error instanceof Error ? error.message : String(error);
       this.logger.error(`Unexpected error during ${operation}: ${message}`);
-      throw new NlpProcessingException(unexpectedMessage);
+      throw new NlpServiceException(unexpectedMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -116,14 +112,12 @@ export class NlpService {
   private handleAxiosError(error: AxiosError): never {
     if (error.code === 'ECONNREFUSED') {
       this.logger.error('Connection refused. Is FastAPI running?');
-      throw new NlpServiceUnavailableException(
-        'NLP Service connection refused',
-      );
+      throw new NlpServiceException('NLP Service connection refused');
     }
 
     if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
       this.logger.error('Request to FastAPI timed out');
-      throw new NlpServiceUnavailableException('NLP Service request timed out');
+      throw new NlpServiceException('NLP Service request timed out');
     }
 
     if (error.response) {
@@ -131,7 +125,7 @@ export class NlpService {
     }
 
     this.logger.error(`FastAPI communication error: ${error.message}`);
-    throw new NlpProcessingException('Error communicating with NLP Service');
+    throw new NlpServiceException('Error communicating with NLP Service', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   private handleResponseError(error: AxiosError): never {
@@ -142,24 +136,20 @@ export class NlpService {
     );
 
     if (status === 422) {
-      throw new NlpProcessingException(
-        'Invalid input format to NLP Service (422)',
-      );
+      throw new NlpServiceException('Invalid input format to NLP Service (422)', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     if (status === 429) {
-      throw new NlpServiceUnavailableException(
-        `Terlalu banyak permintaan ke layanan AI (429)${this.getRetryMessage(
-          error,
-        )}`,
+      throw new NlpServiceException(
+        `Terlalu banyak permintaan ke layanan AI (429)${this.getRetryMessage(error)}`,
       );
     }
 
     if (status && status >= 500) {
-      throw new NlpProcessingException('NLP Service internal error');
+      throw new NlpServiceException('NLP Service internal error', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    throw new NlpProcessingException('Error communicating with NLP Service');
+    throw new NlpServiceException('Error communicating with NLP Service', HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
   private getRetryMessage(error: AxiosError) {

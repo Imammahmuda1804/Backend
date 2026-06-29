@@ -18,7 +18,6 @@ const swagger_1 = require("@nestjs/swagger");
 const topics_service_1 = require("./topics.service");
 const public_decorator_1 = require("../../common/decorators/public.decorator");
 const roles_decorator_1 = require("../../common/decorators/roles.decorator");
-const pagination_util_1 = require("../../common/utils/pagination.util");
 const topic_admin_dto_1 = require("./dto/topic-admin.dto");
 let TopicsController = class TopicsController {
     topicsService;
@@ -61,9 +60,8 @@ let TopicsController = class TopicsController {
     async deleteTopic(id) {
         return this.topicsService.deleteTopic(id);
     }
-    async findDestinationsByTopic(id, page, limit) {
-        const pagination = (0, pagination_util_1.parsePaginationQuery)(page, limit, { defaultLimit: 10 });
-        return this.topicsService.findDestinationsByTopic(id, pagination.page, pagination.limit);
+    async findDestinationsByTopic(id, page = '1', limit = '10') {
+        return this.topicsService.findDestinationsByTopic(id, parseInt(page, 10) || 1, Math.min(parseInt(limit, 10) || 10, 100));
     }
 };
 exports.TopicsController = TopicsController;
@@ -247,9 +245,8 @@ let AdminTopicsController = class AdminTopicsController {
     constructor(topicsService) {
         this.topicsService = topicsService;
     }
-    async findReviewsByTopic(id, sentiment, destinationId, page, limit) {
-        const pagination = (0, pagination_util_1.parsePaginationQuery)(page, limit, { defaultLimit: 10 });
-        return this.topicsService.findReviewsByTopic(id, pagination.page, pagination.limit, sentiment, destinationId ? parseInt(destinationId, 10) : undefined);
+    async findReviewsByTopic(id, sentiment, destinationId, page = '1', limit = '10') {
+        return this.topicsService.findReviewsByTopic(id, parseInt(page, 10) || 1, Math.min(parseInt(limit, 10) || 10, 100), sentiment, destinationId ? parseInt(destinationId, 10) : undefined);
     }
 };
 exports.AdminTopicsController = AdminTopicsController;

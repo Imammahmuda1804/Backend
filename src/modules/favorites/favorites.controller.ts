@@ -19,7 +19,6 @@ import {
 } from '@nestjs/swagger';
 import { FavoritesService } from './favorites.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { parsePaginationQuery } from '../../common/utils/pagination.util';
 
 @ApiTags('Favorites')
 @ApiBearerAuth()
@@ -51,14 +50,15 @@ export class FavoritesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getFavorites(
     @CurrentUser('id') userId: number,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '20',
   ) {
-    const pagination = parsePaginationQuery(page, limit, { defaultLimit: 20 });
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = Math.min(parseInt(limit, 10) || 20, 100);
     return this.favoritesService.getFavorites(
       userId,
-      pagination.page,
-      pagination.limit,
+      pageNum,
+      limitNum,
     );
   }
 

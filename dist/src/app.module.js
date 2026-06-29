@@ -14,7 +14,6 @@ const bullmq_1 = require("@nestjs/bullmq");
 const env_config_1 = require("./config/env.config");
 const prisma_module_1 = require("./prisma/prisma.module");
 const app_controller_1 = require("./app.controller");
-const app_service_1 = require("./app.service");
 const auth_module_1 = require("./modules/auth/auth.module");
 const users_module_1 = require("./modules/users/users.module");
 const admin_module_1 = require("./modules/admin/admin.module");
@@ -107,7 +106,6 @@ exports.AppModule = AppModule = __decorate([
         ],
         controllers: [app_controller_1.AppController],
         providers: [
-            app_service_1.AppService,
             {
                 provide: core_1.APP_GUARD,
                 useClass: jwt_auth_guard_1.JwtAuthGuard,

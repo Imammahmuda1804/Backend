@@ -43,15 +43,11 @@ export class RoutePlanningService {
       (sum, stop) => sum + (stop.distanceToNextKm || 0),
       0,
     );
-    const visitMinutes = stops.reduce(
-      (sum, stop) => sum + (stop.estimatedVisitMinutes || 90),
-      0,
-    );
     const travelMinutes = Math.round(totalDistanceKm * 3);
 
     return {
       totalDistanceKm: Math.round(totalDistanceKm * 100) / 100,
-      estimatedDurationMinutes: visitMinutes + travelMinutes,
+      estimatedDurationMinutes: travelMinutes,
     };
   }
 
@@ -118,12 +114,16 @@ export class RoutePlanningService {
     const previous = this.getNeighbor(orderedStops[index - 1], destinations);
     const next = this.getNeighbor(orderedStops[index + 1], destinations);
 
+    const distanceToNext = this.distance(current, next);
+
     return {
       ...stop,
       stopOrder: index + 1,
       city: current.city,
       distanceFromPreviousKm: this.distance(previous, current),
-      distanceToNextKm: this.distance(current, next),
+      distanceToNextKm: distanceToNext,
+      // ponytail: estimatedVisitMinutes = travel time to next stop (3 min/km)
+      estimatedVisitMinutes: distanceToNext != null ? Math.round(distanceToNext * 3) : (stop.estimatedVisitMinutes || null),
     };
   }
 

@@ -7,14 +7,7 @@ export type NlpProcessingMode =
   | 'replace_existing';
 
 export function normalizeNlpMode(mode?: string): NlpProcessingMode {
-  if (
-    mode === 'reprocess_existing' ||
-    mode === 'replace_existing' ||
-    mode === 'skip_existing'
-  ) {
-    return mode;
-  }
-  return 'skip_existing';
+  return (['skip_existing', 'reprocess_existing', 'replace_existing'] as const).includes(mode as any) ? mode as NlpProcessingMode : 'skip_existing';
 }
 
 export function createFileHash(buffer: Buffer): string {

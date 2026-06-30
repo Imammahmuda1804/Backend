@@ -14,8 +14,8 @@ export declare class AnalyticsController {
         top_recommendations: {
             id: number;
             name: string;
-            slug: string;
             city: string;
+            slug: string;
             thumbnailUrl: string | null;
             positiveRatio: number | null;
             recommendationScore: number | null;

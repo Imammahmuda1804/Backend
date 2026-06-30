@@ -123,7 +123,10 @@ export class RoutePlanningService {
       distanceFromPreviousKm: this.distance(previous, current),
       distanceToNextKm: distanceToNext,
       // ponytail: estimatedVisitMinutes = travel time to next stop (3 min/km)
-      estimatedVisitMinutes: distanceToNext != null ? Math.round(distanceToNext * 3) : (stop.estimatedVisitMinutes || null),
+      estimatedVisitMinutes:
+        distanceToNext != null
+          ? Math.round(distanceToNext * 3)
+          : stop.estimatedVisitMinutes || undefined,
     };
   }
 

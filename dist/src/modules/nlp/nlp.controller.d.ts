@@ -12,13 +12,13 @@ export declare class NlpController {
         duplicate_reviews: number;
         already_processed: boolean;
         previous_run: {
-            status: string;
             id: number;
+            status: string;
+            startedAt: Date;
             mode: string;
             insertedReviews: number;
             skippedDuplicates: number;
             processedReviews: number;
-            startedAt: Date;
         } | null;
         recommended_mode: string;
     }>;
@@ -31,13 +31,17 @@ export declare class NlpController {
             };
             admin: {
                 id: number;
-                name: string;
                 email: string;
+                name: string;
             } | null;
         } & {
-            destinationId: number;
-            status: string;
             id: number;
+            status: string;
+            createdAt: Date;
+            destinationId: number;
+            startedAt: Date;
+            finishedAt: Date | null;
+            errorMessage: string | null;
             adminId: number | null;
             fileName: string;
             fileHash: string;
@@ -46,10 +50,6 @@ export declare class NlpController {
             insertedReviews: number;
             skippedDuplicates: number;
             processedReviews: number;
-            errorMessage: string | null;
-            startedAt: Date;
-            finishedAt: Date | null;
-            createdAt: Date;
         })[];
         meta: {
             page: number;
@@ -66,13 +66,17 @@ export declare class NlpController {
         };
         admin: {
             id: number;
-            name: string;
             email: string;
+            name: string;
         } | null;
     } & {
-        destinationId: number;
-        status: string;
         id: number;
+        status: string;
+        createdAt: Date;
+        destinationId: number;
+        startedAt: Date;
+        finishedAt: Date | null;
+        errorMessage: string | null;
         adminId: number | null;
         fileName: string;
         fileHash: string;
@@ -81,10 +85,6 @@ export declare class NlpController {
         insertedReviews: number;
         skippedDuplicates: number;
         processedReviews: number;
-        errorMessage: string | null;
-        startedAt: Date;
-        finishedAt: Date | null;
-        createdAt: Date;
     }>;
     uploadAndProcess(file: Express.Multer.File, destinationIdStr: string, rawMode: string | undefined, adminId?: number): Promise<{
         message: string;

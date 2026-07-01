@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
+import { BullModule } from '@nestjs/bullmq';
 import { NlpService } from './nlp.service';
 import { NlpResultStorageService } from './nlp-result-storage.service';
 import { VectorModule } from '../vector/vector.module';
@@ -18,9 +19,15 @@ import { NlpUploadExecutionService } from './nlp-upload-execution.service';
 import { TopicNamePolicyService } from './topic-name-policy.service';
 import { TopicGroupClassifierService } from './topic-group-classifier.service';
 import { TopicModelMappingModule } from '../topic-mapping/topic-model-mapping.module';
+import { NlpQueueProcessor } from './nlp-queue.processor';
 
 @Module({
-  imports: [HttpModule, VectorModule, TopicModelMappingModule],
+  imports: [
+    HttpModule,
+    VectorModule,
+    TopicModelMappingModule,
+    BullModule.registerQueue({ name: 'nlp-queue' }),
+  ],
   controllers: [NlpController],
   providers: [
     NlpService,
@@ -38,6 +45,7 @@ import { TopicModelMappingModule } from '../topic-mapping/topic-model-mapping.mo
     NlpDestinationAnalyticsStorageService,
     AiNamingService,
     CsvService,
+    NlpQueueProcessor,
   ],
   exports: [NlpService, NlpResultStorageService, AiNamingService],
 })

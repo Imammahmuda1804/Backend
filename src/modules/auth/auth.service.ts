@@ -198,32 +198,42 @@ export class AuthService {
 
   // Memperbarui token dari refresh token valid.
   async refreshToken(dto: RefreshTokenDto) {
+    let payload: JwtPayload;
     try {
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(
+      payload = await this.jwtService.verifyAsync<JwtPayload>(
         dto.refresh_token,
         {
           secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
         },
       );
-      const user = await this.prisma.user.findUnique({
-        where: { id: payload.sub },
-      });
-
-      if (!user || user.status !== 'active') {
-        throw new UnauthorizedException('User tidak valid atau tidak aktif');
-      }
-      const tokens = await this.generateTokens({
-        sub: user.id,
-        email: user.email,
-        role: user.role,
-      });
-
-      return tokens;
     } catch {
       throw new UnauthorizedException(
         'Refresh token tidak valid atau sudah expired',
       );
     }
+
+    let user: { id: number; name: string; email: string; role: string; status: string; profilePicture: string | null } | null;
+    try {
+      user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: { id: true, name: true, email: true, role: true, status: true, profilePicture: true },
+      });
+    } catch (dbError) {
+      this.logger.error(`Database error during refresh: ${dbError}`);
+      throw new UnauthorizedException(
+        'Gagal memverifikasi token. Silakan coba lagi.',
+      );
+    }
+
+    if (!user || user.status !== 'active') {
+      throw new UnauthorizedException('User tidak valid atau tidak aktif');
+    }
+    const tokens = await this.generateTokens({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+    return { ...tokens, user: this.toPublicAuthUser(user) };
   }
 
   // Memvalidasi refresh token saat logout.

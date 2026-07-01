@@ -34,6 +34,13 @@ export declare class AuthController {
         refresh_token: string;
     }>;
     refresh(dto: RefreshTokenDto): Promise<{
+        user: {
+            id: number;
+            name: string;
+            email: string;
+            role: string;
+            profilePicture: string | null;
+        };
         access_token: string;
         refresh_token: string;
     }>;

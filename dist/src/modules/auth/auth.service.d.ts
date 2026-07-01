@@ -55,6 +55,13 @@ export declare class AuthService {
         refresh_token: string;
     }>;
     refreshToken(dto: RefreshTokenDto): Promise<{
+        user: {
+            id: number;
+            name: string;
+            email: string;
+            role: string;
+            profilePicture: string | null;
+        };
         access_token: string;
         refresh_token: string;
     }>;

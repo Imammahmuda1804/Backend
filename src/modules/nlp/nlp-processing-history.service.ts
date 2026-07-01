@@ -77,7 +77,7 @@ export class NlpProcessingHistoryService {
     const run = await this.prisma.nlpProcessingRun.create({
       data: {
         ...input,
-        status: 'processing',
+        status: 'queued',
       },
       select: { id: true },
     });

@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+	import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
   CanonicalReviewTopicAssignment,
@@ -53,11 +53,21 @@ export class NlpReviewStorageService {
       savedTopicIds,
     );
 
-    await this.prisma.$transaction(async (transaction) => {
-      for (const update of updates) {
-        await this.saveReviewUpdate(transaction, update);
-      }
-    });
+    if (updates.length === 0) return;
+
+    // ponytail: batch kecil + timeout besar; interactive transaction Prisma default 5s
+    const BATCH = 50;
+    for (let i = 0; i < updates.length; i += BATCH) {
+      const batch = updates.slice(i, i + BATCH);
+      await this.prisma.$transaction(
+        async (tx) => {
+          for (const update of batch) {
+            await this.saveReviewUpdate(tx, update);
+          }
+        },
+        { timeout: 30000 },
+      );
+    }
   }
 
   private async saveReviewUpdate(

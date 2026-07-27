@@ -6,9 +6,7 @@ import { NlpService } from './modules/nlp/nlp.service';
 @ApiTags('Health')
 @Controller()
 export class AppController {
-  constructor(
-    private readonly nlpService: NlpService,
-  ) {}
+  constructor(private readonly nlpService: NlpService) {}
 
   @Get()
   @Public()

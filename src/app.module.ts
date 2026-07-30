@@ -11,8 +11,6 @@ import { AdminModule } from './modules/admin/admin.module';
 import { DestinationsModule } from './modules/destinations/destinations.module';
 import { ScraperModule } from './modules/scraper/scraper.module';
 import { NlpModule } from './modules/nlp/nlp.module';
-import { VectorModule } from './modules/vector/vector.module';
-import { UploadsModule } from './modules/uploads/uploads.module';
 import { SearchModule } from './modules/search/search.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
@@ -52,12 +50,6 @@ import { join } from 'path';
     NlpModule,
 
     // Memuat fitur vector search.
-    VectorModule,
-
-    // Memuat fitur upload.
-    UploadsModule,
-
-    // Memuat fitur search.
     SearchModule,
 
     // Memuat fitur analytics.

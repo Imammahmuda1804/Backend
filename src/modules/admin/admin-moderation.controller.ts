@@ -21,17 +21,7 @@ export class AdminModerationController {
     private readonly analyticsService: AnalyticsService,
   ) {}
 
-  // Menghapus scraped review lewat endpoint moderasi.
-  @Delete('moderation/reviews/:id')
-  @ApiOperation({ summary: 'Hapus scraped review (moderasi)' })
-  @ApiParam({ name: 'id', type: Number })
-  @ApiResponse({ status: 200, description: 'Review berhasil dihapus' })
-  @ApiAdminAuthResponses()
-  @ApiResponse({ status: 404, description: 'Review tidak ditemukan' })
-  async deleteReview(@Param('id', ParseIntPipe) id: number) {
-    const deletedReview = await this.reviewsService.deleteReview(id);
-    return deletedReview;
-  }
+  // ponytail: DELETE /admin/moderation/reviews/:id dihapus — duplikat dari DELETE /admin/reviews/:id
 
   // Menghapus user review lewat endpoint admin.
   @Delete('user-reviews/:id')

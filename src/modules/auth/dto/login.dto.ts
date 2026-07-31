@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 // Data yang dibutuhkan untuk login.
 export class LoginDto {
-  @ApiProperty({ description: 'Email user', example: 'john@mail.com' })
+  @ApiProperty({ description: 'Email user', example: 'admin@wisata.com' })
   @IsNotEmpty({ message: 'Email tidak boleh kosong' })
   @IsEmail({}, { message: 'Format email tidak valid' })
   email: string;

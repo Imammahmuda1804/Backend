@@ -132,6 +132,7 @@ export class DestinationDetailService {
       rating: true,
       reviewDate: true,
       sentiment: true,
+      sentimentConfidence: true,
       likesCount: true,
     });
 
@@ -210,6 +211,7 @@ export class DestinationDetailService {
       rating: true,
       reviewDate: true,
       sentiment: true,
+      sentimentConfidence: true,
       likesCount: true,
       topicId: true,
       topic: {

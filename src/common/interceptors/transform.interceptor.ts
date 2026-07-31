@@ -40,14 +40,13 @@ export class TransformInterceptor<T> implements NestInterceptor<
     );
   }
 
-  private wrapPaginatedResponse(res: {
-    data: T;
-    meta: Record<string, unknown>;
-  }) {
+  private wrapPaginatedResponse(res: any) {
+    const { data, meta, ...rest } = res;
     return {
       status: 'success' as const,
-      data: res.data,
-      meta: res.meta,
+      data,
+      meta,
+      ...rest,
     };
   }
 
